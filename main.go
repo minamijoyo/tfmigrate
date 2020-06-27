@@ -1,7 +1,17 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+
+	"github.com/minamijoyo/tfmigrate/tfexec"
+)
 
 func main() {
-	fmt.Println("hello world")
+	e := tfexec.NewDefaultExecutor()
+	terraformCLI := tfexec.NewTerraformCLI(e)
+	err := terraformCLI.Version([]string{"-json"})
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
 }
