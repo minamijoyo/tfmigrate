@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -10,8 +11,10 @@ import (
 func main() {
 	e := tfexec.NewDefaultExecutor()
 	terraformCLI := tfexec.NewTerraformCLI(e)
-	err := terraformCLI.Version([]string{"-json"})
+	v, err := terraformCLI.Version(context.Background())
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
+		return
 	}
+	fmt.Fprintln(os.Stdout, v)
 }

@@ -1,123 +1,56 @@
 package tfexec
 
+import (
+	"context"
+	"fmt"
+	"regexp"
+)
+
+// tfVersionRe is a pattern to parse outputs from terraform version.
+var tfVersionRe = regexp.MustCompile(`^Terraform v(.+)\s*$`)
+
 // TerraformCLI is an interface for executing the terraform command.
 type TerraformCLI interface {
-	// Version executes a terraform version command.
-	Version(options []string) error
-	// Init executes a terraform init command.
-	Init(options []string, dir string) error
-	// Plan executes a terraform plan command.
-	Plan(options []string, dir string) error
-	// Show executes a terraform show command.
-	Show(options []string, path string) error
-	// Import executes a terraform import command.
-	Import(options []string, addr string, id string) error
-	// StatePull executes a terraform state pull command.
-	StatePull(options []string) error
-	// StatePush executes a terraform state push command.
-	StatePush(options []string, path string) error
-	// StateMv executes a terraform state mv command.
-	StateMv(options []string, source string, destination string) error
-	// StateRm executes a terraform state rm command.
-	StateRm(options []string, address ...string) error
-	// StateList executes a terraform state list command.
-	StateList(options []string, address ...string) error
+	// Verison returns a version number of Terraform.
+	Version(ctx context.Context) (string, error)
 }
 
 // terraformCLI implements the TerraformCLI interface.
 type terraformCLI struct {
-	// Executor is a componenet which executes an arbitrary command.
-	*Executor
+	// Executor is an interface which executes an arbitrary command.
+	Executor
 }
 
 var _ TerraformCLI = (*terraformCLI)(nil)
 
 // NewTerraformCLI returns an implementation of the TerraformCLI interface.
-func NewTerraformCLI(e *Executor) TerraformCLI {
+func NewTerraformCLI(e Executor) TerraformCLI {
 	return &terraformCLI{
 		Executor: e,
 	}
 }
 
-func (c *terraformCLI) run(args []string) error {
-	cmd := c.Executor.NewCommand("terraform", args...)
-	return c.Executor.Run(cmd)
+// run is a helper method for running terraform comamnd.
+func (c *terraformCLI) run(ctx context.Context, args ...string) (string, error) {
+	cmd := c.Executor.NewCommandContext(ctx, "terraform", args...)
+	err := cmd.Run()
+	if err != nil {
+		return "", err
+	}
+	return cmd.Stdout(), err
 }
 
-// Version executes a terraform version command.
-func (c *terraformCLI) Version(options []string) error {
-	args := []string{"version"}
-	args = append(args, options...)
-	return c.run(args)
-}
+// Verison returns a version number of Terraform.
+func (c *terraformCLI) Version(ctx context.Context) (string, error) {
+	stdout, err := c.run(ctx, "version")
+	if err != nil {
+		return "", err
+	}
 
-// Init executes a terraform init command.
-func (c *terraformCLI) Init(options []string, dir string) error {
-	args := []string{"init"}
-	args = append(args, options...)
-	args = append(args, dir)
-	return c.run(args)
-}
-
-// Plan executes a terraform plan command.
-func (c *terraformCLI) Plan(options []string, dir string) error {
-	args := []string{"plan"}
-	args = append(args, options...)
-	args = append(args, dir)
-	return c.run(args)
-}
-
-// Show executes a terraform show command.
-func (c *terraformCLI) Show(options []string, path string) error {
-	args := []string{"show"}
-	args = append(args, options...)
-	args = append(args, path)
-	return c.run(args)
-}
-
-// Import executes a terraform import command.
-func (c *terraformCLI) Import(options []string, addr string, id string) error {
-	args := []string{"import"}
-	args = append(args, options...)
-	args = append(args, addr, id)
-	return c.run(args)
-}
-
-// StatePull executes a terraform state pull command.
-func (c *terraformCLI) StatePull(options []string) error {
-	args := []string{"state", "pull"}
-	args = append(args, options...)
-	return c.run(args)
-}
-
-// StatePush executes a terraform state push command.
-func (c *terraformCLI) StatePush(options []string, path string) error {
-	args := []string{"state", "push"}
-	args = append(args, options...)
-	args = append(args, path)
-	return c.run(args)
-}
-
-// StateMv executes a terraform state mv command.
-func (c *terraformCLI) StateMv(options []string, source string, destination string) error {
-	args := []string{"state", "mv"}
-	args = append(args, options...)
-	args = append(args, source, destination)
-	return c.run(args)
-}
-
-// StateRm executes a terraform state rm command.
-func (c *terraformCLI) StateRm(options []string, address ...string) error {
-	args := []string{"state", "rm"}
-	args = append(args, options...)
-	args = append(args, address...)
-	return c.run(args)
-}
-
-// StateList executes a terraform state list command.
-func (c *terraformCLI) StateList(options []string, address ...string) error {
-	args := []string{"state", "list"}
-	args = append(args, options...)
-	args = append(args, address...)
-	return c.run(args)
+	matched := tfVersionRe.FindStringSubmatch(stdout)
+	if len(matched) != 2 {
+		return "", fmt.Errorf("failed to parse terraform version: %s", stdout)
+	}
+	version := matched[1]
+	return version, nil
 }
