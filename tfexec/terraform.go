@@ -32,11 +32,16 @@ func NewTerraformCLI(e Executor) TerraformCLI {
 
 // run is a helper method for running terraform comamnd.
 func (c *terraformCLI) run(ctx context.Context, args ...string) (string, error) {
-	cmd := c.Executor.NewCommandContext(ctx, "terraform", args...)
-	err := cmd.Run()
+	cmd, err := c.Executor.NewCommandContext(ctx, "terraform", args...)
 	if err != nil {
 		return "", err
 	}
+
+	err = cmd.Run()
+	if err != nil {
+		return "", err
+	}
+
 	return cmd.Stdout(), err
 }
 

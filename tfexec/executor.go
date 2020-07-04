@@ -11,7 +11,7 @@ import (
 // Executor abstracts the os command execution layer.
 type Executor interface {
 	// NewCommandContext builds and returns an instance of Command.
-	NewCommandContext(ctx context.Context, name string, args ...string) Command
+	NewCommandContext(ctx context.Context, name string, args ...string) (Command, error)
 	// Run executes a command.
 	Run(cmd Command) error
 }
@@ -42,7 +42,7 @@ func NewDefaultExecutor() Executor {
 }
 
 // NewCommandContext builds and returns an instance of Command.
-func (e *executor) NewCommandContext(ctx context.Context, name string, args ...string) Command {
+func (e *executor) NewCommandContext(ctx context.Context, name string, args ...string) (Command, error) {
 	osExecCmd := exec.CommandContext(ctx, name, args...)
 	stdout := &bytes.Buffer{}
 	stderr := &bytes.Buffer{}
@@ -55,7 +55,7 @@ func (e *executor) NewCommandContext(ctx context.Context, name string, args ...s
 		osExecCmd: osExecCmd,
 		stdout:    stdout,
 		stderr:    stderr,
-	}
+	}, nil
 }
 
 // Run executes a command.
