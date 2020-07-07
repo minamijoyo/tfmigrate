@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	e := tfexec.NewDefaultExecutor()
+	e := tfexec.NewExecutor(".", os.Environ())
 	terraformCLI := tfexec.NewTerraformCLI(e)
 	v, err := terraformCLI.Version(context.Background())
 	if err != nil {

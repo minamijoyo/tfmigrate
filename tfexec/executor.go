@@ -31,13 +31,13 @@ type executor struct {
 
 var _ Executor = (*executor)(nil)
 
-// NewDefaultExecutor returns a default executor for real environments.
-func NewDefaultExecutor() Executor {
+// NewExecutor returns a default executor for real environments.
+func NewExecutor(dir string, env []string) Executor {
 	return &executor{
 		outStream: os.Stdout,
 		errStream: os.Stderr,
-		dir:       ".",
-		env:       os.Environ(),
+		dir:       dir,
+		env:       env,
 	}
 }
 
