@@ -92,3 +92,87 @@ func TestExecutorRun(t *testing.T) {
 		})
 	}
 }
+
+func TestExecutorEnv(t *testing.T) {
+	cases := []struct {
+		desc string
+		args []string
+		env  []string
+		want string
+		ok   bool
+	}{
+		{
+			desc: "test set env",
+			args: []string{"/bin/sh", "-c", "echo $FOO"},
+			env:  []string{"FOO=foo"},
+			want: "foo\n",
+			ok:   true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			e := NewExecutor(".", tc.env)
+			cmd, err := e.NewCommandContext(context.Background(), tc.args[0], tc.args[1:]...)
+			if err != nil {
+				t.Fatalf("failed to NewCommandContext: %s", err)
+			}
+
+			// call real command (not mock).
+			// this test may not work with some OS.
+			err = cmd.Run()
+			if tc.ok && err != nil {
+				t.Fatalf("unexpected err: %s", err)
+			}
+			got := cmd.Stdout()
+			if !tc.ok && err == nil {
+				t.Fatalf("expected to return an error, but no error, got = %s", got)
+			}
+			if got != tc.want {
+				t.Errorf("got: %s, want: %s", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestExecutorDir(t *testing.T) {
+	cases := []struct {
+		desc string
+		args []string
+		dir  string
+		want string
+		ok   bool
+	}{
+		{
+			desc: "test set dir",
+			args: []string{"pwd"},
+			dir:  "/bin",
+			want: "/bin\n",
+			ok:   true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			e := NewExecutor(tc.dir, []string{})
+			cmd, err := e.NewCommandContext(context.Background(), tc.args[0], tc.args[1:]...)
+			if err != nil {
+				t.Fatalf("failed to NewCommandContext: %s", err)
+			}
+
+			// call real command (not mock).
+			// this test may not work with some OS.
+			err = cmd.Run()
+			if tc.ok && err != nil {
+				t.Fatalf("unexpected err: %s", err)
+			}
+			got := cmd.Stdout()
+			if !tc.ok && err == nil {
+				t.Fatalf("expected to return an error, but no error, got = %s", got)
+			}
+			if got != tc.want {
+				t.Errorf("got: %s, want: %s", got, tc.want)
+			}
+		})
+	}
+}
