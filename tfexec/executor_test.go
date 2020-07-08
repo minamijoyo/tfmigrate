@@ -34,6 +34,7 @@ func TestMain(m *testing.M) {
 			return
 		}
 		// mock function not found.
+		fmt.Fprintln(os.Stderr, "mock function not found")
 		os.Exit(-1)
 		return
 	}
@@ -44,28 +45,32 @@ func TestMain(m *testing.M) {
 
 func TestExecutorRun(t *testing.T) {
 	cases := []struct {
-		desc string
-		args []string
-		want string
-		ok   bool
+		desc   string
+		args   []string
+		stdout string
+		stderr string
+		ok     bool
 	}{
 		{
-			desc: "test stdout",
-			args: []string{"echo", "foo", "bar"},
-			want: "foo bar\n",
-			ok:   true,
+			desc:   "test stdout",
+			args:   []string{"echo", "foo", "bar"},
+			stdout: "foo bar\n",
+			stderr: "",
+			ok:     true,
 		},
 		{
-			desc: "test exit error",
-			args: []string{"false"},
-			want: "",
-			ok:   false,
+			desc:   "test exit error",
+			args:   []string{"false"},
+			stdout: "",
+			stderr: "",
+			ok:     false,
 		},
 		{
-			desc: "mock function not found",
-			args: []string{"foo"},
-			want: "",
-			ok:   false,
+			desc:   "mock function not found",
+			args:   []string{"foo"},
+			stdout: "",
+			stderr: "mock function not found\n",
+			ok:     false,
 		},
 	}
 
@@ -82,12 +87,16 @@ func TestExecutorRun(t *testing.T) {
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}
-			got := cmd.Stdout()
+			gotStdout := cmd.Stdout()
+			gotStderr := cmd.Stderr()
 			if !tc.ok && err == nil {
-				t.Fatalf("expected to return an error, but no error, got = %s", got)
+				t.Fatalf("expected to return an error, but no error, stdout = %s, stderr = %s", gotStdout, gotStderr)
 			}
-			if got != tc.want {
-				t.Errorf("got: %s, want: %s", got, tc.want)
+			if gotStdout != tc.stdout {
+				t.Errorf("unexpected stdout. got: %s, want: %s", gotStdout, tc.stdout)
+			}
+			if gotStderr != tc.stderr {
+				t.Errorf("unexpected stderr. got: %s, want: %s", gotStderr, tc.stderr)
 			}
 		})
 	}
