@@ -37,7 +37,7 @@ func (c *terraformCLI) run(ctx context.Context, args ...string) (string, error) 
 		return "", err
 	}
 
-	err = cmd.Run()
+	err = c.Executor.Run(cmd)
 	if err != nil {
 		return "", err
 	}

@@ -83,7 +83,7 @@ func TestExecutorRun(t *testing.T) {
 				t.Fatalf("failed to NewCommandContext: %s", err)
 			}
 
-			err = cmd.Run()
+			err = e.Run(cmd)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}
@@ -129,7 +129,7 @@ func TestExecutorEnv(t *testing.T) {
 
 			// call real command (not mock).
 			// this test may not work with some OS.
-			err = cmd.Run()
+			err = e.Run(cmd)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}
@@ -171,7 +171,7 @@ func TestExecutorDir(t *testing.T) {
 
 			// call real command (not mock).
 			// this test may not work with some OS.
-			err = cmd.Run()
+			err = e.Run(cmd)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}
