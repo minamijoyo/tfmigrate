@@ -13,6 +13,9 @@ var tfVersionRe = regexp.MustCompile(`^Terraform v(.+)\s*$`)
 type TerraformCLI interface {
 	// Verison returns a version number of Terraform.
 	Version(ctx context.Context) (string, error)
+
+	// StatePull returns contents of tfstate.
+	StatePull(ctx context.Context) (string, error)
 }
 
 // terraformCLI implements the TerraformCLI interface.
@@ -58,4 +61,14 @@ func (c *terraformCLI) Version(ctx context.Context) (string, error) {
 	}
 	version := matched[1]
 	return version, nil
+}
+
+// StatePull returns contents of tfstate.
+func (c *terraformCLI) StatePull(ctx context.Context) (string, error) {
+	stdout, err := c.run(ctx, "state", "pull")
+	if err != nil {
+		return "", err
+	}
+
+	return stdout, nil
 }
