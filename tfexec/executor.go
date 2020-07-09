@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"log"
 	"os"
 	"os/exec"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 // Executor abstracts the os command execution layer.
@@ -61,7 +64,9 @@ func (e *executor) NewCommandContext(ctx context.Context, name string, args ...s
 // Run executes a command.
 func (e *executor) Run(cmd Command) error {
 	err := cmd.Run()
+	log.Printf("[DEBUG] run command: %s", spew.Sdump(cmd))
 	if err != nil {
+		log.Printf("[DEBUG] failed to run command: %s", spew.Sdump(err))
 		if osExecErr, ok := err.(*exec.ExitError); ok {
 			return &exitError{
 				osExecErr: osExecErr,
