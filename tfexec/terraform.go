@@ -9,13 +9,18 @@ import (
 // tfVersionRe is a pattern to parse outputs from terraform version.
 var tfVersionRe = regexp.MustCompile(`^Terraform v(.+)\s*$`)
 
+// State is a named type for tfstate.
+// We doesn't need to parse contents of tfstate,
+// but we define it as a name type to clarify TerraformCLI interface.
+type State string
+
 // TerraformCLI is an interface for executing the terraform command.
 type TerraformCLI interface {
 	// Verison returns a version number of Terraform.
 	Version(ctx context.Context) (string, error)
 
-	// StatePull returns contents of tfstate.
-	StatePull(ctx context.Context) (string, error)
+	// StatePull returns the current tfstate.
+	StatePull(ctx context.Context) (State, error)
 }
 
 // terraformCLI implements the TerraformCLI interface.
@@ -63,12 +68,12 @@ func (c *terraformCLI) Version(ctx context.Context) (string, error) {
 	return version, nil
 }
 
-// StatePull returns contents of tfstate.
-func (c *terraformCLI) StatePull(ctx context.Context) (string, error) {
+// StatePull returns the current tfstate.
+func (c *terraformCLI) StatePull(ctx context.Context) (State, error) {
 	stdout, err := c.run(ctx, "state", "pull")
 	if err != nil {
 		return "", err
 	}
 
-	return stdout, nil
+	return State(stdout), nil
 }

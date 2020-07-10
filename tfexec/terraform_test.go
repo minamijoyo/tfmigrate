@@ -71,7 +71,7 @@ func TestTerraformCLIStatePull(t *testing.T) {
 	cases := []struct {
 		desc         string
 		mockCommands []*mockCommand
-		want         string
+		want         State
 		ok           bool
 	}{
 		{
@@ -84,7 +84,7 @@ func TestTerraformCLIStatePull(t *testing.T) {
 					exitCode: 0,
 				},
 			},
-			want: tfstate,
+			want: State(tfstate),
 			ok:   true,
 		},
 		{
@@ -97,7 +97,7 @@ func TestTerraformCLIStatePull(t *testing.T) {
 					exitCode: 1,
 				},
 			},
-			want: "",
+			want: State(""),
 			ok:   false,
 		},
 	}
