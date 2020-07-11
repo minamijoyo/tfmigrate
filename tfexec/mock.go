@@ -3,7 +3,7 @@ package tfexec
 import (
 	"context"
 	"fmt"
-	"reflect"
+	"regexp"
 	"strings"
 )
 
@@ -30,13 +30,20 @@ func NewMockExecutor(mockCommands []*mockCommand) Executor {
 func (e *mockExecutor) NewCommandContext(ctx context.Context, name string, args ...string) (Command, error) {
 	cmd := e.mockCommands[e.newCommnadContextCalls]
 	e.newCommnadContextCalls++
+
 	// check if the command call order is expected.
-	if !(name == cmd.args[0] && reflect.DeepEqual(args, cmd.args[1:])) {
-		return nil, fmt.Errorf(
-			"unexpected NewCommandContext call. got = %s %s, want = %s",
-			name, strings.Join(args, " "),
-			strings.Join(cmd.args, " "),
-		)
+	got := name + " " + strings.Join(args, " ")
+	if cmd.argsRe != nil {
+		// check with a regex pattern match
+		if !cmd.argsRe.MatchString(got) {
+			return nil, fmt.Errorf("unexpected NewCommandContext call. got = %s, want = %s", got, cmd.argsRe)
+		}
+	} else {
+		// check with an exact match
+		want := strings.Join(cmd.args, " ")
+		if got != want {
+			return nil, fmt.Errorf("unexpected NewCommandContext call. got = %s, want = %s", got, want)
+		}
 	}
 	return cmd, nil
 }
@@ -52,6 +59,11 @@ type mockCommand struct {
 	// args is arguments of the command.
 	// Note that args[0] is a name of the command.
 	args []string
+	// argsRe is an expected regex pattern for a string of args (including
+	// command name). It is intended to test args with a regex pattern match
+	// insted of an exact match if the args contain a variable such as a path of
+	// temporary file.
+	argsRe *regexp.Regexp
 	// mockStdout is a mocked string for stdout.
 	stdout string
 	// mockStderr is a mocked string for stderr.
