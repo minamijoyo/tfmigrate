@@ -1,0 +1,21 @@
+version: '3'
+services:
+  tfmigrate:
+    build: .
+    volumes:
+      - ".:/work"
+    environment:
+      TF_PLUGIN_CACHE_DIR: "/work/tmp/plugin-cache"
+    depends_on:
+      - localstack
+
+  localstack:
+    image: localstack/localstack:0.11.3
+    ports:
+      - "4566:4566"
+    environment:
+      DEBUG: "true"
+      SERVICES: "s3,ec2"
+      DEFAULT_REGION: "ap-northeast-1"
+    volumes:
+      - "./scripts/localstack:/docker-entrypoint-initaws.d"  # initialize scripts on startup
