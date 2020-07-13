@@ -1,7 +1,10 @@
 version: '3'
 services:
   tfmigrate:
-    build: .
+    build:
+      context: .
+      args:
+        TERRAFORM_VERSION: 0.12.28
     volumes:
       - ".:/work"
     environment:
