@@ -30,6 +30,9 @@ type TerraformCLI interface {
 	// Verison returns a version number of Terraform.
 	Version(ctx context.Context) (string, error)
 
+	// Init initializes a given work directory.
+	Init(ctx context.Context, dir string, opts ...string) error
+
 	// StatePull returns the current tfstate from remote.
 	StatePull(ctx context.Context) (State, error)
 
@@ -80,6 +83,17 @@ func (c *terraformCLI) Version(ctx context.Context) (string, error) {
 	}
 	version := matched[1]
 	return version, nil
+}
+
+// Init initializes a given work directory.
+func (c *terraformCLI) Init(ctx context.Context, dir string, opts ...string) error {
+	args := []string{"init"}
+	args = append(args, opts...)
+	if len(dir) > 0 {
+		args = append(args, dir)
+	}
+	_, err := c.run(ctx, args...)
+	return err
 }
 
 // StatePull returns the current tfstate from remote.
