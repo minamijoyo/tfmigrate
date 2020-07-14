@@ -19,7 +19,6 @@ func TestTerraformCLIVersion(t *testing.T) {
 				{
 					args:     []string{"terraform", "version"},
 					stdout:   "Terraform v0.13.0-beta2\n",
-					stderr:   "",
 					exitCode: 0,
 				},
 			},
@@ -31,8 +30,6 @@ func TestTerraformCLIVersion(t *testing.T) {
 			mockCommands: []*mockCommand{
 				{
 					args:     []string{"terraform", "version"},
-					stdout:   "",
-					stderr:   "",
 					exitCode: 1,
 				},
 			},
@@ -72,8 +69,6 @@ func TestTerraformCLIInit(t *testing.T) {
 			mockCommands: []*mockCommand{
 				{
 					args:     []string{"terraform", "init"},
-					stdout:   "",
-					stderr:   "",
 					exitCode: 0,
 				},
 			},
@@ -84,8 +79,6 @@ func TestTerraformCLIInit(t *testing.T) {
 			mockCommands: []*mockCommand{
 				{
 					args:     []string{"terraform", "init"},
-					stdout:   "",
-					stderr:   "",
 					exitCode: 1,
 				},
 			},
@@ -96,8 +89,6 @@ func TestTerraformCLIInit(t *testing.T) {
 			mockCommands: []*mockCommand{
 				{
 					args:     []string{"terraform", "init", "foo"},
-					stdout:   "",
-					stderr:   "",
 					exitCode: 0,
 				},
 			},
@@ -109,8 +100,6 @@ func TestTerraformCLIInit(t *testing.T) {
 			mockCommands: []*mockCommand{
 				{
 					args:     []string{"terraform", "init", "-input=false", "-no-color"},
-					stdout:   "",
-					stderr:   "",
 					exitCode: 0,
 				},
 			},
@@ -122,8 +111,6 @@ func TestTerraformCLIInit(t *testing.T) {
 			mockCommands: []*mockCommand{
 				{
 					args:     []string{"terraform", "init", "-input=false", "-no-color", "foo"},
-					stdout:   "",
-					stderr:   "",
 					exitCode: 0,
 				},
 			},
@@ -170,7 +157,6 @@ func TestTerraformCLIStatePull(t *testing.T) {
 				{
 					args:     []string{"terraform", "state", "pull"},
 					stdout:   tfstate,
-					stderr:   "",
 					exitCode: 0,
 				},
 			},
@@ -182,8 +168,6 @@ func TestTerraformCLIStatePull(t *testing.T) {
 			mockCommands: []*mockCommand{
 				{
 					args:     []string{"terraform", "state", "pull"},
-					stdout:   "",
-					stderr:   "",
 					exitCode: 1,
 				},
 			},
@@ -232,8 +216,6 @@ func TestTerraformCLIStatePush(t *testing.T) {
 				{
 					args:     []string{"terraform", "state", "push", "/path/to/tempfile"},
 					argsRe:   regexp.MustCompile(`^terraform state push .+$`),
-					stdout:   "",
-					stderr:   "",
 					exitCode: 0,
 				},
 			},
@@ -246,8 +228,6 @@ func TestTerraformCLIStatePush(t *testing.T) {
 				{
 					args:     []string{"terraform", "state", "push", "/path/to/tempfile"},
 					argsRe:   regexp.MustCompile(`^terraform state push .+$`),
-					stdout:   "",
-					stderr:   "",
 					exitCode: 1,
 				},
 			},
