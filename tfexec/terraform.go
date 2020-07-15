@@ -33,6 +33,9 @@ type TerraformCLI interface {
 	// Init initializes a given work directory.
 	Init(ctx context.Context, dir string, opts ...string) error
 
+	// Apply applies changes.
+	Apply(ctx context.Context, dirOrPlan string, opts ...string) error
+
 	// StatePull returns the current tfstate from remote.
 	StatePull(ctx context.Context) (State, error)
 
@@ -91,6 +94,17 @@ func (c *terraformCLI) Init(ctx context.Context, dir string, opts ...string) err
 	args = append(args, opts...)
 	if len(dir) > 0 {
 		args = append(args, dir)
+	}
+	_, err := c.run(ctx, args...)
+	return err
+}
+
+// Apply applies changes.
+func (c *terraformCLI) Apply(ctx context.Context, dirOrPlan string, opts ...string) error {
+	args := []string{"apply"}
+	args = append(args, opts...)
+	if len(dirOrPlan) > 0 {
+		args = append(args, dirOrPlan)
 	}
 	_, err := c.run(ctx, args...)
 	return err
