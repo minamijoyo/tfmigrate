@@ -22,12 +22,18 @@ type State string
 // most of stdout may not be useful. In addition, the interfaces of state
 // subcommands are inconsistent, and if a state file is required for the
 // argument, we need a temporary file. However, It's hard to clean up the
-// temporary file when an error occurs in the middle of a series  of commands.
+// temporary file when an error occurs in the middle of a series of commands.
 // This means implementing the exactly same interface for the terraform command
 // doesn't make sense for us. So we wrap the terraform command and provider a
 // high-level and easy-to-use interface which can be used in memory as much as
 // possible.
+// The interface is an opinionated, if it doesn't match you need, you can use
+// Run(), which is a low-level generic method for running an arbitrary
+// terraform command.
 type TerraformCLI interface {
+	// Run is a low-level generic method for running an arbitrary terraform comamnd.
+	Run(ctx context.Context, args ...string) (string, string, error)
+
 	// Verison returns a version number of Terraform.
 	Version(ctx context.Context) (string, error)
 
@@ -66,24 +72,21 @@ func NewTerraformCLI(e Executor) TerraformCLI {
 	}
 }
 
-// run is a helper method for running terraform comamnd.
-func (c *terraformCLI) run(ctx context.Context, args ...string) (string, error) {
+// Run is a low-level generic method for running an arbitrary terraform comamnd.
+func (c *terraformCLI) Run(ctx context.Context, args ...string) (string, string, error) {
 	cmd, err := c.Executor.NewCommandContext(ctx, "terraform", args...)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	err = c.Executor.Run(cmd)
-	if err != nil {
-		return "", err
-	}
 
-	return cmd.Stdout(), err
+	return cmd.Stdout(), cmd.Stderr(), err
 }
 
 // Verison returns a version number of Terraform.
 func (c *terraformCLI) Version(ctx context.Context) (string, error) {
-	stdout, err := c.run(ctx, "version")
+	stdout, _, err := c.Run(ctx, "version")
 	if err != nil {
 		return "", err
 	}
@@ -103,7 +106,7 @@ func (c *terraformCLI) Init(ctx context.Context, dir string, opts ...string) err
 	if len(dir) > 0 {
 		args = append(args, dir)
 	}
-	_, err := c.run(ctx, args...)
+	_, _, err := c.Run(ctx, args...)
 	return err
 }
 
@@ -114,7 +117,7 @@ func (c *terraformCLI) Apply(ctx context.Context, dirOrPlan string, opts ...stri
 	if len(dirOrPlan) > 0 {
 		args = append(args, dirOrPlan)
 	}
-	_, err := c.run(ctx, args...)
+	_, _, err := c.Run(ctx, args...)
 	return err
 }
 
@@ -125,7 +128,7 @@ func (c *terraformCLI) Destroy(ctx context.Context, dir string, opts ...string) 
 	if len(dir) > 0 {
 		args = append(args, dir)
 	}
-	_, err := c.run(ctx, args...)
+	_, _, err := c.Run(ctx, args...)
 	return err
 }
 
@@ -152,7 +155,7 @@ func (c *terraformCLI) StateList(ctx context.Context, state *State, addresses []
 		args = append(args, addresses...)
 	}
 
-	stdout, err := c.run(ctx, args...)
+	stdout, _, err := c.Run(ctx, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +165,7 @@ func (c *terraformCLI) StateList(ctx context.Context, state *State, addresses []
 
 // StatePull returns the current tfstate from remote.
 func (c *terraformCLI) StatePull(ctx context.Context) (State, error) {
-	stdout, err := c.run(ctx, "state", "pull")
+	stdout, _, err := c.Run(ctx, "state", "pull")
 	if err != nil {
 		return "", err
 	}
@@ -178,7 +181,7 @@ func (c *terraformCLI) StatePush(ctx context.Context, state State) error {
 		return err
 	}
 
-	_, err = c.run(ctx, "state", "push", tmpfile.Name())
+	_, _, err = c.Run(ctx, "state", "push", tmpfile.Name())
 	return err
 }
 
