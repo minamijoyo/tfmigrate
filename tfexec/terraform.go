@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
+	"strings"
 )
 
 // tfVersionRe is a pattern to parse outputs from terraform version.
@@ -38,6 +39,10 @@ type TerraformCLI interface {
 
 	// Destroy destroys resources.
 	Destroy(ctx context.Context, dir string, opts ...string) error
+
+	// StateList shows a list of resources.
+	// If a state is given, use it for the input state.
+	StateList(ctx context.Context, state *State, addresses []string, opts ...string) ([]string, error)
 
 	// StatePull returns the current tfstate from remote.
 	StatePull(ctx context.Context) (State, error)
@@ -124,6 +129,37 @@ func (c *terraformCLI) Destroy(ctx context.Context, dir string, opts ...string) 
 	return err
 }
 
+// StateList shows a list of resources.
+// If a state is given, use it for the input state.
+func (c *terraformCLI) StateList(ctx context.Context, state *State, addresses []string, opts ...string) ([]string, error) {
+	args := []string{"state", "list"}
+
+	if state != nil {
+		if hasPrefixOptions(opts, "-state=") {
+			return nil, fmt.Errorf("failed to build `terraform state list` options. The state argument (!= nil) and the -state= option cannot be set at the same time: state=%v, opts=%v", state, opts)
+		}
+		tmpfile, err := writeTempFile([]byte(*state))
+		defer os.Remove(tmpfile.Name())
+		if err != nil {
+			return nil, err
+		}
+		args = append(args, "-state="+tmpfile.Name())
+	}
+
+	args = append(args, opts...)
+
+	if len(addresses) > 0 {
+		args = append(args, addresses...)
+	}
+
+	stdout, err := c.run(ctx, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return strings.Split(strings.TrimRight(stdout, "\n"), "\n"), nil
+}
+
 // StatePull returns the current tfstate from remote.
 func (c *terraformCLI) StatePull(ctx context.Context) (State, error) {
 	stdout, err := c.run(ctx, "state", "pull")
@@ -162,4 +198,14 @@ func writeTempFile(content []byte) (*os.File, error) {
 	}
 
 	return tmpfile, nil
+}
+
+// hasPrefixOptions returns true if any element in a list of string has a given prefix.
+func hasPrefixOptions(opts []string, prefix string) bool {
+	for _, opt := range opts {
+		if strings.HasPrefix(opt, prefix) {
+			return true
+		}
+	}
+	return false
 }
