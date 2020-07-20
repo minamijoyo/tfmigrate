@@ -30,6 +30,8 @@ func NewMockExecutor(mockCommands []*mockCommand) Executor {
 func (e *mockExecutor) NewCommandContext(ctx context.Context, name string, args ...string) (Command, error) {
 	cmd := e.mockCommands[e.newCommnadContextCalls]
 	e.newCommnadContextCalls++
+	// store called args to pass runFunc callback.
+	cmd.calledArgs = args
 
 	// check if the command call order is expected.
 	got := name + " " + strings.Join(args, " ")
@@ -54,6 +56,9 @@ func (e *mockExecutor) Run(cmd Command) error {
 	return cmd.Run()
 }
 
+// mockRunFunc is a type for callback of mockCommand.Run() to allow us to cause side effects.
+type mockRunFunc func(args ...string) error
+
 // mockCommand implements the Command interface for testing.
 type mockCommand struct {
 	// args is arguments of the command.
@@ -64,6 +69,10 @@ type mockCommand struct {
 	// insted of an exact match if the args contain a variable such as a path of
 	// temporary file.
 	argsRe *regexp.Regexp
+	// calledArgs stores arguments actually called to pass runFunc.
+	calledArgs []string
+	// runFunc is a callback of Run() to allow us to cause side effects.
+	runFunc mockRunFunc
 	// mockStdout is a mocked string for stdout.
 	stdout string
 	// mockStderr is a mocked string for stderr.
@@ -76,6 +85,13 @@ var _ Command = (*mockCommand)(nil)
 
 // Run executes an arbitrary command.
 func (c *mockCommand) Run() error {
+	if c.runFunc != nil {
+		err := c.runFunc(c.calledArgs...)
+		if err != nil {
+			return err
+		}
+	}
+
 	if c.exitCode != 0 {
 		return &mockExitError{
 			exitCode: c.exitCode,

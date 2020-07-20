@@ -17,6 +17,11 @@ var tfVersionRe = regexp.MustCompile(`^Terraform v(.+)\s*$`)
 // but we define it as a name type to clarify TerraformCLI interface.
 type State string
 
+// Plan is a named type for tfplan.
+// We doesn't need to parse contents of tfplan,
+// but we define it as a name type to clarify TerraformCLI interface.
+type Plan []byte
+
 // TerraformCLI is an interface for executing the terraform command.
 // The main features of the terraform command are many of side effects, and the
 // most of stdout may not be useful. In addition, the interfaces of state
@@ -39,6 +44,10 @@ type TerraformCLI interface {
 
 	// Init initializes a given work directory.
 	Init(ctx context.Context, dir string, opts ...string) error
+
+	// Plan computes expected changes.
+	// If a state is given, use it for the input state.
+	Plan(ctx context.Context, state *State, dir string, opts ...string) (Plan, error)
 
 	// Apply applies changes.
 	Apply(ctx context.Context, dirOrPlan string, opts ...string) error
@@ -110,6 +119,54 @@ func (c *terraformCLI) Init(ctx context.Context, dir string, opts ...string) err
 	return err
 }
 
+// Plan computes expected changes.
+// If a state is given, use it for the input state.
+func (c *terraformCLI) Plan(ctx context.Context, state *State, dir string, opts ...string) (Plan, error) {
+	args := []string{"plan"}
+
+	if state != nil {
+		if hasPrefixOptions(opts, "-state=") {
+			return nil, fmt.Errorf("failed to build options. The state argument (!= nil) and the -state= option cannot be set at the same time: state=%v, opts=%v", state, opts)
+		}
+		tmpState, err := writeTempFile([]byte(*state))
+		defer os.Remove(tmpState.Name())
+		if err != nil {
+			return nil, err
+		}
+		args = append(args, "-state="+tmpState.Name())
+	}
+
+	// disallow -out option for writing a plan file to a temporary file and load it to memory
+	if hasPrefixOptions(opts, "-out=") {
+		return nil, fmt.Errorf("failed to build options. The -out= option is not allowed. Read a return value: %v", opts)
+	}
+
+	tmpPlan, err := ioutil.TempFile("", "tfplan")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temporary plan file: %s", err)
+	}
+	defer os.Remove(tmpPlan.Name())
+
+	if err := tmpPlan.Close(); err != nil {
+		return nil, fmt.Errorf("failed to close temporary plan file: %s", err)
+	}
+	args = append(args, "-out="+tmpPlan.Name())
+
+	args = append(args, opts...)
+
+	if len(dir) > 0 {
+		args = append(args, dir)
+	}
+
+	_, _, err = c.Run(ctx, args...)
+
+	// terraform plan -detailed-exitcode returns 2 if there is a diff.
+	// So we intentionally ignore an error of read the plan file and returns the
+	// original error of terraform plan command.
+	plan, _ := ioutil.ReadFile(tmpPlan.Name())
+	return Plan(plan), err
+}
+
 // Apply applies changes.
 func (c *terraformCLI) Apply(ctx context.Context, dirOrPlan string, opts ...string) error {
 	args := []string{"apply"}
@@ -139,14 +196,14 @@ func (c *terraformCLI) StateList(ctx context.Context, state *State, addresses []
 
 	if state != nil {
 		if hasPrefixOptions(opts, "-state=") {
-			return nil, fmt.Errorf("failed to build `terraform state list` options. The state argument (!= nil) and the -state= option cannot be set at the same time: state=%v, opts=%v", state, opts)
+			return nil, fmt.Errorf("failed to build options. The state argument (!= nil) and the -state= option cannot be set at the same time: state=%v, opts=%v", state, opts)
 		}
-		tmpfile, err := writeTempFile([]byte(*state))
-		defer os.Remove(tmpfile.Name())
+		tmpState, err := writeTempFile([]byte(*state))
+		defer os.Remove(tmpState.Name())
 		if err != nil {
 			return nil, err
 		}
-		args = append(args, "-state="+tmpfile.Name())
+		args = append(args, "-state="+tmpState.Name())
 	}
 
 	args = append(args, opts...)
@@ -175,13 +232,13 @@ func (c *terraformCLI) StatePull(ctx context.Context) (State, error) {
 
 // StatePush pushs a given State to remote.
 func (c *terraformCLI) StatePush(ctx context.Context, state State) error {
-	tmpfile, err := writeTempFile([]byte(state))
-	defer os.Remove(tmpfile.Name())
+	tmpState, err := writeTempFile([]byte(state))
+	defer os.Remove(tmpState.Name())
 	if err != nil {
 		return err
 	}
 
-	_, _, err = c.Run(ctx, "state", "push", tmpfile.Name())
+	_, _, err = c.Run(ctx, "state", "push", tmpState.Name())
 	return err
 }
 
