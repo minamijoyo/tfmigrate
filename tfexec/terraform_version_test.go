@@ -5,16 +5,15 @@ import (
 	"testing"
 )
 
-func TestTerraformCLIRun(t *testing.T) {
+func TestTerraformCLIVersion(t *testing.T) {
 	cases := []struct {
 		desc         string
 		mockCommands []*mockCommand
-		args         []string
 		want         string
 		ok           bool
 	}{
 		{
-			desc: "run terraform version",
+			desc: "parse outputs of terraform version",
 			mockCommands: []*mockCommand{
 				{
 					args:     []string{"terraform", "version"},
@@ -22,8 +21,7 @@ func TestTerraformCLIRun(t *testing.T) {
 					exitCode: 0,
 				},
 			},
-			args: []string{"version"},
-			want: "Terraform v0.12.28\n",
+			want: "0.12.28",
 			ok:   true,
 		},
 		{
@@ -34,7 +32,6 @@ func TestTerraformCLIRun(t *testing.T) {
 					exitCode: 1,
 				},
 			},
-			args: []string{"version"},
 			want: "",
 			ok:   false,
 		},
@@ -44,7 +41,7 @@ func TestTerraformCLIRun(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			e := NewMockExecutor(tc.mockCommands)
 			terraformCLI := NewTerraformCLI(e)
-			got, _, err := terraformCLI.Run(context.Background(), tc.args...)
+			got, err := terraformCLI.Version(context.Background())
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}

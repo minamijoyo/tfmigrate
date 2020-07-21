@@ -5,37 +5,43 @@ import (
 	"testing"
 )
 
-func TestTerraformCLIRun(t *testing.T) {
+func TestTerraformCLIStatePull(t *testing.T) {
+	tfstate := `{
+  "version": 4,
+  "terraform_version": "0.12.28",
+  "serial": 0,
+  "lineage": "3d2cf549-8051-c117-aaa7-f93cda2674e8",
+  "outputs": {},
+  "resources": []
+}
+`
 	cases := []struct {
 		desc         string
 		mockCommands []*mockCommand
-		args         []string
-		want         string
+		want         State
 		ok           bool
 	}{
 		{
-			desc: "run terraform version",
+			desc: "print tfstate to stdout",
 			mockCommands: []*mockCommand{
 				{
-					args:     []string{"terraform", "version"},
-					stdout:   "Terraform v0.12.28\n",
+					args:     []string{"terraform", "state", "pull"},
+					stdout:   tfstate,
 					exitCode: 0,
 				},
 			},
-			args: []string{"version"},
-			want: "Terraform v0.12.28\n",
+			want: State(tfstate),
 			ok:   true,
 		},
 		{
-			desc: "failed to run terraform version",
+			desc: "failed to run terraform state pull",
 			mockCommands: []*mockCommand{
 				{
-					args:     []string{"terraform", "version"},
+					args:     []string{"terraform", "state", "pull"},
 					exitCode: 1,
 				},
 			},
-			args: []string{"version"},
-			want: "",
+			want: State(""),
 			ok:   false,
 		},
 	}
@@ -44,7 +50,7 @@ func TestTerraformCLIRun(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			e := NewMockExecutor(tc.mockCommands)
 			terraformCLI := NewTerraformCLI(e)
-			got, _, err := terraformCLI.Run(context.Background(), tc.args...)
+			got, err := terraformCLI.StatePull(context.Background())
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}
