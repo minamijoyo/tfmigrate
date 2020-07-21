@@ -20,6 +20,7 @@ func TestTerraformCLIStatePush(t *testing.T) {
 		desc         string
 		mockCommands []*mockCommand
 		state        *State
+		opts         []string
 		ok           bool
 	}{
 		{
@@ -27,7 +28,7 @@ func TestTerraformCLIStatePush(t *testing.T) {
 			mockCommands: []*mockCommand{
 				{
 					args:     []string{"terraform", "state", "push", "/path/to/tempfile"},
-					argsRe:   regexp.MustCompile(`^terraform state push .+$`),
+					argsRe:   regexp.MustCompile(`^terraform state push \S+$`),
 					exitCode: 0,
 				},
 			},
@@ -39,12 +40,25 @@ func TestTerraformCLIStatePush(t *testing.T) {
 			mockCommands: []*mockCommand{
 				{
 					args:     []string{"terraform", "state", "push", "/path/to/tempfile"},
-					argsRe:   regexp.MustCompile(`^terraform state push .+$`),
+					argsRe:   regexp.MustCompile(`^terraform state push \S+$`),
 					exitCode: 1,
 				},
 			},
 			state: state,
 			ok:    false,
+		},
+		{
+			desc: "with opts",
+			mockCommands: []*mockCommand{
+				{
+					args:     []string{"terraform", "state", "push", "-force", "-lock=false", "/path/to/tempfile"},
+					argsRe:   regexp.MustCompile(`^terraform state push -force -lock=false \S+$`),
+					exitCode: 0,
+				},
+			},
+			state: state,
+			opts:  []string{"-force", "-lock=false"},
+			ok:    true,
 		},
 	}
 
@@ -52,7 +66,7 @@ func TestTerraformCLIStatePush(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			e := NewMockExecutor(tc.mockCommands)
 			terraformCLI := NewTerraformCLI(e)
-			err := terraformCLI.StatePush(context.Background(), tc.state)
+			err := terraformCLI.StatePush(context.Background(), tc.state, tc.opts...)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}

@@ -81,7 +81,7 @@ type TerraformCLI interface {
 	StatePull(ctx context.Context, opts ...string) (*State, error)
 
 	// StatePush pushs a given State to remote.
-	StatePush(ctx context.Context, state *State) error
+	StatePush(ctx context.Context, state *State, opts ...string) error
 }
 
 // terraformCLI implements the TerraformCLI interface.
