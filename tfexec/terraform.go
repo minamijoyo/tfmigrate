@@ -78,7 +78,7 @@ type TerraformCLI interface {
 	StateList(ctx context.Context, state *State, addresses []string, opts ...string) ([]string, error)
 
 	// StatePull returns the current tfstate from remote.
-	StatePull(ctx context.Context) (*State, error)
+	StatePull(ctx context.Context, opts ...string) (*State, error)
 
 	// StatePush pushs a given State to remote.
 	StatePush(ctx context.Context, state *State) error

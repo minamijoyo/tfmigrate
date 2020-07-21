@@ -19,6 +19,7 @@ func TestTerraformCLIStatePull(t *testing.T) {
 	cases := []struct {
 		desc         string
 		mockCommands []*mockCommand
+		opts         []string
 		want         *State
 		ok           bool
 	}{
@@ -45,13 +46,26 @@ func TestTerraformCLIStatePull(t *testing.T) {
 			want: nil,
 			ok:   false,
 		},
+		{
+			desc: "with opts", // there is no valid option for now, just pass a dummy for testing.
+			mockCommands: []*mockCommand{
+				{
+					args:     []string{"terraform", "state", "pull", "-foo"},
+					stdout:   stdout,
+					exitCode: 0,
+				},
+			},
+			opts: []string{"-foo"},
+			want: NewState([]byte(stdout)),
+			ok:   true,
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			e := NewMockExecutor(tc.mockCommands)
 			terraformCLI := NewTerraformCLI(e)
-			got, err := terraformCLI.StatePull(context.Background())
+			got, err := terraformCLI.StatePull(context.Background(), tc.opts...)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}
