@@ -68,7 +68,8 @@ type TerraformCLI interface {
 	Plan(ctx context.Context, state *State, dir string, opts ...string) (*Plan, error)
 
 	// Apply applies changes.
-	Apply(ctx context.Context, dirOrPlan string, opts ...string) error
+	// If a plan is given, use it for the input plan.
+	Apply(ctx context.Context, plan *Plan, dir string, opts ...string) error
 
 	// Destroy destroys resources.
 	Destroy(ctx context.Context, dir string, opts ...string) error

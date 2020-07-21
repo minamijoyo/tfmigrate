@@ -2,14 +2,18 @@ package tfexec
 
 import (
 	"context"
+	"regexp"
 	"testing"
 )
 
 func TestTerraformCLIApply(t *testing.T) {
+	plan := NewPlan([]byte("dummy plan"))
+
 	cases := []struct {
 		desc         string
 		mockCommands []*mockCommand
-		dirOrPlan    string
+		plan         *Plan
+		dir          string
 		opts         []string
 		ok           bool
 	}{
@@ -41,8 +45,8 @@ func TestTerraformCLIApply(t *testing.T) {
 					exitCode: 0,
 				},
 			},
-			dirOrPlan: "foo",
-			ok:        true,
+			dir: "foo",
+			ok:  true,
 		},
 		{
 			desc: "with opts",
@@ -63,9 +67,36 @@ func TestTerraformCLIApply(t *testing.T) {
 					exitCode: 0,
 				},
 			},
-			dirOrPlan: "foo",
-			opts:      []string{"-input=false", "-no-color"},
-			ok:        true,
+			dir:  "foo",
+			opts: []string{"-input=false", "-no-color"},
+			ok:   true,
+		},
+		{
+			desc: "with plan",
+			mockCommands: []*mockCommand{
+				{
+					args:     []string{"terraform", "apply", "-input=false", "-no-color", "/path/to/planfile"},
+					argsRe:   regexp.MustCompile(`^terraform apply -input=false -no-color \S+$`),
+					exitCode: 0,
+				},
+			},
+			plan: plan,
+			opts: []string{"-input=false", "-no-color"},
+			ok:   true,
+		},
+		{
+			desc: "with plan and dir (conflict error)",
+			mockCommands: []*mockCommand{
+				{
+					args:     []string{"terraform", "apply", "-input=false", "-no-color", "/path/to/planfile", "foo"},
+					argsRe:   regexp.MustCompile(`^terraform apply -input=false -no-color \S+ foo$`),
+					exitCode: 1,
+				},
+			},
+			plan: plan,
+			dir:  "foo",
+			opts: []string{"-input=false", "-state=foo.tfstate"},
+			ok:   false,
 		},
 	}
 
@@ -73,7 +104,7 @@ func TestTerraformCLIApply(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			e := NewMockExecutor(tc.mockCommands)
 			terraformCLI := NewTerraformCLI(e)
-			err := terraformCLI.Apply(context.Background(), tc.dirOrPlan, tc.opts...)
+			err := terraformCLI.Apply(context.Background(), tc.plan, tc.dir, tc.opts...)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}
