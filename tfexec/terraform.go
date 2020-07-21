@@ -9,14 +9,36 @@ import (
 )
 
 // State is a named type for tfstate.
-// We doesn't need to parse contents of tfstate,
-// but we define it as a name type to clarify TerraformCLI interface.
-type State string
+// We don't parse contents of tfstate to avoid depending on internal details,
+// but we define it as a named type to clarify interface.
+type State []byte
+
+// Bytes returns raw contents of tfstate as []byte.
+func (s *State) Bytes() []byte {
+	return []byte(*s)
+}
+
+// NewState returns a new State instance with a given content of tfstate.
+func NewState(b []byte) *State {
+	s := State(b)
+	return &s
+}
 
 // Plan is a named type for tfplan.
-// We doesn't need to parse contents of tfplan,
-// but we define it as a name type to clarify TerraformCLI interface.
+// We don't parse contents of tfplan to avoid depending on internal details,
+// but we define it as a named type to clarify interface.
 type Plan []byte
+
+// Bytes returns raw contents of tfstate as []byte.
+func (p *Plan) Bytes() []byte {
+	return []byte(*p)
+}
+
+// NewPlan returns a new Plan instance with a given content of tfplan.
+func NewPlan(b []byte) *Plan {
+	p := Plan(b)
+	return &p
+}
 
 // TerraformCLI is an interface for executing the terraform command.
 // The main features of the terraform command are many of side effects, and the
@@ -43,7 +65,7 @@ type TerraformCLI interface {
 
 	// Plan computes expected changes.
 	// If a state is given, use it for the input state.
-	Plan(ctx context.Context, state *State, dir string, opts ...string) (Plan, error)
+	Plan(ctx context.Context, state *State, dir string, opts ...string) (*Plan, error)
 
 	// Apply applies changes.
 	Apply(ctx context.Context, dirOrPlan string, opts ...string) error
@@ -56,10 +78,10 @@ type TerraformCLI interface {
 	StateList(ctx context.Context, state *State, addresses []string, opts ...string) ([]string, error)
 
 	// StatePull returns the current tfstate from remote.
-	StatePull(ctx context.Context) (State, error)
+	StatePull(ctx context.Context) (*State, error)
 
 	// StatePush pushs a given State to remote.
-	StatePush(ctx context.Context, state State) error
+	StatePush(ctx context.Context, state *State) error
 }
 
 // terraformCLI implements the TerraformCLI interface.

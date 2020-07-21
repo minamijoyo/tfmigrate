@@ -8,7 +8,7 @@ import (
 )
 
 func TestTerraformCLIStateList(t *testing.T) {
-	state := State(testStateListState)
+	state := NewState([]byte(testStateListState))
 	stdout := `aws_security_group.bar
 aws_security_group.foo
 `
@@ -100,7 +100,7 @@ aws_security_group.foo
 					exitCode: 0,
 				},
 			},
-			state:     &state,
+			state:     state,
 			addresses: []string{"aws_instance.example", "module.example"},
 			opts:      []string{"-id=bar"},
 			want:      []string{"aws_security_group.bar", "aws_security_group.foo"},
@@ -115,7 +115,7 @@ aws_security_group.foo
 					exitCode: 1,
 				},
 			},
-			state:     &state,
+			state:     state,
 			addresses: nil,
 			opts:      []string{"-id=bar", "-state=foo.tfstate"},
 			want:      nil,
@@ -134,7 +134,7 @@ aws_security_group.foo
 			if !tc.ok && err == nil {
 				t.Fatal("expected to return an error, but no error")
 			}
-			if !reflect.DeepEqual(got, tc.want) {
+			if tc.ok && !reflect.DeepEqual(got, tc.want) {
 				t.Errorf("got: %v, want: %v", got, tc.want)
 			}
 		})

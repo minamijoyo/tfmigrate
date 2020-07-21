@@ -11,7 +11,7 @@ import (
 )
 
 func TestTerraformCLIPlan(t *testing.T) {
-	state := State(`{
+	state := NewState([]byte(`{
   "version": 4,
   "terraform_version": "0.12.28",
   "serial": 0,
@@ -19,15 +19,15 @@ func TestTerraformCLIPlan(t *testing.T) {
   "outputs": {},
   "resources": []
 }
-`)
+`))
 
 	// mock writing plan to a temporary file.
-	plan := []byte("dummy plan")
+	plan := NewPlan([]byte("dummy plan"))
 	runFunc := func(args ...string) error {
 		for _, arg := range args {
 			if strings.HasPrefix(arg, "-out=") {
 				planFile := arg[len("-out="):]
-				return ioutil.WriteFile(planFile, plan, 0644)
+				return ioutil.WriteFile(planFile, plan.Bytes(), 0644)
 			}
 		}
 		return fmt.Errorf("failed to find -out= option: %v", args)
@@ -39,7 +39,7 @@ func TestTerraformCLIPlan(t *testing.T) {
 		state        *State
 		dir          string
 		opts         []string
-		want         Plan
+		want         *Plan
 		ok           bool
 	}{
 		{
@@ -53,7 +53,7 @@ func TestTerraformCLIPlan(t *testing.T) {
 				},
 			},
 			state: nil,
-			want:  Plan(plan),
+			want:  plan,
 			ok:    true,
 		},
 		{
@@ -66,7 +66,7 @@ func TestTerraformCLIPlan(t *testing.T) {
 				},
 			},
 			state: nil,
-			want:  Plan([]byte{}),
+			want:  NewPlan([]byte{}),
 			ok:    false,
 		},
 		{
@@ -81,7 +81,7 @@ func TestTerraformCLIPlan(t *testing.T) {
 			},
 			dir:   "foo",
 			state: nil,
-			want:  Plan(plan),
+			want:  plan,
 			ok:    true,
 		},
 		{
@@ -96,7 +96,7 @@ func TestTerraformCLIPlan(t *testing.T) {
 			},
 			opts:  []string{"-input=false", "-no-color"},
 			state: nil,
-			want:  Plan(plan),
+			want:  plan,
 			ok:    true,
 		},
 		{
@@ -112,7 +112,7 @@ func TestTerraformCLIPlan(t *testing.T) {
 			dir:   "foo",
 			opts:  []string{"-input=false", "-no-color"},
 			state: nil,
-			want:  Plan(plan),
+			want:  plan,
 			ok:    true,
 		},
 		{
@@ -127,8 +127,8 @@ func TestTerraformCLIPlan(t *testing.T) {
 			},
 			dir:   "foo",
 			opts:  []string{"-input=false", "-no-color"},
-			state: &state,
-			want:  Plan(plan),
+			state: state,
+			want:  plan,
 			ok:    true,
 		},
 		{
@@ -143,7 +143,7 @@ func TestTerraformCLIPlan(t *testing.T) {
 			},
 			dir:   "foo",
 			opts:  []string{"-input=false", "-state=foo.tfstate"},
-			state: &state,
+			state: state,
 			want:  nil,
 			ok:    false,
 		},
@@ -159,7 +159,7 @@ func TestTerraformCLIPlan(t *testing.T) {
 			},
 			dir:   "foo",
 			opts:  []string{"-input=false", "-out=foo.tfplan"},
-			state: &state,
+			state: state,
 			want:  nil,
 			ok:    false,
 		},
@@ -176,7 +176,7 @@ func TestTerraformCLIPlan(t *testing.T) {
 			if !tc.ok && err == nil {
 				t.Fatal("expected to return an error, but no error")
 			}
-			if !reflect.DeepEqual(got, tc.want) {
+			if tc.ok && !reflect.DeepEqual(got.Bytes(), tc.want.Bytes()) {
 				t.Errorf("got: %v, want: %v", got, tc.want)
 			}
 		})

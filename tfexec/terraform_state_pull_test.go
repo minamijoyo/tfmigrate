@@ -2,11 +2,12 @@ package tfexec
 
 import (
 	"context"
+	"reflect"
 	"testing"
 )
 
 func TestTerraformCLIStatePull(t *testing.T) {
-	tfstate := `{
+	stdout := `{
   "version": 4,
   "terraform_version": "0.12.28",
   "serial": 0,
@@ -18,7 +19,7 @@ func TestTerraformCLIStatePull(t *testing.T) {
 	cases := []struct {
 		desc         string
 		mockCommands []*mockCommand
-		want         State
+		want         *State
 		ok           bool
 	}{
 		{
@@ -26,11 +27,11 @@ func TestTerraformCLIStatePull(t *testing.T) {
 			mockCommands: []*mockCommand{
 				{
 					args:     []string{"terraform", "state", "pull"},
-					stdout:   tfstate,
+					stdout:   stdout,
 					exitCode: 0,
 				},
 			},
-			want: State(tfstate),
+			want: NewState([]byte(stdout)),
 			ok:   true,
 		},
 		{
@@ -41,7 +42,7 @@ func TestTerraformCLIStatePull(t *testing.T) {
 					exitCode: 1,
 				},
 			},
-			want: State(""),
+			want: nil,
 			ok:   false,
 		},
 	}
@@ -57,7 +58,7 @@ func TestTerraformCLIStatePull(t *testing.T) {
 			if !tc.ok && err == nil {
 				t.Fatalf("expected to return an error, but no error, got = %s", got)
 			}
-			if got != tc.want {
+			if tc.ok && !reflect.DeepEqual(got.Bytes(), tc.want.Bytes()) {
 				t.Errorf("got: %s, want: %s", got, tc.want)
 			}
 		})

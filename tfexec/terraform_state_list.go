@@ -16,7 +16,7 @@ func (c *terraformCLI) StateList(ctx context.Context, state *State, addresses []
 		if hasPrefixOptions(opts, "-state=") {
 			return nil, fmt.Errorf("failed to build options. The state argument (!= nil) and the -state= option cannot be set at the same time: state=%v, opts=%v", state, opts)
 		}
-		tmpState, err := writeTempFile([]byte(*state))
+		tmpState, err := writeTempFile(state.Bytes())
 		defer os.Remove(tmpState.Name())
 		if err != nil {
 			return nil, err

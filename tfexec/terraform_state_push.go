@@ -6,8 +6,8 @@ import (
 )
 
 // StatePush pushs a given State to remote.
-func (c *terraformCLI) StatePush(ctx context.Context, state State) error {
-	tmpState, err := writeTempFile([]byte(state))
+func (c *terraformCLI) StatePush(ctx context.Context, state *State) error {
+	tmpState, err := writeTempFile(state.Bytes())
 	defer os.Remove(tmpState.Name())
 	if err != nil {
 		return err

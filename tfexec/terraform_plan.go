@@ -9,14 +9,14 @@ import (
 
 // Plan computes expected changes.
 // If a state is given, use it for the input state.
-func (c *terraformCLI) Plan(ctx context.Context, state *State, dir string, opts ...string) (Plan, error) {
+func (c *terraformCLI) Plan(ctx context.Context, state *State, dir string, opts ...string) (*Plan, error) {
 	args := []string{"plan"}
 
 	if state != nil {
 		if hasPrefixOptions(opts, "-state=") {
 			return nil, fmt.Errorf("failed to build options. The state argument (!= nil) and the -state= option cannot be set at the same time: state=%v, opts=%v", state, opts)
 		}
-		tmpState, err := writeTempFile([]byte(*state))
+		tmpState, err := writeTempFile(state.Bytes())
 		defer os.Remove(tmpState.Name())
 		if err != nil {
 			return nil, err
@@ -52,5 +52,5 @@ func (c *terraformCLI) Plan(ctx context.Context, state *State, dir string, opts 
 	// So we intentionally ignore an error of read the plan file and returns the
 	// original error of terraform plan command.
 	plan, _ := ioutil.ReadFile(tmpPlan.Name())
-	return Plan(plan), err
+	return NewPlan(plan), err
 }

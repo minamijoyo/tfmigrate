@@ -48,7 +48,7 @@ func TestTerraformCLIVersion(t *testing.T) {
 			if !tc.ok && err == nil {
 				t.Fatalf("expected to return an error, but no error, got = %s", got)
 			}
-			if got != tc.want {
+			if tc.ok && got != tc.want {
 				t.Errorf("got: %s, want: %s", got, tc.want)
 			}
 		})

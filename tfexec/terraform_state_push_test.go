@@ -7,7 +7,7 @@ import (
 )
 
 func TestTerraformCLIStatePush(t *testing.T) {
-	tfstate := `{
+	state := NewState([]byte(`{
   "version": 4,
   "terraform_version": "0.12.28",
   "serial": 0,
@@ -15,11 +15,11 @@ func TestTerraformCLIStatePush(t *testing.T) {
   "outputs": {},
   "resources": []
 }
-`
+`))
 	cases := []struct {
 		desc         string
 		mockCommands []*mockCommand
-		state        State
+		state        *State
 		ok           bool
 	}{
 		{
@@ -31,7 +31,7 @@ func TestTerraformCLIStatePush(t *testing.T) {
 					exitCode: 0,
 				},
 			},
-			state: State(tfstate),
+			state: state,
 			ok:    true,
 		},
 		{
@@ -43,7 +43,7 @@ func TestTerraformCLIStatePush(t *testing.T) {
 					exitCode: 1,
 				},
 			},
-			state: State(tfstate),
+			state: state,
 			ok:    false,
 		},
 	}
