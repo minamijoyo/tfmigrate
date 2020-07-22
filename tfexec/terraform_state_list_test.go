@@ -112,7 +112,7 @@ aws_security_group.foo
 				{
 					args:     []string{"terraform", "state", "list", "-state=/path/to/tempfile", "-id=bar", "-state=foo.tfstate", "aws_instance.example", "module.example"},
 					argsRe:   regexp.MustCompile(`^terraform state list -state=\S+ -id=bar -state=foo.tfstate aws_instance.example module.example$`),
-					exitCode: 1,
+					exitCode: 0,
 				},
 			},
 			state:     state,

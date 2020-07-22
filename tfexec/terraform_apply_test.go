@@ -90,7 +90,7 @@ func TestTerraformCLIApply(t *testing.T) {
 				{
 					args:     []string{"terraform", "apply", "-input=false", "-no-color", "/path/to/planfile", "foo"},
 					argsRe:   regexp.MustCompile(`^terraform apply -input=false -no-color \S+ foo$`),
-					exitCode: 1,
+					exitCode: 0,
 				},
 			},
 			plan: plan,
