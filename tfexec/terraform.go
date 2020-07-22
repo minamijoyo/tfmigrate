@@ -81,6 +81,10 @@ type TerraformCLI interface {
 	// StatePull returns the current tfstate from remote.
 	StatePull(ctx context.Context, opts ...string) (*State, error)
 
+	// StateMv moves resources from source to destination address.
+	// If a state is given, use it for the input state.
+	StateMv(ctx context.Context, state *State, source string, destination string, opts ...string) (*State, error)
+
 	// StatePush pushs a given State to remote.
 	StatePush(ctx context.Context, state *State, opts ...string) error
 }
