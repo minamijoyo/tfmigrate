@@ -8,7 +8,7 @@ import (
 )
 
 func TestTerraformCLIStateList(t *testing.T) {
-	state := NewState([]byte(testStateListState))
+	state := NewState([]byte("dummy state"))
 	stdout := `aws_security_group.bar
 aws_security_group.foo
 `
@@ -140,95 +140,3 @@ aws_security_group.foo
 		})
 	}
 }
-
-const testStateListState = `
-{
-  "version": 4,
-  "terraform_version": "0.12.28",
-  "serial": 1,
-  "lineage": "a19299f0-68d7-3763-56ca-15ae05f60684",
-  "outputs": {},
-  "resources": [
-    {
-      "mode": "managed",
-      "type": "aws_security_group",
-      "name": "bar",
-      "provider": "provider.aws",
-      "instances": [
-        {
-          "schema_version": 1,
-          "attributes": {
-            "arn": "arn:aws:ec2:ap-northeast-1:000000000000:security-group/sg-ecde6356",
-            "description": "Managed by Terraform",
-            "egress": [
-              {
-                "cidr_blocks": [
-                  "0.0.0.0/0"
-                ],
-                "description": "",
-                "from_port": 0,
-                "ipv6_cidr_blocks": [],
-                "prefix_list_ids": [],
-                "protocol": "-1",
-                "security_groups": [],
-                "self": false,
-                "to_port": 0
-              }
-            ],
-            "id": "sg-ecde6356",
-            "ingress": [],
-            "name": "bar",
-            "name_prefix": null,
-            "owner_id": "000000000000",
-            "revoke_rules_on_delete": false,
-            "tags": null,
-            "timeouts": null,
-            "vpc_id": ""
-          },
-          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6NjAwMDAwMDAwMDAwfSwic2NoZW1hX3ZlcnNpb24iOiIxIn0="
-        }
-      ]
-    },
-    {
-      "mode": "managed",
-      "type": "aws_security_group",
-      "name": "foo",
-      "provider": "provider.aws",
-      "instances": [
-        {
-          "schema_version": 1,
-          "attributes": {
-            "arn": "arn:aws:ec2:ap-northeast-1:000000000000:security-group/sg-d1ff4d60",
-            "description": "Managed by Terraform",
-            "egress": [
-              {
-                "cidr_blocks": [
-                  "0.0.0.0/0"
-                ],
-                "description": "",
-                "from_port": 0,
-                "ipv6_cidr_blocks": [],
-                "prefix_list_ids": [],
-                "protocol": "-1",
-                "security_groups": [],
-                "self": false,
-                "to_port": 0
-              }
-            ],
-            "id": "sg-d1ff4d60",
-            "ingress": [],
-            "name": "foo",
-            "name_prefix": null,
-            "owner_id": "000000000000",
-            "revoke_rules_on_delete": false,
-            "tags": {},
-            "timeouts": null,
-            "vpc_id": ""
-          },
-          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6NjAwMDAwMDAwMDAwfSwic2NoZW1hX3ZlcnNpb24iOiIxIn0="
-        }
-      ]
-    }
-  ]
-}
-`

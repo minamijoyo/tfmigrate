@@ -7,15 +7,7 @@ import (
 )
 
 func TestTerraformCLIStatePush(t *testing.T) {
-	state := NewState([]byte(`{
-  "version": 4,
-  "terraform_version": "0.12.28",
-  "serial": 0,
-  "lineage": "3d2cf549-8051-c117-aaa7-f93cda2674e8",
-  "outputs": {},
-  "resources": []
-}
-`))
+	state := NewState([]byte("dummy state"))
 	cases := []struct {
 		desc         string
 		mockCommands []*mockCommand
