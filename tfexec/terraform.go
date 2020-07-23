@@ -85,6 +85,12 @@ type TerraformCLI interface {
 	// If a state is given, use it for the input state.
 	StateMv(ctx context.Context, state *State, source string, destination string, opts ...string) (*State, error)
 
+	// StateRm removes resources from state.
+	// If a state is given, use it for the input state and return a new state.
+	// Note that if the input state is not given, always return nil state,
+	// becasuse the terraform state rm command doesn't have -state-out option.
+	StateRm(ctx context.Context, state *State, addresses []string, opts ...string) (*State, error)
+
 	// StatePush pushs a given State to remote.
 	StatePush(ctx context.Context, state *State, opts ...string) error
 }
