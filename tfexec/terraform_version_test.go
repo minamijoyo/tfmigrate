@@ -35,6 +35,22 @@ func TestTerraformCLIVersion(t *testing.T) {
 			want: "",
 			ok:   false,
 		},
+		{
+			desc: "with check point warning",
+			mockCommands: []*mockCommand{
+				{
+					args: []string{"terraform", "version"},
+					stdout: `Terraform v0.12.28
+
+Your version of Terraform is out of date! The latest version
+is 0.12.29. You can update by downloading from https://www.terraform.io/downloads.html
+`,
+					exitCode: 0,
+				},
+			},
+			want: "0.12.28",
+			ok:   true,
+		},
 	}
 
 	for _, tc := range cases {
