@@ -74,6 +74,10 @@ type TerraformCLI interface {
 	// Destroy destroys resources.
 	Destroy(ctx context.Context, dir string, opts ...string) error
 
+	// Import imports an existing resource to state.
+	// If a state is given, use it for the input state.
+	Import(ctx context.Context, state *State, address string, id string, opts ...string) (*State, error)
+
 	// StateList shows a list of resources.
 	// If a state is given, use it for the input state.
 	StateList(ctx context.Context, state *State, addresses []string, opts ...string) ([]string, error)
