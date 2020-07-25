@@ -28,7 +28,7 @@ type executor struct {
 
 	// a working directory where a command is executed.
 	dir string
-	// envirommental variables passed to a command.
+	// environment variables passed to a command.
 	env []string
 }
 
