@@ -17,6 +17,8 @@ type Executor interface {
 	NewCommandContext(ctx context.Context, name string, args ...string) (Command, error)
 	// Run executes a command.
 	Run(cmd Command) error
+	// AppendEnv appends an environment variable.
+	AppendEnv(key string, value string)
 }
 
 // executor impolements the Executor interface.
@@ -76,4 +78,9 @@ func (e *executor) Run(cmd Command) error {
 		return err
 	}
 	return nil
+}
+
+// AppendEnv appends an environment variable.
+func (e *executor) AppendEnv(key string, value string) {
+	e.env = append(e.env, key+"="+value)
 }

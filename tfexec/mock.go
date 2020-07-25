@@ -56,6 +56,11 @@ func (e *mockExecutor) Run(cmd Command) error {
 	return cmd.Run()
 }
 
+// AppendEnv appends an environment variable.
+func (e *mockExecutor) AppendEnv(key string, value string) {
+	// no op.
+}
+
 // mockRunFunc is a type for callback of mockCommand.Run() to allow us to cause side effects.
 type mockRunFunc func(args ...string) error
 

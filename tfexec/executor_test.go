@@ -104,24 +104,38 @@ func TestExecutorRun(t *testing.T) {
 
 func TestExecutorEnv(t *testing.T) {
 	cases := []struct {
-		desc string
-		args []string
-		env  []string
-		want string
-		ok   bool
+		desc        string
+		args        []string
+		env         []string
+		appendKey   string
+		appendValue string
+		want        string
+		ok          bool
 	}{
 		{
-			desc: "test set env",
+			desc: "test set env with NewExecutor",
 			args: []string{"/bin/sh", "-c", "echo $FOO"},
 			env:  []string{"FOO=foo"},
 			want: "foo\n",
 			ok:   true,
+		},
+		{
+			desc:        "test set env with AppendEnv",
+			args:        []string{"/bin/sh", "-c", "echo $FOO $BAR"},
+			env:         []string{"FOO=foo"},
+			appendKey:   "BAR",
+			appendValue: "bar",
+			want:        "foo bar\n",
+			ok:          true,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			e := NewExecutor(".", tc.env)
+			if len(tc.appendKey) > 0 {
+				e.AppendEnv(tc.appendKey, tc.appendValue)
+			}
 			cmd, err := e.NewCommandContext(context.Background(), tc.args[0], tc.args[1:]...)
 			if err != nil {
 				t.Fatalf("failed to NewCommandContext: %s", err)
