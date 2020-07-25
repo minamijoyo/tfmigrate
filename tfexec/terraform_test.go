@@ -10,6 +10,7 @@ func TestTerraformCLIRun(t *testing.T) {
 		desc         string
 		mockCommands []*mockCommand
 		args         []string
+		execPath     string
 		want         string
 		ok           bool
 	}{
@@ -38,12 +39,41 @@ func TestTerraformCLIRun(t *testing.T) {
 			want: "",
 			ok:   false,
 		},
+		{
+			desc: "with execPath (no space)",
+			mockCommands: []*mockCommand{
+				{
+					args:     []string{"terraform-0.12.28", "version"},
+					stdout:   "Terraform v0.12.28\n",
+					exitCode: 0,
+				},
+			},
+			args:     []string{"version"},
+			execPath: "terraform-0.12.28",
+			want:     "Terraform v0.12.28\n",
+			ok:       true,
+		},
+		{
+			desc: "with execPath (spaces)",
+			mockCommands: []*mockCommand{
+				{
+					args:     []string{"direnv", "exec", ".", "terraform", "version"},
+					stdout:   "Terraform v0.12.28\n",
+					exitCode: 0,
+				},
+			},
+			args:     []string{"version"},
+			execPath: "direnv exec . terraform",
+			want:     "Terraform v0.12.28\n",
+			ok:       true,
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			e := NewMockExecutor(tc.mockCommands)
 			terraformCLI := NewTerraformCLI(e)
+			terraformCLI.SetExecPath(tc.execPath)
 			got, _, err := terraformCLI.Run(context.Background(), tc.args...)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)

@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/mattn/go-shellwords"
 )
 
 // State is a named type for tfstate.
@@ -54,9 +56,6 @@ func NewPlan(b []byte) *Plan {
 // Run(), which is a low-level generic method for running an arbitrary
 // terraform command.
 type TerraformCLI interface {
-	// Run is a low-level generic method for running an arbitrary terraform comamnd.
-	Run(ctx context.Context, args ...string) (string, string, error)
-
 	// Verison returns a version number of Terraform.
 	Version(ctx context.Context) (string, error)
 
@@ -97,12 +96,23 @@ type TerraformCLI interface {
 
 	// StatePush pushs a given State to remote.
 	StatePush(ctx context.Context, state *State, opts ...string) error
+
+	// Run is a low-level generic method for running an arbitrary terraform comamnd.
+	Run(ctx context.Context, args ...string) (string, string, error)
+
+	// SetExecPath customizes how the terraform command is executed. Default to terraform.
+	// It's intended to inject a wrapper command such as direnv.
+	SetExecPath(execPath string)
 }
 
 // terraformCLI implements the TerraformCLI interface.
 type terraformCLI struct {
 	// Executor is an interface which executes an arbitrary command.
 	Executor
+
+	// execPath is a string which executes the terraform command.
+	// If empty, default to terraform.
+	execPath string
 }
 
 var _ TerraformCLI = (*terraformCLI)(nil)
@@ -116,7 +126,25 @@ func NewTerraformCLI(e Executor) TerraformCLI {
 
 // Run is a low-level generic method for running an arbitrary terraform comamnd.
 func (c *terraformCLI) Run(ctx context.Context, args ...string) (string, string, error) {
-	cmd, err := c.Executor.NewCommandContext(ctx, "terraform", args...)
+	// The default binary path is `terraform`.
+	name := "terraform"
+	// If execPath is customized
+	if len(c.execPath) > 0 {
+		// execPath may contain spaces and environment variables, so we parse it.
+		// e.g.) "direnv exec . terraform" => ["direnv", "exec", ".", "terraform"]
+		parts, err := shellwords.Parse(c.execPath)
+		if err != nil {
+			return "", "", err
+		}
+		// The first part is a binary path.
+		name = parts[0]
+		// if execPath contains spaces, insert remains before original arguments.
+		if len(parts) > 1 {
+			args = append(parts[1:], args...)
+		}
+	}
+
+	cmd, err := c.Executor.NewCommandContext(ctx, name, args...)
 	if err != nil {
 		return "", "", err
 	}
@@ -124,6 +152,12 @@ func (c *terraformCLI) Run(ctx context.Context, args ...string) (string, string,
 	err = c.Executor.Run(cmd)
 
 	return cmd.Stdout(), cmd.Stderr(), err
+}
+
+// SetExecPath customizes how the terraform command is executed. Default to terraform.
+// It's intended to inject a wrapper command such as direnv.
+func (c *terraformCLI) SetExecPath(execPath string) {
+	c.execPath = execPath
 }
 
 // writeTempFile writes content to a temporary file and return its file.

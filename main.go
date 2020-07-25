@@ -16,8 +16,9 @@ func main() {
 	log.SetOutput(logOutput())
 	log.Printf("[INFO] CLI args: %#v", os.Args)
 
-	e := tfexec.NewExecutor(".", os.Environ())
+	e := tfexec.NewExecutor("tmp/test", os.Environ())
 	terraformCLI := tfexec.NewTerraformCLI(e)
+	terraformCLI.SetExecPath("direnv exec . terraform")
 	v, err := terraformCLI.Version(context.Background())
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
