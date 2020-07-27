@@ -4,6 +4,7 @@ import (
 	"context"
 	"reflect"
 	"regexp"
+	"sort"
 	"testing"
 )
 
@@ -138,5 +139,40 @@ aws_security_group.foo
 				t.Errorf("got: %v, want: %v", got, tc.want)
 			}
 		})
+	}
+}
+
+func TestAccTerraformCLIStateList(t *testing.T) {
+	if !isAcceptanceTestEnabled() {
+		t.Skip("skip acceptance tests")
+	}
+
+	source := `
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
+`
+	e := setupTestAcc(t, source)
+	terraformCLI := NewTerraformCLI(e)
+
+	err := terraformCLI.Init(context.Background(), "", "-input=false", "-no-color")
+	if err != nil {
+		t.Fatalf("failed to run terraform init: %s", err)
+	}
+
+	err = terraformCLI.Apply(context.Background(), nil, "", "-input=false", "-no-color", "-auto-approve")
+	if err != nil {
+		t.Fatalf("failed to run terraform apply: %s", err)
+	}
+
+	got, err := terraformCLI.StateList(context.Background(), nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list: %s", err)
+	}
+
+	want := []string{"null_resource.foo", "null_resource.bar"}
+	sort.Strings(got)
+	sort.Strings(want)
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got: %v, want: %v", got, want)
 	}
 }
