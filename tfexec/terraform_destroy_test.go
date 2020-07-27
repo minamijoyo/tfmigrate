@@ -83,3 +83,28 @@ func TestTerraformCLIDestroy(t *testing.T) {
 		})
 	}
 }
+
+func TestAccTerraformCLIDestroy(t *testing.T) {
+	if !isAcceptanceTestEnabled() {
+		t.Skip("skip acceptance tests")
+	}
+
+	source := `resource "null_resource" "foo" {}`
+	e := setupTestAcc(t, source)
+	terraformCLI := NewTerraformCLI(e)
+
+	err := terraformCLI.Init(context.Background(), "", "-input=false", "-no-color")
+	if err != nil {
+		t.Fatalf("failed to run terraform init: %s", err)
+	}
+
+	err = terraformCLI.Apply(context.Background(), nil, "", "-input=false", "-no-color", "-auto-approve")
+	if err != nil {
+		t.Fatalf("failed to run terraform apply: %s", err)
+	}
+
+	err = terraformCLI.Destroy(context.Background(), "", "-input=false", "-no-color", "-auto-approve")
+	if err != nil {
+		t.Fatalf("failed to run terraform destroy: %s", err)
+	}
+}
