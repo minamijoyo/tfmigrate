@@ -122,6 +122,19 @@ aws_security_group.foo
 			want:      nil,
 			ok:        false,
 		},
+		{
+			desc: "no resources",
+			mockCommands: []*mockCommand{
+				{
+					args:     []string{"terraform", "state", "list"},
+					stdout:   "",
+					exitCode: 0,
+				},
+			},
+			state: nil,
+			want:  []string{},
+			ok:    true,
+		},
 	}
 
 	for _, tc := range cases {

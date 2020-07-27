@@ -35,5 +35,13 @@ func (c *terraformCLI) StateList(ctx context.Context, state *State, addresses []
 		return nil, err
 	}
 
-	return strings.Split(strings.TrimRight(stdout, "\n"), "\n"), nil
+	// we want to split stdout by '\n', but strings.Split returns []string{""} if stdout is empty.
+	// we should remove empty strings from the list so that its length to be 0.
+	resources := strings.FieldsFunc(
+		strings.TrimRight(stdout, "\n"),
+		func(c rune) bool {
+			return c == '\n'
+		},
+	)
+	return resources, nil
 }
