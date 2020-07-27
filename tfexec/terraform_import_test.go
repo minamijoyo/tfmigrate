@@ -154,3 +154,37 @@ func TestTerraformCLIImport(t *testing.T) {
 		})
 	}
 }
+
+func TestAccTerraformCLIImport(t *testing.T) {
+	if !isAcceptanceTestEnabled() {
+		t.Skip("skip acceptance tests")
+	}
+
+	source := `
+resource "random_string" "foo" {
+  length = 4
+}
+`
+	e := setupTestAcc(t, source)
+	terraformCLI := NewTerraformCLI(e)
+
+	err := terraformCLI.Init(context.Background(), "", "-input=false", "-no-color")
+	if err != nil {
+		t.Fatalf("failed to run terraform init: %s", err)
+	}
+
+	state, err := terraformCLI.Import(context.Background(), nil, "random_string.foo", "test", "-input=false", "-no-color")
+	if err != nil {
+		t.Fatalf("failed to run terraform import: %s", err)
+	}
+
+	got, err := terraformCLI.StateList(context.Background(), state, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list: %s", err)
+	}
+
+	want := []string{"random_string.foo"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got: %v, want: %v", got, want)
+	}
+}
