@@ -174,3 +174,27 @@ func TestTerraformCLIPlan(t *testing.T) {
 		})
 	}
 }
+
+func TestAccTerraformCLIPlan(t *testing.T) {
+	if !isAcceptanceTestEnabled() {
+		t.Skip("skip acceptance tests")
+	}
+
+	source := `resource "null_resource" "foo" {}`
+	e := setupTestAcc(t, source)
+	terraformCLI := NewTerraformCLI(e)
+
+	err := terraformCLI.Init(context.Background(), "", "-input=false", "-no-color")
+	if err != nil {
+		t.Fatalf("failed to run terraform init: %s", err)
+	}
+
+	plan, err := terraformCLI.Plan(context.Background(), nil, "", "-input=false", "-no-color")
+	if err != nil {
+		t.Fatalf("failed to run terraform plan: %s", err)
+	}
+
+	if plan == nil {
+		t.Error("plan success but returns nil")
+	}
+}
