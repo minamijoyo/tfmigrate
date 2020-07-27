@@ -3,8 +3,12 @@ package tfexec
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
+	"testing"
 )
 
 // mockExecutor impolements the Executor interface for testing.
@@ -153,4 +157,49 @@ func (e *mockExitError) Error() string {
 // ExitCode returns a exit status code of the command.
 func (e *mockExitError) ExitCode() int {
 	return e.exitCode
+}
+
+// setupTestAcc is a common setup helper for acceptance tests.
+func setupTestAcc(t *testing.T, source string) Executor {
+	workDir, err := setupTestWorkDir(source)
+	if err != nil {
+		t.Fatalf("failed to setup work dir: %s", err)
+	}
+	t.Cleanup(func() { os.RemoveAll(workDir) })
+
+	e := NewExecutor(workDir, os.Environ())
+	if err := setupTestPluginCacheDir(e); err != nil {
+		t.Fatalf("failed to set plugin cache dir: %s", err)
+	}
+
+	return e
+}
+
+// isAcceptanceTestEnabled returns true if acceptance tests should be run.
+func isAcceptanceTestEnabled() bool {
+	return os.Getenv("TEST_ACC") == "1"
+}
+
+// setupTestWorkDir creates temporary working directory with a given source for testing.
+func setupTestWorkDir(source string) (string, error) {
+	workDir, err := ioutil.TempDir("", "workDir")
+	if err != nil {
+		return "", fmt.Errorf("failed to create work dir: %s", err)
+	}
+
+	if err := ioutil.WriteFile(filepath.Join(workDir, "main.tf"), []byte(source), 0644); err != nil {
+		os.RemoveAll(workDir)
+		return "", fmt.Errorf("failed to create main.tf: %s", err)
+	}
+	return workDir, nil
+}
+
+// setupTestPluginCacheDir sets TF_PLUGIN_CACHE_DIR to a given executor.
+func setupTestPluginCacheDir(e Executor) error {
+	pwd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current dir: %s", err)
+	}
+	e.AppendEnv("TF_PLUGIN_CACHE_DIR", filepath.Join(pwd, "tmp/plugin-cache"))
+	return nil
 }
