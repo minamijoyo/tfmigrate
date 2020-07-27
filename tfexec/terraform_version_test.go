@@ -2,6 +2,8 @@ package tfexec
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"testing"
 )
 
@@ -69,4 +71,21 @@ is 0.12.29. You can update by downloading from https://www.terraform.io/download
 			}
 		})
 	}
+}
+
+func TestAccTerraformCLIVersion(t *testing.T) {
+	if !isAcceptanceTestEnabled() {
+		t.Skip("skip acceptance tests")
+	}
+
+	e := NewExecutor("", os.Environ())
+	terraformCLI := NewTerraformCLI(e)
+	got, err := terraformCLI.Version(context.Background())
+	if err != nil {
+		t.Fatalf("failed to run terraform version: %s", err)
+	}
+	if got == "" {
+		t.Error("failed to parse terraform version")
+	}
+	fmt.Printf("got = %s\n", got)
 }

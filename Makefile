@@ -34,5 +34,9 @@ vet:
 test: deps
 	go test ./...
 
+.PHONY: testacc
+testacc: deps
+	TEST_ACC=1 go test -count=1 ./...
+
 .PHONY: check
 check: lint vet test build
