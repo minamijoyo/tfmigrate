@@ -107,4 +107,13 @@ func TestAccTerraformCLIDestroy(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to run terraform destroy: %s", err)
 	}
+
+	got, err := terraformCLI.StateList(context.Background(), nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list: %s", err)
+	}
+
+	if len(got) != 0 {
+		t.Errorf("expected no resources, but got: %v", got)
+	}
 }

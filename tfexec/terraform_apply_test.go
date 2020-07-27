@@ -2,6 +2,7 @@ package tfexec
 
 import (
 	"context"
+	"reflect"
 	"regexp"
 	"testing"
 )
@@ -137,5 +138,15 @@ func TestAccTerraformCLIApply(t *testing.T) {
 	err = terraformCLI.Apply(context.Background(), plan, "", "-input=false", "-no-color")
 	if err != nil {
 		t.Fatalf("failed to run terraform apply: %s", err)
+	}
+
+	got, err := terraformCLI.StateList(context.Background(), nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list: %s", err)
+	}
+
+	want := []string{"null_resource.foo"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got: %v, want: %v", got, want)
 	}
 }
