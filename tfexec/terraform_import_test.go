@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestTerraformCLIImport(t *testing.T) {
@@ -158,11 +159,7 @@ func TestTerraformCLIImport(t *testing.T) {
 func TestAccTerraformCLIImport(t *testing.T) {
 	SkipUnlessAcceptanceTestEnabled(t)
 
-	source := `
-resource "random_string" "foo" {
-  length = 4
-}
-`
+	source := `resource "time_static" "foo" {}`
 	e := SetupTestAcc(t, source)
 	terraformCLI := NewTerraformCLI(e)
 
@@ -171,7 +168,20 @@ resource "random_string" "foo" {
 		t.Fatalf("failed to run terraform init: %s", err)
 	}
 
-	state, err := terraformCLI.Import(context.Background(), nil, "random_string.foo", "test", "-input=false", "-no-color")
+	_, err = terraformCLI.Plan(context.Background(), nil, "", "-input=false", "-no-color", "-detailed-exitcode")
+	if err != nil {
+		if exitErr, ok := err.(*exitError); ok {
+			if exitErr.ExitCode() != 2 {
+				t.Fatalf("failed to run terraform plan before import (expected diff): %s", err)
+			}
+		} else {
+			t.Fatalf("failed to run terraform plan before import (unexpected error): %s", err)
+		}
+	}
+
+	// importing a time_static resource accepts any timestamp with format RFC3339.
+	now := time.Now().UTC().Format(time.RFC3339)
+	state, err := terraformCLI.Import(context.Background(), nil, "time_static.foo", now, "-input=false", "-no-color")
 	if err != nil {
 		t.Fatalf("failed to run terraform import: %s", err)
 	}
@@ -181,8 +191,13 @@ resource "random_string" "foo" {
 		t.Fatalf("failed to run terraform state list: %s", err)
 	}
 
-	want := []string{"random_string.foo"}
+	want := []string{"time_static.foo"}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("got: %v, want: %v", got, want)
+	}
+
+	_, err = terraformCLI.Plan(context.Background(), state, "", "-input=false", "-no-color", "-detailed-exitcode")
+	if err != nil {
+		t.Fatalf("failed to run terraform plan after import (expected no diff): %s", err)
 	}
 }
