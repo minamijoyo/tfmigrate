@@ -17,6 +17,8 @@ type Executor interface {
 	NewCommandContext(ctx context.Context, name string, args ...string) (Command, error)
 	// Run executes a command.
 	Run(cmd Command) error
+	// Dir returns the current working directory.
+	Dir() string
 	// AppendEnv appends an environment variable.
 	AppendEnv(key string, value string)
 }
@@ -78,6 +80,11 @@ func (e *executor) Run(cmd Command) error {
 		return err
 	}
 	return nil
+}
+
+// Dir returns the current working directory.
+func (e *executor) Dir() string {
+	return e.dir
 }
 
 // AppendEnv appends an environment variable.

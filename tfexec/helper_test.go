@@ -60,6 +60,12 @@ func (e *mockExecutor) Run(cmd Command) error {
 	return cmd.Run()
 }
 
+// Dir returns the current working directory.
+func (e *mockExecutor) Dir() string {
+	// no op.
+	return ""
+}
+
 // AppendEnv appends an environment variable.
 func (e *mockExecutor) AppendEnv(key string, value string) {
 	// no op.

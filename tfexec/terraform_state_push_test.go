@@ -2,6 +2,9 @@ package tfexec
 
 import (
 	"context"
+	"os"
+	"path/filepath"
+	"reflect"
 	"regexp"
 	"testing"
 )
@@ -66,5 +69,50 @@ func TestTerraformCLIStatePush(t *testing.T) {
 				t.Fatalf("expected to return an error, but no error")
 			}
 		})
+	}
+}
+
+func TestAccTerraformCLIStatePush(t *testing.T) {
+	SkipUnlessAcceptanceTestEnabled(t)
+
+	source := `resource "null_resource" "foo" {}`
+	e := SetupTestAcc(t, source)
+	terraformCLI := NewTerraformCLI(e)
+
+	err := terraformCLI.Init(context.Background(), "", "-input=false", "-no-color")
+	if err != nil {
+		t.Fatalf("failed to run terraform init: %s", err)
+	}
+
+	err = terraformCLI.Apply(context.Background(), nil, "", "-input=false", "-no-color", "-auto-approve")
+	if err != nil {
+		t.Fatalf("failed to run terraform apply: %s", err)
+	}
+
+	state, err := terraformCLI.StatePull(context.Background())
+	if err != nil {
+		t.Fatalf("failed to run terraform state pull: %s", err)
+	}
+
+	// Normally, state push to remote, but we push to `local` here for testing.
+	// So we remove the original local state before push.
+	err = os.Remove(filepath.Join(e.Dir(), "terraform.tfstate"))
+	if err != nil {
+		t.Fatalf("failed to remove local tfstate before push: %s", err)
+	}
+
+	err = terraformCLI.StatePush(context.Background(), state)
+	if err != nil {
+		t.Fatalf("failed to run terraform state push: %s", err)
+	}
+
+	got, err := terraformCLI.StateList(context.Background(), nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list: %s", err)
+	}
+
+	want := []string{"null_resource.foo"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got: %v, want: %v", got, want)
 	}
 }
