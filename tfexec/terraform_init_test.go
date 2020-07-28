@@ -85,9 +85,7 @@ func TestTerraformCLIInit(t *testing.T) {
 }
 
 func TestAccTerraformCLIInit(t *testing.T) {
-	if !isAcceptanceTestEnabled() {
-		t.Skip("skip acceptance tests")
-	}
+	SkipUnlessAcceptanceTestEnabled(t)
 
 	source := `resource "null_resource" "foo" {}`
 	e := setupTestAcc(t, source)

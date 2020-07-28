@@ -156,9 +156,7 @@ func TestTerraformCLIImport(t *testing.T) {
 }
 
 func TestAccTerraformCLIImport(t *testing.T) {
-	if !isAcceptanceTestEnabled() {
-		t.Skip("skip acceptance tests")
-	}
+	SkipUnlessAcceptanceTestEnabled(t)
 
 	source := `
 resource "random_string" "foo" {

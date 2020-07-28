@@ -74,9 +74,7 @@ is 0.12.29. You can update by downloading from https://www.terraform.io/download
 }
 
 func TestAccTerraformCLIVersion(t *testing.T) {
-	if !isAcceptanceTestEnabled() {
-		t.Skip("skip acceptance tests")
-	}
+	SkipUnlessAcceptanceTestEnabled(t)
 
 	e := NewExecutor("", os.Environ())
 	terraformCLI := NewTerraformCLI(e)

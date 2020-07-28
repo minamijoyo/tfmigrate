@@ -175,9 +175,11 @@ func setupTestAcc(t *testing.T, source string) Executor {
 	return e
 }
 
-// isAcceptanceTestEnabled returns true if acceptance tests should be run.
-func isAcceptanceTestEnabled() bool {
-	return os.Getenv("TEST_ACC") == "1"
+// SkipUnlessAcceptanceTestEnabled skips acceptance tests unless TEST_ACC is set to 1.
+func SkipUnlessAcceptanceTestEnabled(t *testing.T) {
+	if os.Getenv("TEST_ACC") != "1" {
+		t.Skip("skip acceptance tests")
+	}
 }
 
 // setupTestWorkDir creates temporary working directory with a given source for testing.

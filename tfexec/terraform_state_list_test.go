@@ -156,9 +156,7 @@ aws_security_group.foo
 }
 
 func TestAccTerraformCLIStateList(t *testing.T) {
-	if !isAcceptanceTestEnabled() {
-		t.Skip("skip acceptance tests")
-	}
+	SkipUnlessAcceptanceTestEnabled(t)
 
 	source := `
 resource "null_resource" "foo" {}
