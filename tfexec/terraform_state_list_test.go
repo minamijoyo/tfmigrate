@@ -162,7 +162,7 @@ func TestAccTerraformCLIStateList(t *testing.T) {
 resource "null_resource" "foo" {}
 resource "null_resource" "bar" {}
 `
-	e := setupTestAcc(t, source)
+	e := SetupTestAcc(t, source)
 	terraformCLI := NewTerraformCLI(e)
 
 	err := terraformCLI.Init(context.Background(), "", "-input=false", "-no-color")

@@ -120,7 +120,7 @@ func TestAccTerraformCLIApply(t *testing.T) {
 	SkipUnlessAcceptanceTestEnabled(t)
 
 	source := `resource "null_resource" "foo" {}`
-	e := setupTestAcc(t, source)
+	e := SetupTestAcc(t, source)
 	terraformCLI := NewTerraformCLI(e)
 
 	err := terraformCLI.Init(context.Background(), "", "-input=false", "-no-color")

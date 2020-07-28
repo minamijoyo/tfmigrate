@@ -159,8 +159,8 @@ func (e *mockExitError) ExitCode() int {
 	return e.exitCode
 }
 
-// setupTestAcc is a common setup helper for acceptance tests.
-func setupTestAcc(t *testing.T, source string) Executor {
+// SetupTestAcc is a common setup helper for acceptance tests.
+func SetupTestAcc(t *testing.T, source string) Executor {
 	workDir, err := setupTestWorkDir(source)
 	if err != nil {
 		t.Fatalf("failed to setup work dir: %s", err)
