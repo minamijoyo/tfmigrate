@@ -161,6 +161,7 @@ func (e *mockExitError) ExitCode() int {
 
 // SetupTestAcc is a common setup helper for acceptance tests.
 func SetupTestAcc(t *testing.T, source string) Executor {
+	t.Helper()
 	workDir, err := setupTestWorkDir(source)
 	if err != nil {
 		t.Fatalf("failed to setup work dir: %s", err)
@@ -177,6 +178,7 @@ func SetupTestAcc(t *testing.T, source string) Executor {
 
 // SkipUnlessAcceptanceTestEnabled skips acceptance tests unless TEST_ACC is set to 1.
 func SkipUnlessAcceptanceTestEnabled(t *testing.T) {
+	t.Helper()
 	if os.Getenv("TEST_ACC") != "1" {
 		t.Skip("skip acceptance tests")
 	}
