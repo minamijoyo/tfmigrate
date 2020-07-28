@@ -2,6 +2,8 @@ package tfexec
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -94,5 +96,9 @@ func TestAccTerraformCLIInit(t *testing.T) {
 	err := terraformCLI.Init(context.Background(), "", "-input=false", "-no-color")
 	if err != nil {
 		t.Fatalf("failed to run terraform init: %s", err)
+	}
+
+	if _, err := os.Stat(filepath.Join(e.Dir(), ".terraform")); os.IsNotExist(err) {
+		t.Fatalf("failed to find .terraform directory: %s", err)
 	}
 }
