@@ -85,8 +85,10 @@ type TerraformCLI interface {
 	StatePull(ctx context.Context, opts ...string) (*State, error)
 
 	// StateMv moves resources from source to destination address.
-	// If a state is given, use it for the input state.
-	StateMv(ctx context.Context, state *State, source string, destination string, opts ...string) (*State, error)
+	// If a state argument is given, use it for the input state.
+	// If a stateOut argument is given, move resources from state to stateOut.
+	// It returns updated the given state and the stateOut.
+	StateMv(ctx context.Context, state *State, stateOut *State, source string, destination string, opts ...string) (*State, *State, error)
 
 	// StateRm removes resources from state.
 	// If a state is given, use it for the input state and return a new state.

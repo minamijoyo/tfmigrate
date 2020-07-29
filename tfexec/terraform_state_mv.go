@@ -8,49 +8,67 @@ import (
 )
 
 // StateMv moves resources from source to destination address.
-// If a state is given, use it for the input state.
-func (c *terraformCLI) StateMv(ctx context.Context, state *State, source string, destination string, opts ...string) (*State, error) {
+// If a state argument is given, use it for the input state.
+// If a stateOut argument is given, move resources from state to stateOut.
+// It returns updated the given state and the stateOut.
+func (c *terraformCLI) StateMv(ctx context.Context, state *State, stateOut *State, source string, destination string, opts ...string) (*State, *State, error) {
 	args := []string{"state", "mv"}
+
+	var tmpState *os.File
+	var tmpStateOut *os.File
+	var err error
 
 	if state != nil {
 		if hasPrefixOptions(opts, "-state=") {
-			return nil, fmt.Errorf("failed to build options. The state argument (!= nil) and the -state= option cannot be set at the same time: state=%v, opts=%v", state, opts)
+			return nil, nil, fmt.Errorf("failed to build options. The state argument (!= nil) and the -state= option cannot be set at the same time: state=%v, opts=%v", state, opts)
 		}
-		tmpState, err := writeTempFile(state.Bytes())
+		tmpState, err = writeTempFile(state.Bytes())
 		defer os.Remove(tmpState.Name())
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		args = append(args, "-state="+tmpState.Name())
 	}
 
-	// disallow -state-out option for writing a state file to a temporary file and load it to memory
-	if hasPrefixOptions(opts, "-state-out=") {
-		return nil, fmt.Errorf("failed to build options. The -state-out= option is not allowed. Read a return value: %v", opts)
+	if stateOut != nil {
+		if hasPrefixOptions(opts, "-state-out=") {
+			return nil, nil, fmt.Errorf("failed to build options. The stateOut argument (!= nil) and the -state-out= option cannot be set at the same time: stateOut=%v, opts=%v", stateOut, opts)
+		}
+		tmpStateOut, err = writeTempFile(stateOut.Bytes())
+		defer os.Remove(tmpStateOut.Name())
+		if err != nil {
+			return nil, nil, err
+		}
+		args = append(args, "-state-out="+tmpStateOut.Name())
 	}
-
-	tmpStateOut, err := ioutil.TempFile("", "tfstate")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create temporary state out file: %s", err)
-	}
-	defer os.Remove(tmpStateOut.Name())
-
-	if err := tmpStateOut.Close(); err != nil {
-		return nil, fmt.Errorf("failed to close temporary state out file: %s", err)
-	}
-	args = append(args, "-state-out="+tmpStateOut.Name())
 
 	args = append(args, opts...)
 	args = append(args, source, destination)
 
 	_, _, err = c.Run(ctx, args...)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	stateOut, err := ioutil.ReadFile(tmpStateOut.Name())
-	if err != nil {
-		return nil, err
+	// Read updated states
+	var updatedState *State
+	var updatedStateOut *State
+
+	if state != nil {
+		bytes, err := ioutil.ReadFile(tmpState.Name())
+		if err != nil {
+			return nil, nil, err
+		}
+		updatedState = NewState(bytes)
 	}
-	return NewState(stateOut), nil
+
+	if stateOut != nil {
+		bytes, err := ioutil.ReadFile(tmpStateOut.Name())
+		if err != nil {
+			return nil, nil, err
+		}
+		updatedStateOut = NewState(bytes)
+	}
+
+	return updatedState, updatedStateOut, nil
 }
