@@ -141,3 +141,44 @@ func TestTerraformCLIStateRm(t *testing.T) {
 		})
 	}
 }
+
+func TestAccTerraformCLIStateRm(t *testing.T) {
+	SkipUnlessAcceptanceTestEnabled(t)
+
+	source := `
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
+`
+	e := SetupTestAcc(t, source)
+	terraformCLI := NewTerraformCLI(e)
+
+	err := terraformCLI.Init(context.Background(), "", "-input=false", "-no-color")
+	if err != nil {
+		t.Fatalf("failed to run terraform init: %s", err)
+	}
+
+	err = terraformCLI.Apply(context.Background(), nil, "", "-input=false", "-no-color", "-auto-approve")
+	if err != nil {
+		t.Fatalf("failed to run terraform apply: %s", err)
+	}
+
+	state, err := terraformCLI.StatePull(context.Background())
+	if err != nil {
+		t.Fatalf("failed to run terraform state pull: %s", err)
+	}
+
+	updatedState, err := terraformCLI.StateRm(context.Background(), state, []string{"null_resource.foo"})
+	if err != nil {
+		t.Fatalf("failed to run terraform state rm: %s", err)
+	}
+
+	got, err := terraformCLI.StateList(context.Background(), updatedState, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list: %s", err)
+	}
+
+	want := []string{"null_resource.bar"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got: %v, want: %v", got, want)
+	}
+}
