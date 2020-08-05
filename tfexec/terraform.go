@@ -102,6 +102,9 @@ type TerraformCLI interface {
 	// Run is a low-level generic method for running an arbitrary terraform comamnd.
 	Run(ctx context.Context, args ...string) (string, string, error)
 
+	// dir returns a working directory where terraform command is executed.
+	Dir() string
+
 	// SetExecPath customizes how the terraform command is executed. Default to terraform.
 	// It's intended to inject a wrapper command such as direnv.
 	SetExecPath(execPath string)
@@ -154,6 +157,11 @@ func (c *terraformCLI) Run(ctx context.Context, args ...string) (string, string,
 	err = c.Executor.Run(cmd)
 
 	return cmd.Stdout(), cmd.Stderr(), err
+}
+
+// dir returns a working directory where terraform command is executed.
+func (c *terraformCLI) Dir() string {
+	return c.Executor.Dir()
 }
 
 // SetExecPath customizes how the terraform command is executed. Default to terraform.
