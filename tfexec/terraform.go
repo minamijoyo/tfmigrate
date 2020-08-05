@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/mattn/go-shellwords"
@@ -108,6 +109,14 @@ type TerraformCLI interface {
 	// SetExecPath customizes how the terraform command is executed. Default to terraform.
 	// It's intended to inject a wrapper command such as direnv.
 	SetExecPath(execPath string)
+
+	// OverrideBackendToRemote switches the backend to local and returns a function
+	// for swtich back it to remote with defer.
+	// The -state flag for terraform command is not valid for remote state,
+	// so we need to switch the backend to local for temporary state operations.
+	// The filename argument must meet constraints for override file.
+	// (e.g.) _tfexec_override.tf
+	OverrideBackendToRemote(ctx context.Context, filename string) (func(), error)
 }
 
 // terraformCLI implements the TerraformCLI interface.
@@ -168,6 +177,40 @@ func (c *terraformCLI) Dir() string {
 // It's intended to inject a wrapper command such as direnv.
 func (c *terraformCLI) SetExecPath(execPath string) {
 	c.execPath = execPath
+}
+
+// OverrideBackendToRemote switches the backend to local and returns a function
+// for swtich back it to remote with defer.
+// The -state flag for terraform command is not valid for remote state,
+// so we need to switch the backend to local for temporary state operations.
+// The filename argument must meet constraints for override file.
+// (e.g.) _tfexec_override.tf
+func (c *terraformCLI) OverrideBackendToRemote(ctx context.Context, filename string) (func(), error) {
+	// create local backend override file.
+	path := filepath.Join(c.Dir(), filename)
+	contents := `
+terraform {
+  backend "local" {
+  }
+}
+`
+	if err := ioutil.WriteFile(path, []byte(contents), 0644); err != nil {
+		return nil, fmt.Errorf("failed to create override file: %s", err)
+	}
+
+	err := c.Init(ctx, "", "-input=false", "-no-color", "-reconfigure")
+	if err != nil {
+		// remove the override file before return an error.
+		os.Remove(path)
+		return nil, fmt.Errorf("failed to switch backend to local: %s", err)
+	}
+
+	switchBackToRemotekFunc := func() {
+		os.Remove(path)
+		c.Init(ctx, "", "-input=false", "-no-color", "-reconfigure")
+	}
+
+	return switchBackToRemotekFunc, nil
 }
 
 // writeTempFile writes content to a temporary file and return its file.
