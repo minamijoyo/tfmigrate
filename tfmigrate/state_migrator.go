@@ -3,10 +3,8 @@ package tfmigrate
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
-	"path/filepath"
 
 	"github.com/minamijoyo/tfmigrate/tfexec"
 )
@@ -59,29 +57,15 @@ func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 		return nil, err
 	}
 
-	// create local backend override file.
-	overrideFilePath := filepath.Join(tf.Dir(), "_tfmigrate_override.tf")
-	overrideContents := `
-terraform {
-  backend "local" {
-  }
-}
-`
-	if err := ioutil.WriteFile(overrideFilePath, []byte(overrideContents), 0644); err != nil {
-		return nil, fmt.Errorf("failed to create override file: %s", err)
-	}
-
-	// The -state flag for terraform commands is not valid for remote state.
-	// So we switch to local backend to dry-run migration.
-	err = m.tf.Init(ctx, "", "-input=false", "-no-color", "-reconfigure")
+	// The -state flag for terraform command is not valid for remote state,
+	// so we need to switch the backend to local for temporary state operations.
+	switchBackToRemotekFunc, err := m.tf.OverrideBackendToRemote(ctx, "_tfmigrate_override.tf")
 	if err != nil {
 		return nil, err
 	}
-	// rollback to remote backend on exit.
-	defer func() {
-		os.Remove(overrideFilePath)
-		m.tf.Init(ctx, "", "-input=false", "-no-color", "-reconfigure")
-	}()
+
+	// switch back it to remote on exit.
+	defer switchBackToRemotekFunc()
 
 	// computes a new state by applying state migration operations to a temporary state.
 	var newState *tfexec.State
