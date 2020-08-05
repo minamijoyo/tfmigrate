@@ -15,8 +15,6 @@ import (
 type StateMigrator struct {
 	// tf is an instance of TerraformCLI.
 	tf tfexec.TerraformCLI
-	// dir is a work directory where terraform command is executed.
-	dir string
 	// actions is a list of state migration operations.
 	actions []StateAction
 }
@@ -33,7 +31,6 @@ func NewStateMigrator(dir string, actions []StateAction, o *MigratorOption) *Sta
 
 	return &StateMigrator{
 		tf:      tf,
-		dir:     dir,
 		actions: actions,
 	}
 }
@@ -63,7 +60,7 @@ func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 	}
 
 	// create local backend override file.
-	overrideFilePath := filepath.Join(m.dir, "_tfmigrate_override.tf")
+	overrideFilePath := filepath.Join(tf.Dir(), "_tfmigrate_override.tf")
 	overrideContents := `
 terraform {
   backend "local" {
