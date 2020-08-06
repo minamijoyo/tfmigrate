@@ -165,6 +165,17 @@ func (e *mockExitError) ExitCode() int {
 	return e.exitCode
 }
 
+// testAccSourceFileName is a filename of terraform configuration for testing.
+var testAccSourceFileName = "main.tf"
+
+// SkipUnlessAcceptanceTestEnabled skips acceptance tests unless TEST_ACC is set to 1.
+func SkipUnlessAcceptanceTestEnabled(t *testing.T) {
+	t.Helper()
+	if os.Getenv("TEST_ACC") != "1" {
+		t.Skip("skip acceptance tests")
+	}
+}
+
 // SetupTestAcc is a common setup helper for acceptance tests.
 func SetupTestAcc(t *testing.T, source string) Executor {
 	t.Helper()
@@ -182,14 +193,6 @@ func SetupTestAcc(t *testing.T, source string) Executor {
 	return e
 }
 
-// SkipUnlessAcceptanceTestEnabled skips acceptance tests unless TEST_ACC is set to 1.
-func SkipUnlessAcceptanceTestEnabled(t *testing.T) {
-	t.Helper()
-	if os.Getenv("TEST_ACC") != "1" {
-		t.Skip("skip acceptance tests")
-	}
-}
-
 // setupTestWorkDir creates temporary working directory with a given source for testing.
 func setupTestWorkDir(source string) (string, error) {
 	workDir, err := ioutil.TempDir("", "workDir")
@@ -197,7 +200,7 @@ func setupTestWorkDir(source string) (string, error) {
 		return "", fmt.Errorf("failed to create work dir: %s", err)
 	}
 
-	if err := ioutil.WriteFile(filepath.Join(workDir, "main.tf"), []byte(source), 0644); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(workDir, testAccSourceFileName), []byte(source), 0644); err != nil {
 		os.RemoveAll(workDir)
 		return "", fmt.Errorf("failed to create main.tf: %s", err)
 	}
@@ -212,4 +215,77 @@ func setupTestPluginCacheDir(e Executor) error {
 	}
 	e.AppendEnv("TF_PLUGIN_CACHE_DIR", filepath.Join(pwd, "tmp/plugin-cache"))
 	return nil
+}
+
+// GetTestAccBackendS3Config returns mocked backend s3 config for testing.
+// Its endpoint can be set via LOCALSTACK_ENDPOINT environment variable.
+// default to "http://localhost:4566"
+func GetTestAccBackendS3Config() string {
+	endpoint := "http://localhost:4566"
+	localstackEndpoint := os.Getenv("LOCALSTACK_ENDPOINT")
+	if len(localstackEndpoint) > 0 {
+		endpoint = localstackEndpoint
+	}
+
+	backendConfig := fmt.Sprintf(`
+terraform {
+  # https://www.terraform.io/docs/backends/types/s3.html
+  backend "s3" {
+    region = "ap-northeast-1"
+    bucket = "tfstate-test"
+    key    = "test/terraform.tfstate"
+
+    // mock s3 endpoint with localstack
+    endpoint                    = "%s"
+    access_key                  = "dummy"
+    secret_key                  = "dummy"
+    skip_credentials_validation = true
+    skip_metadata_api_check     = true
+    force_path_style            = true
+  }
+}
+
+# https://www.terraform.io/docs/providers/aws/index.html
+# https://www.terraform.io/docs/providers/aws/guides/custom-service-endpoints.html#localstack
+provider "aws" {
+  region = "ap-northeast-1"
+
+  access_key                  = "dummy"
+  secret_key                  = "dummy"
+  skip_credentials_validation = true
+  skip_metadata_api_check     = true
+  skip_region_validation      = true
+  skip_requesting_account_id  = true
+  s3_force_path_style         = true
+
+  // mock endpoints with localstack
+  endpoints {
+    s3  = "%s"
+    ec2 = "%s"
+  }
+}
+`, endpoint, endpoint, endpoint)
+	return backendConfig
+}
+
+// SetupTestAccWithApply is an acceptance test helper for initializing a
+// temporary work directory and applying a given source.
+func SetupTestAccWithApply(t *testing.T, source string) TerraformCLI {
+	t.Helper()
+
+	e := SetupTestAcc(t, source)
+	tf := NewTerraformCLI(e)
+	ctx := context.Background()
+
+	err := tf.Init(ctx, "", "-input=false", "-no-color")
+	if err != nil {
+		t.Fatalf("failed to run terraform init: %s", err)
+	}
+
+	err = tf.Apply(ctx, nil, "", "-input=false", "-no-color", "-auto-approve")
+	if err != nil {
+		t.Fatalf("failed to run terraform apply: %s", err)
+	}
+
+	return tf
 }

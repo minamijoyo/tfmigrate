@@ -2,6 +2,8 @@ package tfexec
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -85,5 +87,38 @@ func TestTerraformCLIRun(t *testing.T) {
 				t.Errorf("got: %s, want: %s", got, tc.want)
 			}
 		})
+	}
+}
+
+func TestAccTerraformCLIOverrideBackendToRemote(t *testing.T) {
+	SkipUnlessAcceptanceTestEnabled(t)
+
+	backend := GetTestAccBackendS3Config()
+	source := `
+resource "aws_security_group" "foo" {}
+resource "aws_security_group" "bar" {}
+resource "aws_security_group" "baz" {}
+`
+
+	tf := SetupTestAccWithApply(t, backend+source)
+
+	filename := "_tfexec_override.tf"
+	if _, err := os.Stat(filepath.Join(tf.Dir(), filename)); err == nil {
+		t.Fatalf("an override file already exists: %s", err)
+	}
+
+	switchBackToRemotekFunc, err := tf.OverrideBackendToRemote(context.Background(), filename)
+	if err != nil {
+		t.Fatalf("failed to run OverrideBackendToRemote: %s", err)
+	}
+
+	if _, err := os.Stat(filepath.Join(tf.Dir(), filename)); os.IsNotExist(err) {
+		t.Fatalf("the override file does not exist: %s", err)
+	}
+
+	switchBackToRemotekFunc()
+
+	if _, err := os.Stat(filepath.Join(tf.Dir(), filename)); err == nil {
+		t.Fatalf("the override file wasn't removed: %s", err)
 	}
 }
