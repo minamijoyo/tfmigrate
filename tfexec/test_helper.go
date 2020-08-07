@@ -289,3 +289,11 @@ func SetupTestAccWithApply(t *testing.T, source string) TerraformCLI {
 
 	return tf
 }
+
+// UpdateTestAccSource updates a terraform configuration file with a given contents.
+func UpdateTestAccSource(t *testing.T, tf TerraformCLI, source string) {
+	t.Helper()
+	if err := ioutil.WriteFile(filepath.Join(tf.Dir(), testAccSourceFileName), []byte(source), 0644); err != nil {
+		t.Fatalf("failed to update source: %s", err)
+	}
+}

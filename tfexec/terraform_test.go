@@ -97,29 +97,68 @@ func TestAccTerraformCLIOverrideBackendToRemote(t *testing.T) {
 	source := `
 resource "aws_security_group" "foo" {}
 resource "aws_security_group" "bar" {}
-resource "aws_security_group" "baz" {}
 `
 
-	tf := SetupTestAccWithApply(t, backend+source)
+	terraformCLI := SetupTestAccWithApply(t, backend+source)
+
+	updatedSource := `
+resource "aws_security_group" "foo2" {}
+resource "aws_security_group" "bar" {}
+`
+	UpdateTestAccSource(t, terraformCLI, backend+updatedSource)
+
+	changed, err := terraformCLI.PlanHasChange(context.Background(), nil, "")
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange: %s", err)
+	}
+	if !changed {
+		t.Fatalf("expect to have changes")
+	}
+
+	state, err := terraformCLI.StatePull(context.Background())
+	if err != nil {
+		t.Fatalf("failed to run terraform state pull: %s", err)
+	}
 
 	filename := "_tfexec_override.tf"
-	if _, err := os.Stat(filepath.Join(tf.Dir(), filename)); err == nil {
+	if _, err := os.Stat(filepath.Join(terraformCLI.Dir(), filename)); err == nil {
 		t.Fatalf("an override file already exists: %s", err)
 	}
 
-	switchBackToRemotekFunc, err := tf.OverrideBackendToRemote(context.Background(), filename)
+	switchBackToRemotekFunc, err := terraformCLI.OverrideBackendToRemote(context.Background(), filename)
 	if err != nil {
 		t.Fatalf("failed to run OverrideBackendToRemote: %s", err)
 	}
 
-	if _, err := os.Stat(filepath.Join(tf.Dir(), filename)); os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(terraformCLI.Dir(), filename)); os.IsNotExist(err) {
 		t.Fatalf("the override file does not exist: %s", err)
+	}
+
+	updatedState, _, err := terraformCLI.StateMv(context.Background(), state, nil, "aws_security_group.foo", "aws_security_group.foo2")
+	if err != nil {
+		t.Fatalf("failed to run terraform state mv: %s", err)
+	}
+
+	changed, err = terraformCLI.PlanHasChange(context.Background(), updatedState, "")
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange: %s", err)
+	}
+	if changed {
+		t.Fatalf("expect not to have changes")
 	}
 
 	switchBackToRemotekFunc()
 
-	if _, err := os.Stat(filepath.Join(tf.Dir(), filename)); err == nil {
+	if _, err := os.Stat(filepath.Join(terraformCLI.Dir(), filename)); err == nil {
 		t.Fatalf("the override file wasn't removed: %s", err)
+	}
+
+	changed, err = terraformCLI.PlanHasChange(context.Background(), nil, "")
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange: %s", err)
+	}
+	if !changed {
+		t.Fatalf("expect to have changes")
 	}
 }
 
