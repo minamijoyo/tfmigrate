@@ -117,6 +117,9 @@ type TerraformCLI interface {
 	// The filename argument must meet constraints for override file.
 	// (e.g.) _tfexec_override.tf
 	OverrideBackendToRemote(ctx context.Context, filename string) (func(), error)
+
+	// PlanHasChange is a helper method which runs plan and return true if the plan has change.
+	PlanHasChange(ctx context.Context, state *State, dir string, opts ...string) (bool, error)
 }
 
 // terraformCLI implements the TerraformCLI interface.
@@ -211,6 +214,35 @@ terraform {
 	}
 
 	return switchBackToRemotekFunc, nil
+}
+
+// PlanHasChange is a helper method which runs plan and return true only if the plan has change.
+func (c *terraformCLI) PlanHasChange(ctx context.Context, state *State, dir string, opts ...string) (bool, error) {
+
+	merged := mergeOptions(opts, []string{"-input=false", "-no-color", "-detailed-exitcode"})
+	_, err := c.Plan(ctx, state, dir, merged...)
+	if err != nil {
+		if exitErr, ok := err.(ExitError); ok && exitErr.ExitCode() == 2 {
+			return true, nil
+		}
+		return false, err
+	}
+	return false, nil
+}
+
+// mergeOptions merges two lists and returns a new uniq list.
+func mergeOptions(a []string, b []string) []string {
+	input := append(a, b...)
+	m := make(map[string]struct{})
+	uniq := make([]string, 0)
+	for _, e := range input {
+		if _, ok := m[e]; !ok {
+			m[e] = struct{}{}
+			uniq = append(uniq, e)
+		}
+	}
+
+	return uniq
 }
 
 // writeTempFile writes content to a temporary file and return its file.

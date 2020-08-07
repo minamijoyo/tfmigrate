@@ -122,3 +122,38 @@ resource "aws_security_group" "baz" {}
 		t.Fatalf("the override file wasn't removed: %s", err)
 	}
 }
+
+func TestAccTerraformCLIPlanHasChange(t *testing.T) {
+	SkipUnlessAcceptanceTestEnabled(t)
+
+	source := `resource "null_resource" "foo" {}`
+	e := SetupTestAcc(t, source)
+	terraformCLI := NewTerraformCLI(e)
+
+	err := terraformCLI.Init(context.Background(), "", "-input=false", "-no-color")
+	if err != nil {
+		t.Fatalf("failed to run terraform init: %s", err)
+	}
+
+	changed, err := terraformCLI.PlanHasChange(context.Background(), nil, "")
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange: %s", err)
+	}
+	if !changed {
+		t.Fatalf("expect not to have changes")
+	}
+
+	err = terraformCLI.Apply(context.Background(), nil, "", "-input=false", "-no-color", "-auto-approve")
+	if err != nil {
+		t.Fatalf("failed to run terraform apply: %s", err)
+	}
+
+	changed, err = terraformCLI.PlanHasChange(context.Background(), nil, "")
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange: %s", err)
+	}
+
+	if changed {
+		t.Fatalf("expect to have changes")
+	}
+}
