@@ -2,14 +2,12 @@ package tfmigrate
 
 import (
 	"context"
-	"reflect"
-	"sort"
 	"testing"
 
 	"github.com/minamijoyo/tfmigrate/tfexec"
 )
 
-func TestAccStateMigratorApply(t *testing.T) {
+func TestAccStateRmAction(t *testing.T) {
 	tfexec.SkipUnlessAcceptanceTestEnabled(t)
 
 	backend := tfexec.GetTestAccBackendS3Config(t)
@@ -18,12 +16,12 @@ func TestAccStateMigratorApply(t *testing.T) {
 resource "aws_security_group" "foo" {}
 resource "aws_security_group" "bar" {}
 resource "aws_security_group" "baz" {}
+resource "aws_security_group" "piyo" {}
 `
 	tf := tfexec.SetupTestAccWithApply(t, backend+source)
 	ctx := context.Background()
 
 	updatedSource := `
-resource "aws_security_group" "foo2" {}
 resource "aws_security_group" "baz" {}
 `
 
@@ -38,41 +36,13 @@ resource "aws_security_group" "baz" {}
 	}
 
 	actions := []StateAction{
-		NewStateMvAction("aws_security_group.foo", "aws_security_group.foo2"),
-		NewStateRmAction([]string{"aws_security_group.bar"}),
+		NewStateRmAction([]string{"aws_security_group.foo", "aws_security_group.bar"}),
+		NewStateRmAction([]string{"aws_security_group.piyo"}),
 	}
 
 	m := NewStateMigrator(tf.Dir(), actions, nil)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
-	}
-
-	err = m.Apply(ctx)
-	if err != nil {
-		t.Fatalf("failed to run migrator apply: %s", err)
-	}
-
-	got, err := tf.StateList(ctx, nil, nil)
-	if err != nil {
-		t.Fatalf("failed to run terraform state list: %s", err)
-	}
-
-	want := []string{
-		"aws_security_group.foo2",
-		"aws_security_group.baz",
-	}
-	sort.Strings(got)
-	sort.Strings(want)
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("got state: %v, want state: %v", got, want)
-	}
-
-	changed, err = tf.PlanHasChange(ctx, nil, "")
-	if err != nil {
-		t.Fatalf("failed to run PlanHasChange: %s", err)
-	}
-	if changed {
-		t.Fatalf("expect not to have changes")
 	}
 }
