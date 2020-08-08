@@ -262,9 +262,10 @@ provider "aws" {
   endpoints {
     s3  = "%s"
     ec2 = "%s"
+    iam = "%s"
   }
 }
-`, t.Name(), endpoint, endpoint, endpoint)
+`, t.Name(), endpoint, endpoint, endpoint, endpoint)
 	return backendConfig
 }
 

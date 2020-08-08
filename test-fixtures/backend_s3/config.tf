@@ -32,5 +32,6 @@ provider "aws" {
   endpoints {
     s3  = "http://localstack:4566"
     ec2 = "http://localstack:4566"
+    iam = "http://localstack:4566"
   }
 }

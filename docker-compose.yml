@@ -19,7 +19,7 @@ services:
       - "4566:4566"
     environment:
       DEBUG: "true"
-      SERVICES: "s3,ec2"
+      SERVICES: "s3,ec2,iam"
       DEFAULT_REGION: "ap-northeast-1"
     volumes:
       - "./scripts/localstack:/docker-entrypoint-initaws.d"  # initialize scripts on startup
