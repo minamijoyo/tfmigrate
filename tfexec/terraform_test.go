@@ -93,7 +93,7 @@ func TestTerraformCLIRun(t *testing.T) {
 func TestAccTerraformCLIOverrideBackendToRemote(t *testing.T) {
 	SkipUnlessAcceptanceTestEnabled(t)
 
-	backend := GetTestAccBackendS3Config()
+	backend := GetTestAccBackendS3Config(t)
 	source := `
 resource "aws_security_group" "foo" {}
 resource "aws_security_group" "bar" {}

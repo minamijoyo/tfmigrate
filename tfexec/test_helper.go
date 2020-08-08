@@ -220,7 +220,7 @@ func setupTestPluginCacheDir(e Executor) error {
 // GetTestAccBackendS3Config returns mocked backend s3 config for testing.
 // Its endpoint can be set via LOCALSTACK_ENDPOINT environment variable.
 // default to "http://localhost:4566"
-func GetTestAccBackendS3Config() string {
+func GetTestAccBackendS3Config(t *testing.T) string {
 	endpoint := "http://localhost:4566"
 	localstackEndpoint := os.Getenv("LOCALSTACK_ENDPOINT")
 	if len(localstackEndpoint) > 0 {
@@ -233,7 +233,7 @@ terraform {
   backend "s3" {
     region = "ap-northeast-1"
     bucket = "tfstate-test"
-    key    = "test/terraform.tfstate"
+    key    = "%s/terraform.tfstate"
 
     // mock s3 endpoint with localstack
     endpoint                    = "%s"
@@ -264,7 +264,7 @@ provider "aws" {
     ec2 = "%s"
   }
 }
-`, endpoint, endpoint, endpoint)
+`, t.Name(), endpoint, endpoint, endpoint)
 	return backendConfig
 }
 

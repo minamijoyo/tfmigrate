@@ -12,7 +12,7 @@ import (
 func TestAccStateMigratorApply(t *testing.T) {
 	tfexec.SkipUnlessAcceptanceTestEnabled(t)
 
-	backend := tfexec.GetTestAccBackendS3Config()
+	backend := tfexec.GetTestAccBackendS3Config(t)
 
 	source := `
 resource "aws_security_group" "foo" {}
