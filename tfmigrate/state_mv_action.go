@@ -6,12 +6,6 @@ import (
 	"github.com/minamijoyo/tfmigrate/tfexec"
 )
 
-// StateAction abstracts state migration operations.
-type StateAction interface {
-	// StateUpdate updates a given state and returns a new state.
-	StateUpdate(ctx context.Context, tf tfexec.TerraformCLI, state *tfexec.State) (*tfexec.State, error)
-}
-
 // StateMvAction implements the StateAction interface.
 // StateMvAction moves a resource from source address to destination address in
 // the same tfstate file.

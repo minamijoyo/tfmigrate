@@ -9,6 +9,12 @@ import (
 	"github.com/minamijoyo/tfmigrate/tfexec"
 )
 
+// StateAction abstracts state migration operations.
+type StateAction interface {
+	// StateUpdate updates a given state and returns a new state.
+	StateUpdate(ctx context.Context, tf tfexec.TerraformCLI, state *tfexec.State) (*tfexec.State, error)
+}
+
 // StateMigrator implements the Migrator interface.
 type StateMigrator struct {
 	// tf is an instance of TerraformCLI.
