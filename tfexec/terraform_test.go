@@ -90,7 +90,7 @@ func TestTerraformCLIRun(t *testing.T) {
 	}
 }
 
-func TestAccTerraformCLIOverrideBackendToRemote(t *testing.T) {
+func TestAccTerraformCLIOverrideBackendToLocal(t *testing.T) {
 	SkipUnlessAcceptanceTestEnabled(t)
 
 	backend := GetTestAccBackendS3Config(t)
@@ -125,9 +125,9 @@ resource "aws_security_group" "bar" {}
 		t.Fatalf("an override file already exists: %s", err)
 	}
 
-	switchBackToRemotekFunc, err := terraformCLI.OverrideBackendToRemote(context.Background(), filename)
+	switchBackToRemotekFunc, err := terraformCLI.OverrideBackendToLocal(context.Background(), filename)
 	if err != nil {
-		t.Fatalf("failed to run OverrideBackendToRemote: %s", err)
+		t.Fatalf("failed to run OverrideBackendToLocal: %s", err)
 	}
 
 	if _, err := os.Stat(filepath.Join(terraformCLI.Dir(), filename)); os.IsNotExist(err) {

@@ -52,7 +52,7 @@ func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI) (*tfexec.State, f
 
 	// The -state flag for terraform command is not valid for remote state,
 	// so we need to switch the backend to local for temporary state operations.
-	switchBackToRemotekFunc, err := tf.OverrideBackendToRemote(ctx, "_tfmigrate_override.tf")
+	switchBackToRemotekFunc, err := tf.OverrideBackendToLocal(ctx, "_tfmigrate_override.tf")
 	if err != nil {
 		return nil, nil, err
 	}

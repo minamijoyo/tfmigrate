@@ -110,13 +110,13 @@ type TerraformCLI interface {
 	// It's intended to inject a wrapper command such as direnv.
 	SetExecPath(execPath string)
 
-	// OverrideBackendToRemote switches the backend to local and returns a function
+	// OverrideBackendToLocal switches the backend to local and returns a function
 	// for swtich back it to remote with defer.
 	// The -state flag for terraform command is not valid for remote state,
 	// so we need to switch the backend to local for temporary state operations.
 	// The filename argument must meet constraints for override file.
 	// (e.g.) _tfexec_override.tf
-	OverrideBackendToRemote(ctx context.Context, filename string) (func(), error)
+	OverrideBackendToLocal(ctx context.Context, filename string) (func(), error)
 
 	// PlanHasChange is a helper method which runs plan and return true if the plan has change.
 	PlanHasChange(ctx context.Context, state *State, dir string, opts ...string) (bool, error)
@@ -182,13 +182,13 @@ func (c *terraformCLI) SetExecPath(execPath string) {
 	c.execPath = execPath
 }
 
-// OverrideBackendToRemote switches the backend to local and returns a function
+// OverrideBackendToLocal switches the backend to local and returns a function
 // for swtich back it to remote with defer.
 // The -state flag for terraform command is not valid for remote state,
 // so we need to switch the backend to local for temporary state operations.
 // The filename argument must meet constraints for override file.
 // (e.g.) _tfexec_override.tf
-func (c *terraformCLI) OverrideBackendToRemote(ctx context.Context, filename string) (func(), error) {
+func (c *terraformCLI) OverrideBackendToLocal(ctx context.Context, filename string) (func(), error) {
 	// create local backend override file.
 	path := filepath.Join(c.Dir(), filename)
 	contents := `
