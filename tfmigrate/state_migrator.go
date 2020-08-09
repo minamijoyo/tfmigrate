@@ -3,7 +3,6 @@ package tfmigrate
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/minamijoyo/tfmigrate/tfexec"
@@ -41,35 +40,11 @@ func NewStateMigrator(dir string, actions []StateAction, o *MigratorOption) *Sta
 
 // plan computes a new state by applying state migration operations to a temporary state.
 // It will fail if terraform plan detects any diffs with a new state.
-// We intentional private this method not to expose an internal state type to
-// outside of this package.
+// We intentional private this method not to expose internal states and unify
+// the Migrator interface between a single and multi state migrator.
 func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
-	// check if terraform command is available.
-	version, err := m.tf.Version(ctx)
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("[DEBUG] terraform version: %s\n", version)
-
-	// initialize work dir.
-	err = m.tf.Init(ctx, "", "-input=false", "-no-color")
-	if err != nil {
-		return nil, err
-	}
-
-	// get the current remote state.
-	currentState, err := m.tf.StatePull(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// The -state flag for terraform command is not valid for remote state,
-	// so we need to switch the backend to local for temporary state operations.
-	switchBackToRemotekFunc, err := m.tf.OverrideBackendToRemote(ctx, "_tfmigrate_override.tf")
-	if err != nil {
-		return nil, err
-	}
-
+	// setup work dir.
+	currentState, switchBackToRemotekFunc, err := setupWorkDir(ctx, m.tf)
 	// switch back it to remote on exit.
 	defer switchBackToRemotekFunc()
 
@@ -86,7 +61,7 @@ func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 	_, err = m.tf.Plan(ctx, currentState, "", "-input=false", "-no-color", "-detailed-exitcode")
 	if err != nil {
 		if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
-			return nil, fmt.Errorf("terraform plan command returns unexpected diffs: %s", err)
+			return nil, fmt.Errorf("[%s] terraform plan command returns unexpected diffs: %s", m.tf.Dir(), err)
 		}
 		return nil, err
 	}
