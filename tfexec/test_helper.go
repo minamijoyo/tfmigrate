@@ -220,7 +220,7 @@ func setupTestPluginCacheDir(e Executor) error {
 // GetTestAccBackendS3Config returns mocked backend s3 config for testing.
 // Its endpoint can be set via LOCALSTACK_ENDPOINT environment variable.
 // default to "http://localhost:4566"
-func GetTestAccBackendS3Config(t *testing.T) string {
+func GetTestAccBackendS3Config(dir string) string {
 	endpoint := "http://localhost:4566"
 	localstackEndpoint := os.Getenv("LOCALSTACK_ENDPOINT")
 	if len(localstackEndpoint) > 0 {
@@ -265,7 +265,7 @@ provider "aws" {
     iam = "%s"
   }
 }
-`, t.Name(), endpoint, endpoint, endpoint, endpoint)
+`, dir, endpoint, endpoint, endpoint, endpoint)
 	return backendConfig
 }
 

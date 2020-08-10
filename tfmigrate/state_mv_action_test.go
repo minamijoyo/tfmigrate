@@ -10,7 +10,7 @@ import (
 func TestAccStateMvAction(t *testing.T) {
 	tfexec.SkipUnlessAcceptanceTestEnabled(t)
 
-	backend := tfexec.GetTestAccBackendS3Config(t)
+	backend := tfexec.GetTestAccBackendS3Config(t.Name())
 
 	source := `
 resource "aws_security_group" "foo" {}
