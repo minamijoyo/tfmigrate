@@ -8,13 +8,6 @@ import (
 	"github.com/minamijoyo/tfmigrate/tfexec"
 )
 
-// MultiStateAction abstracts multi state migration operations.
-// It's used for moving resources from a state to another.
-type MultiStateAction interface {
-	// MultiStateUpdate updates given two states and returns new two states.
-	MultiStateUpdate(ctx context.Context, fromTf tfexec.TerraformCLI, toTf tfexec.TerraformCLI, fromState *tfexec.State, toState *tfexec.State) (*tfexec.State, *tfexec.State, error)
-}
-
 // MultiStateMigrator implements the Migrator interface.
 type MultiStateMigrator struct {
 	// fromTf is an instance of TerraformCLI which executes terraform command in a fromDir.
