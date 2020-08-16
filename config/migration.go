@@ -80,6 +80,10 @@ func (c *StateMigratorConfig) NewMigrator(o *tfmigrate.MigratorOption) (tfmigrat
 		dir = c.Dir
 	}
 
+	if len(c.Actions) == 0 {
+		return nil, fmt.Errorf("faild to NewMigrator with no actions")
+	}
+
 	// build actions from config.
 	actions := []tfmigrate.StateAction{}
 	for _, cmdStr := range c.Actions {
@@ -95,6 +99,10 @@ func (c *StateMigratorConfig) NewMigrator(o *tfmigrate.MigratorOption) (tfmigrat
 
 // NewMigrator returns a new instance of MultiStateMigrator.
 func (c *MultiStateMigratorConfig) NewMigrator(o *tfmigrate.MigratorOption) (tfmigrate.Migrator, error) {
+	if len(c.Actions) == 0 {
+		return nil, fmt.Errorf("faild to NewMigrator with no actions")
+	}
+
 	// build actions from config.
 	actions := []tfmigrate.MultiStateAction{}
 	for _, cmdStr := range c.Actions {
