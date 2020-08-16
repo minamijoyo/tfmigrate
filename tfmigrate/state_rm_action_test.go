@@ -16,7 +16,7 @@ func TestAccStateRmAction(t *testing.T) {
 resource "aws_security_group" "foo" {}
 resource "aws_security_group" "bar" {}
 resource "aws_security_group" "baz" {}
-resource "aws_security_group" "piyo" {}
+resource "aws_security_group" "qux" {}
 `
 	tf := tfexec.SetupTestAccWithApply(t, backend+source)
 	ctx := context.Background()
@@ -37,7 +37,7 @@ resource "aws_security_group" "baz" {}
 
 	actions := []StateAction{
 		NewStateRmAction([]string{"aws_security_group.foo", "aws_security_group.bar"}),
-		NewStateRmAction([]string{"aws_security_group.piyo"}),
+		NewStateRmAction([]string{"aws_security_group.qux"}),
 	}
 
 	m := NewStateMigrator(tf.Dir(), actions, nil)

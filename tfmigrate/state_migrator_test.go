@@ -18,8 +18,8 @@ func TestAccStateMigratorApply(t *testing.T) {
 resource "aws_security_group" "foo" {}
 resource "aws_security_group" "bar" {}
 resource "aws_security_group" "baz" {}
-resource "aws_iam_user" "piyo" {
-	name = "piyo"
+resource "aws_iam_user" "qux" {
+	name = "qux"
 }
 `
 	tf := tfexec.SetupTestAccWithApply(t, backend+source)
@@ -28,14 +28,14 @@ resource "aws_iam_user" "piyo" {
 	updatedSource := `
 resource "aws_security_group" "foo2" {}
 resource "aws_security_group" "baz" {}
-resource "aws_iam_user" "piyo" {
-	name = "piyo"
+resource "aws_iam_user" "qux" {
+	name = "qux"
 }
 `
 
 	tfexec.UpdateTestAccSource(t, tf, backend+updatedSource)
 
-	_, err := tf.StateRm(ctx, nil, []string{"aws_iam_user.piyo"})
+	_, err := tf.StateRm(ctx, nil, []string{"aws_iam_user.qux"})
 	if err != nil {
 		t.Fatalf("failed to run terraform state rm: %s", err)
 	}
@@ -51,7 +51,7 @@ resource "aws_iam_user" "piyo" {
 	actions := []StateAction{
 		NewStateMvAction("aws_security_group.foo", "aws_security_group.foo2"),
 		NewStateRmAction([]string{"aws_security_group.bar"}),
-		NewStateImportAction("aws_iam_user.piyo", "piyo"),
+		NewStateImportAction("aws_iam_user.qux", "qux"),
 	}
 
 	m := NewStateMigrator(tf.Dir(), actions, nil)
@@ -73,7 +73,7 @@ resource "aws_iam_user" "piyo" {
 	want := []string{
 		"aws_security_group.foo2",
 		"aws_security_group.baz",
-		"aws_iam_user.piyo",
+		"aws_iam_user.qux",
 	}
 	sort.Strings(got)
 	sort.Strings(want)

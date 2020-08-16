@@ -22,7 +22,7 @@ resource "aws_security_group" "baz" {}
 	fromTf := tfexec.SetupTestAccWithApply(t, fromBackend+fromSource)
 	toBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/toDir")
 	toSource := `
-resource "aws_security_group" "piyo" {}
+resource "aws_security_group" "qux" {}
 `
 	toTf := tfexec.SetupTestAccWithApply(t, toBackend+toSource)
 
@@ -33,7 +33,7 @@ resource "aws_security_group" "baz" {}
 	toUpdatedSource := `
 resource "aws_security_group" "foo" {}
 resource "aws_security_group" "bar2" {}
-resource "aws_security_group" "piyo" {}
+resource "aws_security_group" "qux" {}
 `
 	tfexec.UpdateTestAccSource(t, toTf, toBackend+toUpdatedSource)
 
@@ -87,7 +87,7 @@ resource "aws_security_group" "piyo" {}
 	toWant := []string{
 		"aws_security_group.foo",
 		"aws_security_group.bar2",
-		"aws_security_group.piyo",
+		"aws_security_group.qux",
 	}
 	sort.Strings(toGot)
 	sort.Strings(toWant)

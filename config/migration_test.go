@@ -15,7 +15,7 @@ func TestParseMigrationFileWithState(t *testing.T) {
 			"mv aws_security_group.foo aws_security_group.foo2",
 			"mv aws_security_group.bar aws_security_group.bar2",
 			"rm aws_security_group.bar",
-			"import aws_security_group.piyo piyo",
+			"import aws_security_group.qux qux",
 		]
 	}
 	`
