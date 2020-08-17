@@ -98,7 +98,7 @@ func (m *MultiStateMigrator) Plan(ctx context.Context) error {
 	return err
 }
 
-// Apply computes new states and push them to remote states.
+// Apply computes new states and pushes them to remote states.
 // It will fail if terraform plan detects any diffs with at least one new state.
 // We are intended to this is used for state refactoring.
 // Any state migration operations should not break any real resources.

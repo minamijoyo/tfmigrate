@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -9,24 +8,38 @@ import (
 	"os"
 
 	"github.com/hashicorp/logutils"
-	"github.com/minamijoyo/tfmigrate/tfexec"
+	"github.com/minamijoyo/tfmigrate/command"
+	"github.com/mitchellh/cli"
 )
+
+// Version is a version number.
+var version = "0.0.1"
 
 func main() {
 	log.SetOutput(logOutput())
 	log.Printf("[INFO] CLI args: %#v", os.Args)
 
-	e := tfexec.NewExecutor("tmp/test", os.Environ())
-	e.AppendEnv("TF_LOG", "TRACE")
-	e.AppendEnv("DIRENV_LOG_FORMAT", "")
-	terraformCLI := tfexec.NewTerraformCLI(e)
-	terraformCLI.SetExecPath("direnv exec . terraform")
-	v, err := terraformCLI.Version(context.Background())
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return
+	ui := &cli.BasicUi{
+		Writer: os.Stdout,
 	}
-	fmt.Fprintln(os.Stdout, v)
+	commands := initCommands(ui)
+
+	args := os.Args[1:]
+
+	c := &cli.CLI{
+		Name:       "tfmigrate",
+		Version:    version,
+		Args:       args,
+		Commands:   commands,
+		HelpWriter: os.Stdout,
+	}
+
+	exitStatus, err := c.Run()
+	if err != nil {
+		ui.Error(fmt.Sprintf("Failed to execute CLI: %s", err))
+	}
+
+	os.Exit(exitStatus)
 }
 
 func logOutput() io.Writer {
@@ -46,4 +59,25 @@ func logOutput() io.Writer {
 	}
 
 	return filter
+}
+
+func initCommands(ui cli.Ui) map[string]cli.CommandFactory {
+	meta := command.Meta{
+		UI: ui,
+	}
+
+	commands := map[string]cli.CommandFactory{
+		"plan": func() (cli.Command, error) {
+			return &command.PlanCommand{
+				Meta: meta,
+			}, nil
+		},
+		"apply": func() (cli.Command, error) {
+			return &command.ApplyCommand{
+				Meta: meta,
+			}, nil
+		},
+	}
+
+	return commands
 }

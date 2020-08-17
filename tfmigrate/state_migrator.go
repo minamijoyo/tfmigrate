@@ -33,7 +33,7 @@ func NewStateMigrator(dir string, actions []StateAction, o *MigratorOption) *Sta
 }
 
 // plan computes a new state by applying state migration operations to a temporary state.
-// It will fail if terraform plan detects any diffs with a new state.
+// It will fail if terraform plan detects any diffs with the new state.
 // We intentional private this method not to expose internal states and unify
 // the Migrator interface between a single and multi state migrator.
 func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
@@ -64,14 +64,14 @@ func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 }
 
 // Plan computes a new state by applying state migration operations to a temporary state.
-// It will fail if terraform plan detects any diffs with a new state.
+// It will fail if terraform plan detects any diffs with the new state.
 func (m *StateMigrator) Plan(ctx context.Context) error {
 	_, err := m.plan(ctx)
 	return err
 }
 
-// Apply computes a new state and push it to remote state.
-// It will fail if terraform plan detects any diffs with a new state.
+// Apply computes a new state and pushes it to remote state.
+// It will fail if terraform plan detects any diffs with the new state.
 // We are intended to this is used for state refactoring.
 // Any state migration operations should not break any real resources.
 func (m *StateMigrator) Apply(ctx context.Context) error {

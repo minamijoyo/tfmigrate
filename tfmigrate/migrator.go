@@ -10,11 +10,11 @@ import (
 // Migrator abstracts migration operations.
 type Migrator interface {
 	// Plan computes a new state by applying state migration operations to a temporary state.
-	// It will fail if terraform plan detects any diffs with a new state.
+	// It will fail if terraform plan detects any diffs with the new state.
 	Plan(ctx context.Context) error
 
-	// Apply computes a new state and push it to remote state.
-	// It will fail if terraform plan detects any diffs with a new state.
+	// Apply computes a new state and pushes it to remote state.
+	// It will fail if terraform plan detects any diffs with the new state.
 	// We are intended to this is used for state refactoring.
 	// Any state migration operations should not break any real resources.
 	Apply(ctx context.Context) error
