@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/hashicorp/logutils"
 	"github.com/minamijoyo/tfmigrate/command"
@@ -17,7 +18,8 @@ var version = "0.0.1"
 
 func main() {
 	log.SetOutput(logOutput())
-	log.Printf("[INFO] CLI args: %#v", os.Args)
+	log.Printf("[INFO] [main] start: %s", strings.Join(os.Args, " "))
+	log.Printf("[INFO] [main] tfmigrate version: %s", version)
 
 	ui := &cli.BasicUi{
 		Writer: os.Stdout,
@@ -45,6 +47,9 @@ func main() {
 func logOutput() io.Writer {
 	levels := []logutils.LogLevel{"TRACE", "DEBUG", "INFO", "WARN", "ERROR"}
 	minLevel := os.Getenv("TFMIGRATE_LOG")
+	if len(minLevel) == 0 {
+		minLevel = "INFO" // default log level
+	}
 
 	// default log writer is null device.
 	writer := ioutil.Discard

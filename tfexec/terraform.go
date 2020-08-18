@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -197,10 +198,12 @@ terraform {
   }
 }
 `
+	log.Printf("[INFO] [executor@%s] create an override file\n", c.Dir())
 	if err := ioutil.WriteFile(path, []byte(contents), 0644); err != nil {
 		return nil, fmt.Errorf("failed to create override file: %s", err)
 	}
 
+	log.Printf("[INFO] [executor@%s] switch backend to local\n", c.Dir())
 	err := c.Init(ctx, "", "-input=false", "-no-color", "-reconfigure")
 	if err != nil {
 		// remove the override file before return an error.
@@ -209,8 +212,20 @@ terraform {
 	}
 
 	switchBackToRemotekFunc := func() {
-		os.Remove(path)
-		c.Init(ctx, "", "-input=false", "-no-color", "-reconfigure")
+		log.Printf("[INFO] [executor@%s] remove the override file\n", c.Dir())
+		err := os.Remove(path)
+		if err != nil {
+			// we cannot return error here.
+			log.Printf("[ERROR] [executor@%s] failed to remove the override file: %s\n", c.Dir(), err)
+			log.Printf("[ERROR] [executor@%s] please remove the override file(%s) and re-run terraform init -reconfigure\n", c.Dir(), path)
+		}
+		log.Printf("[INFO] [executor@%s] switch back to remote\n", c.Dir())
+		err = c.Init(ctx, "", "-input=false", "-no-color", "-reconfigure")
+		if err != nil {
+			// we cannot return error here.
+			log.Printf("[ERROR] [executor@%s] failed to switch back to remote: %s\n", c.Dir(), err)
+			log.Printf("[ERROR] [executor@%s] please re-run terraform init -reconfigure\n", c.Dir())
+		}
 	}
 
 	return switchBackToRemotekFunc, nil

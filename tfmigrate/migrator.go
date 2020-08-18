@@ -25,6 +25,7 @@ type Migrator interface {
 type MigratorOption struct {
 	// ExecPath is a string how terraform command is executed. Default to terraform.
 	// It's intended to inject a wrapper command such as direnv.
+	// e.g.) direnv exec . terraform
 	ExecPath string
 }
 
@@ -36,15 +37,17 @@ func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI) (*tfexec.State, f
 	if err != nil {
 		return nil, nil, err
 	}
-	log.Printf("[DEBUG] [%s] terraform version: %s\n", tf.Dir(), version)
+	log.Printf("[INFO] [migrator@%s] terraform version: %s\n", tf.Dir(), version)
 
 	// initialize work dir.
+	log.Printf("[INFO] [migrator@%s] initialize work dir\n", tf.Dir())
 	err = tf.Init(ctx, "", "-input=false", "-no-color")
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// get the current remote state.
+	log.Printf("[INFO] [migrator@%s] get the current remote state\n", tf.Dir())
 	currentState, err := tf.StatePull(ctx)
 	if err != nil {
 		return nil, nil, err
@@ -52,6 +55,7 @@ func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI) (*tfexec.State, f
 
 	// The -state flag for terraform command is not valid for remote state,
 	// so we need to switch the backend to local for temporary state operations.
+	log.Printf("[INFO] [migrator@%s] override backend to local\n", tf.Dir())
 	switchBackToRemotekFunc, err := tf.OverrideBackendToLocal(ctx, "_tfmigrate_override.tf")
 	if err != nil {
 		return nil, nil, err

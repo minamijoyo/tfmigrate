@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"strings"
 
 	"github.com/minamijoyo/tfmigrate/config"
@@ -32,20 +33,26 @@ func (c *PlanCommand) Run(args []string) int {
 	}
 
 	c.Option = newOption()
-	c.path = cmdFlags.Arg(0)
+	// The option may contains sensitive values such as environment variables.
+	// So logging the option set log level to DEBUG instead of INFO.
+	log.Printf("[DEBUG] [command] option: %#v\n", c.Option)
 
+	c.path = cmdFlags.Arg(0)
+	log.Printf("[INFO] [command] read migration file: %s\n", c.path)
 	source, err := ioutil.ReadFile(c.path)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1
 	}
 
+	log.Printf("[DEBUG] [command] parse migration file: %#v\n", string(source))
 	config, err := config.ParseMigrationFile(c.path, source)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1
 	}
 
+	log.Printf("[INFO] [command] new migrator: %#v\n", config)
 	m, err := config.NewMigrator(c.Option)
 	if err != nil {
 		c.UI.Error(err.Error())

@@ -3,6 +3,7 @@ package tfmigrate
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/minamijoyo/tfmigrate/tfexec"
@@ -43,6 +44,7 @@ func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 	defer switchBackToRemotekFunc()
 
 	// computes a new state by applying state migration operations to a temporary state.
+	log.Printf("[INFO] [migrator@%s] compute a new state\n", m.tf.Dir())
 	var newState *tfexec.State
 	for _, action := range m.actions {
 		newState, err = action.StateUpdate(ctx, m.tf, currentState)
@@ -52,10 +54,12 @@ func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 		currentState = tfexec.NewState(newState.Bytes())
 	}
 
+	log.Printf("[INFO] [migrator@%s] check diffs\n", m.tf.Dir())
 	_, err = m.tf.Plan(ctx, currentState, "", "-input=false", "-no-color", "-detailed-exitcode")
 	if err != nil {
 		if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
-			return nil, fmt.Errorf("[%s] terraform plan command returns unexpected diffs: %s", m.tf.Dir(), err)
+			log.Printf("[ERROR] [migrator@%s] unexpected diffs\n", m.tf.Dir())
+			return nil, fmt.Errorf("terraform plan command returns unexpected diffs: %s", err)
 		}
 		return nil, err
 	}
@@ -66,8 +70,13 @@ func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 // Plan computes a new state by applying state migration operations to a temporary state.
 // It will fail if terraform plan detects any diffs with the new state.
 func (m *StateMigrator) Plan(ctx context.Context) error {
+	log.Printf("[INFO] [migrator] start state migrator plan\n")
 	_, err := m.plan(ctx)
-	return err
+	if err != nil {
+		return err
+	}
+	log.Printf("[INFO] [migrator] state migrator plan success!\n")
+	return nil
 }
 
 // Apply computes a new state and pushes it to remote state.
@@ -77,11 +86,19 @@ func (m *StateMigrator) Plan(ctx context.Context) error {
 func (m *StateMigrator) Apply(ctx context.Context) error {
 	// Check if a new state does not have any diffs compared to real resources
 	// before push a new state to remote.
+	log.Printf("[INFO] [migrator] start state migrator plan phase for apply\n")
 	state, err := m.plan(ctx)
 	if err != nil {
 		return err
 	}
 
 	// push the new state to remote.
-	return m.tf.StatePush(ctx, state)
+	log.Printf("[INFO] [migrator] start state migrator apply phase\n")
+	log.Printf("[INFO] [migrator] push the new state to remote\n")
+	err = m.tf.StatePush(ctx, state)
+	if err != nil {
+		return err
+	}
+	log.Printf("[INFO] [migrator] state migrator apply success!\n")
+	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/davecgh/go-spew/spew"
 )
@@ -68,9 +69,10 @@ func (e *executor) NewCommandContext(ctx context.Context, name string, args ...s
 // Run executes a command.
 func (e *executor) Run(cmd Command) error {
 	err := cmd.Run()
-	log.Printf("[DEBUG] run command in %s: %s ", e.dir, spew.Sdump(cmd))
+	log.Printf("[DEBUG] [executor@%s]$ %s", e.dir, strings.Join(cmd.Args(), " "))
+	log.Printf("[TRACE] [executor@%s] cmd=%s ", e.dir, spew.Sdump(cmd))
 	if err != nil {
-		log.Printf("[DEBUG] failed to run command: %s", spew.Sdump(err))
+		log.Printf("[DEBUG] [executor@%s] failed to run command: %s", e.dir, spew.Sdump(err))
 		if osExecErr, ok := err.(*exec.ExitError); ok {
 			return &exitError{
 				osExecErr: osExecErr,
