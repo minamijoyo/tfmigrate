@@ -93,7 +93,7 @@ func TestTerraformCLIRun(t *testing.T) {
 func TestAccTerraformCLIOverrideBackendToLocal(t *testing.T) {
 	SkipUnlessAcceptanceTestEnabled(t)
 
-	backend := tfexec.GetTestAccBackendS3Config(t.Name())
+	backend := GetTestAccBackendS3Config(t.Name())
 	source := `
 resource "aws_security_group" "foo" {}
 resource "aws_security_group" "bar" {}
