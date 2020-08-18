@@ -18,8 +18,8 @@ var version = "0.0.1"
 
 func main() {
 	log.SetOutput(logOutput())
-	log.Printf("[INFO] [main] start: %s", strings.Join(os.Args, " "))
-	log.Printf("[INFO] [main] tfmigrate version: %s", version)
+	log.Printf("[DEBUG] [main] start: %s", strings.Join(os.Args, " "))
+	log.Printf("[DEBUG] [main] tfmigrate version: %s", version)
 
 	ui := &cli.BasicUi{
 		Writer: os.Stdout,
