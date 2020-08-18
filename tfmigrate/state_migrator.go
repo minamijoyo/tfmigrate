@@ -40,6 +40,9 @@ func NewStateMigrator(dir string, actions []StateAction, o *MigratorOption) *Sta
 func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 	// setup work dir.
 	currentState, switchBackToRemotekFunc, err := setupWorkDir(ctx, m.tf)
+	if err != nil {
+		return nil, err
+	}
 	// switch back it to remote on exit.
 	defer switchBackToRemotekFunc()
 
