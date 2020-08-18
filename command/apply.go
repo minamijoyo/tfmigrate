@@ -83,5 +83,5 @@ Arguments
 
 // Synopsis returns one-line help text.
 func (c *ApplyCommand) Synopsis() string {
-	return "Computes a new state and pushes it to remote state"
+	return "Compute a new state and push it to remote state"
 }

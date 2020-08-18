@@ -84,5 +84,5 @@ Arguments
 
 // Synopsis returns one-line help text.
 func (c *PlanCommand) Synopsis() string {
-	return "Computes a new state"
+	return "Compute a new state"
 }
