@@ -25,3 +25,8 @@ services:
       S3_BUCKET: "tfstate-test"
     volumes:
       - "./scripts/localstack:/docker-entrypoint-initaws.d"  # initialize scripts on startup
+
+  dockerize:
+    image: jwilder/dockerize
+    depends_on:
+      - localstack
