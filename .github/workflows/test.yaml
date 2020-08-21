@@ -31,7 +31,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        terraform: [0.13.0, 0.12.29]
+        terraform:
+        - latest
+        - 0.12.29
     env:
       TERRAFORM_VERSION: ${{ matrix.terraform }}
     steps:
@@ -42,5 +44,7 @@ jobs:
       run: docker-compose up -d localstack
     - name: wait until s3 bucket exists
       run: docker-compose exec -T localstack /docker-entrypoint-initaws.d/wait_s3_bucket_exists.sh
+    - name: terraform --version
+      run: docker-compose run --rm tfmigrate terraform --version
     - name: testacc
       run: docker-compose run --rm tfmigrate make testacc
