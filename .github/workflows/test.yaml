@@ -13,8 +13,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        terraform: [0.13.0, 0.12.29]
+        os: [ubuntu-latest, macOS-latest]
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-go@v2
@@ -28,7 +27,20 @@ jobs:
           ${{ runner.os }}-go-
     - name: test
       run: make check
-    - name: testacc
+  testacc:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        terraform: [0.13.0, 0.12.29]
+    env:
+      TERRAFORM_VERSION: ${{ matrix.terraform }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: docker build
       run: docker-compose build
-      env:
-        TERRAFORM_VERSION: ${{ matrix.terraform }}
+    - name: start localstack
+      run: docker-compose up -d localstack
+    - name: wait until s3 bucket exists
+      run: docker-compose exec -T localstack /docker-entrypoint-initaws.d/wait_s3_bucket_exists.sh
+    - name: testacc
+      run: docker-compose run --rm tfmigrate make testacc
