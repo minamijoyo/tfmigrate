@@ -9,7 +9,7 @@ services:
       - ".:/work"
     environment:
       CGO_ENABLED: 0 # disable cgo for go test
-      TF_PLUGIN_CACHE_DIR: "/work/tmp/plugin-cache"
+      TF_PLUGIN_CACHE_DIR: "/tmp"
       LOCALSTACK_ENDPOINT: "http://localstack:4566"
     depends_on:
       - localstack
