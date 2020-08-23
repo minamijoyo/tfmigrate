@@ -1,0 +1,50 @@
+name: test
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: '1.15.0'
+    - uses: actions/cache@v2
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+    - name: test
+      run: make check
+  testacc:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        terraform:
+        - latest
+        - 0.12.29
+    env:
+      TERRAFORM_VERSION: ${{ matrix.terraform }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: docker build
+      run: docker-compose build
+    - name: start localstack
+      run: |
+        docker-compose up -d localstack
+        docker-compose run --rm dockerize -wait tcp://localstack:4566 -timeout 60s
+        docker-compose exec -T localstack /docker-entrypoint-initaws.d/wait_s3_bucket_exists.sh
+    - name: terraform --version
+      run: docker-compose run --rm tfmigrate terraform --version
+    - name: testacc
+      run: docker-compose run --rm tfmigrate make testacc

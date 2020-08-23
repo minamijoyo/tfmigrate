@@ -4,11 +4,12 @@ services:
     build:
       context: .
       args:
-        TERRAFORM_VERSION: 0.12.28
+        TERRAFORM_VERSION: ${TERRAFORM_VERSION:-latest}
     volumes:
       - ".:/work"
     environment:
-      TF_PLUGIN_CACHE_DIR: "/work/tmp/plugin-cache"
+      CGO_ENABLED: 0 # disable cgo for go test
+      TF_PLUGIN_CACHE_DIR: "/tmp"
       LOCALSTACK_ENDPOINT: "http://localstack:4566"
     depends_on:
       - localstack
@@ -21,5 +22,11 @@ services:
       DEBUG: "true"
       SERVICES: "s3,ec2,iam"
       DEFAULT_REGION: "ap-northeast-1"
+      S3_BUCKET: "tfstate-test"
     volumes:
       - "./scripts/localstack:/docker-entrypoint-initaws.d"  # initialize scripts on startup
+
+  dockerize:
+    image: jwilder/dockerize
+    depends_on:
+      - localstack
