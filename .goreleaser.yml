@@ -1,0 +1,34 @@
+# .goreleaser.yml
+# Build customization
+builds:
+  - binary: tfmigrate
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+    env:
+      - CGO_ENABLED=0
+release:
+  prerelease: auto
+changelog:
+  filters:
+    exclude:
+      - Merge pull request
+      - Merge branch
+      - Update README
+      - Update CHANGELOG
+brews:
+  - tap:
+      owner: minamijoyo
+      name: homebrew-tfmigrate
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    commit_author:
+      name: "Masayuki Morita"
+      email: minamijoyo@gmail.com
+    homepage: https://github.com/minamijoyo/tfmigrate
+    description: "A tfstate migration tool for Terraform state operation as Code"
+    test: |
+      system "#{bin}/tfmigrate -v"
+    install: |
+      bin.install "tfmigrate"
