@@ -51,7 +51,7 @@ type StateMigratorConfig struct {
 type MultiStateMigratorConfig struct {
 	// FromDir is a working directory where states of resources move from.
 	FromDir string `hcl:"from_dir"`
-	// ToDir is a working directory where states of rsources move to.
+	// ToDir is a working directory where states of resources move to.
 	ToDir string `hcl:"to_dir"`
 	// Actions is a list of multi state action.
 	// action is a plain text for state operation.
