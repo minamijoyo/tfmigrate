@@ -3,7 +3,7 @@
 [![GitHub release](https://img.shields.io/github/release/minamijoyo/tfmigrate.svg)](https://github.com/minamijoyo/tfmigrate/releases/latest)
 [![GoDoc](https://godoc.org/github.com/minamijoyo/tfmigrate/tfmigrate?status.svg)](https://godoc.org/github.com/minamijoyo/tfmigrate)
 
-A tfstate migration tool for GitOps.
+A Terraform state migration tool for GitOps.
 
 ## Features
 

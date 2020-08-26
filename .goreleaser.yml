@@ -27,7 +27,7 @@ brews:
       name: "Masayuki Morita"
       email: minamijoyo@gmail.com
     homepage: https://github.com/minamijoyo/tfmigrate
-    description: "A tfstate migration tool for GitOps"
+    description: "A Terraform state migration tool for GitOps"
     test: |
       system "#{bin}/tfmigrate -v"
     install: |
