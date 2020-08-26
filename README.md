@@ -7,9 +7,11 @@ A Terraform state migration tool for GitOps.
 
 ## Features
 
-- GitOps-friendly: Write terraform state mv/rm/import commands in HCL, plan and apply it.
-- Refactoring across tfstates: Move resources to other tfstates to split and merge tfstates easily.
-- Dry-run: Simulate state operations with a temporary local tfstate and check to see if terraform plan has no changes after the migration without updating remote tfstate.
+- GitOps friendly: Write terraform state mv/rm/import commands in HCL, plan and apply it.
+- Monorepo style support: Move resources to other tfstates to split and merge easily for refactoring.
+- Dry run migration: Simulate state operations with a temporary local tfstate and check to see if terraform plan has no changes after the migration without updating remote tfstate.
+
+Note: In the analogy of database migration, a migration history management feature is missing for now, but we should support it.
 
 ## Why?
 
@@ -19,7 +21,129 @@ In team development, Terraform configurations are generally managed by git and s
 However, most Terraform refactorings require not only configuration changes, but also state operations such as state mv/rm/import. It's not desirable to change the remote state before merging configuration changes. Your colleagues may be working on something else and your CI/CD pipeline continuously plan and apply their changes automatically. At the same time, you probably want to check to see if terraform plan has no changes after the migration before merging configuration changes.
 
 To fit into the GitOps workflow, the answer is obvious. We should commit all terraform state operations to git.
-This brings us to a new paradigm, Terraform state operation as Code!
+This brings us to a new paradigm, that is to say, Terraform state operation as Code!
+
+## Supported Terraform versions
+
+The tfmigrate invokes `terraform` command under the hood. This is because we want to support multiple terraform versions in a stable way. Currently supported terraform versions are as follows:
+
+- Terraform v0.13.x
+- Terraform v0.12.x
+
+## Getting Started
+
+As you know, terraform state operations are dangerous if you don't understand what you are actually doing. If I were you, I wouldn't use a new tool in production from the start. So, we recommended to play an example sandbox environment first, which is safe to run terraform state command without any credentials. The sandbox environment mocks the AWS API with `localstack` and doesn't actually create any resources. So you can safely run the `tfmigrate` and `terraform` commands, and easily understand how the tfmigrate works.
+
+Build a sandbox environment with docker-compose and run bash:
+
+```
+$ git clone https://github.com/minamijoyo/tfmigrate
+$ cd tfmigrate/
+$ docker-compose build
+$ docker-compose run --rm tfmigrate /bin/bash
+```
+
+In the sandbox environment, create and initialize a working directory from test fixtures:
+
+```
+# mkdir -p tmp/dir1 && cd tmp/dir1
+# terraform init -from-module=../../test-fixtures/backend_s3/
+# cat main.tf
+```
+
+This example contains two `aws_security_group` resources:
+
+```hcl
+resource "aws_security_group" "foo" {
+  name = "foo"
+}
+
+resource "aws_security_group" "bar" {
+  name = "bar"
+}
+```
+
+Apply it and confirm that the state of resources are stored in the tfstate:
+
+```
+# terraform apply -auto-approve
+# terraform state list
+aws_security_group.bar
+aws_security_group.foo
+```
+
+Now, let's rename `aws_security_group.foo` to `aws_security_group.baz`:
+
+```
+# cat << EOF > main.tf
+resource "aws_security_group" "baz" {
+  name = "foo"
+}
+
+resource "aws_security_group" "bar" {
+  name = "bar"
+}
+EOF
+```
+
+At this point, of course, there are differences in the plan:
+
+```
+# terraform plan
+(snip.)
+Plan: 1 to add, 0 to change, 1 to destroy.
+```
+
+Now it's time for tfmigrate. Create a migration file:
+
+```
+# cat << EOF > tfmigrate_test.hcl
+migration "state" "test" {
+  actions = [
+    "mv aws_security_group.foo aws_security_group.baz",
+  ]
+}
+EOF
+```
+
+Run `tfmigrate plan` to check to see if `terraform plan` has no changes after the migration without updating remote tfstate:
+
+```
+# tfmigrate plan tfmigrate_test.hcl
+(snip.)
+YYYY/MM/DD hh:mm:ss [INFO] [migrator] state migrator plan success!
+# echo $?
+0
+```
+
+The plan command computes a new state by applying state migration operations to a temporary state. It will fail if terraform plan detects any diffs with the new state. If you are wondering how the `tfmigrate` command actually works, you can see all `terraform` commands executed by the tfmigrate with log level `DEBUG`:
+
+```
+# TFMIGRATE_LOG=DEBUG tfmigrate plan tfmigrate_test.hcl
+```
+
+If looks good, apply it:
+
+```
+# tfmigrate apply tfmigrate_test.hcl
+(snip.)
+YYYY/MM/DD hh:mm:ss [INFO] [migrator] state migrator apply success!
+# echo $?
+0
+```
+
+The apply command computes a new state and pushes it to remote state.
+It will fail if terraform plan detects any diffs with the new state.
+
+Finally, you can check the latest remote state has no changes with terraform plan:
+
+```
+# terraform plan
+(snip.)
+No changes. Infrastructure is up-to-date.
+```
+
+There is no magic. The tfmigrate just did the boring work for you.
 
 ## Install
 
@@ -146,7 +270,7 @@ migration "multi_state" "mv_dir1_dir2" {
 - A migration file must be written in the HCL2.
 - The extension of file must be `.hcl`(for HCL native syntax) or `.hcl.json`(for HCL JSON syntax).
 
-There are no rules for naming files for now, but we will limit it when we add support for an history management feature.
+There are no rules for naming files for now.
 
 ### migration block
 
