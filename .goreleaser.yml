@@ -28,6 +28,7 @@ brews:
       email: minamijoyo@gmail.com
     homepage: https://github.com/minamijoyo/tfmigrate
     description: "A Terraform state migration tool for GitOps"
+    skip_upload: auto
     test: |
       system "#{bin}/tfmigrate -v"
     install: |
