@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -209,11 +211,20 @@ func setupTestWorkDir(source string) (string, error) {
 
 // setupTestPluginCacheDir sets TF_PLUGIN_CACHE_DIR to a given executor.
 func setupTestPluginCacheDir(e Executor) error {
-	pwd, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("failed to get current dir: %s", err)
+	dir := os.Getenv("TF_PLUGIN_CACHE_DIR")
+	if len(dir) == 0 {
+		// default to ../tmp/plugin-cache
+		_, filename, _, _ := runtime.Caller(0)
+		dir = path.Join(path.Dir(filename), "..", "tmp", "plugin-cache")
 	}
-	e.AppendEnv("TF_PLUGIN_CACHE_DIR", filepath.Join(pwd, "tmp/plugin-cache"))
+
+	// Terraform v0.13+ doesn't create dir if not exist.
+	// So we create it if not exist.
+	err := os.MkdirAll(dir, 0700)
+	if err != nil {
+		return fmt.Errorf("failed to create plugin cache dir: %s", err)
+	}
+	e.AppendEnv("TF_PLUGIN_CACHE_DIR", dir)
 	return nil
 }
 
