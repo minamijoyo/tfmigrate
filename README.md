@@ -268,9 +268,27 @@ migration "multi_state" "mv_dir1_dir2" {
 ### migration file
 
 - A migration file must be written in the HCL2.
-- The extension of file must be `.hcl`(for HCL native syntax) or `.hcl.json`(for HCL JSON syntax).
+- The extension of file must be `.hcl`(for HCL native syntax) or `.json`(for HCL JSON syntax).
 
 There are no rules for naming files for now.
+The above examples are written in HCL native syntax, but you can also write them in HCL JSON syntax.
+This is useful when generating a migration file from other tools.
+
+```json
+{
+  "migration": {
+    "state": {
+      "test": {
+        "dir": "dir1",
+        "actions": [
+          "mv aws_security_group.foo aws_security_group.foo2",
+          "mv aws_security_group.bar aws_security_group.bar2"
+        ]
+      }
+    }
+  }
+}
+```
 
 ### migration block
 

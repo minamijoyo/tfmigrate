@@ -146,7 +146,7 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 	}
 }
 
-func TestParseMigrationFile(t *testing.T) {
+func TestParseMigrationFileWithNativeSyntax(t *testing.T) {
 	cases := []struct {
 		desc   string
 		source string
@@ -356,6 +356,63 @@ foo "bar" "baz" {}
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			got, err := ParseMigrationFile("test.hcl", []byte(tc.source))
+			if tc.ok && err != nil {
+				t.Fatalf("unexpected err: %s", err)
+			}
+			if !tc.ok && err == nil {
+				t.Fatalf("expected to return an error, but no error, got: %#v", got)
+			}
+			if tc.ok {
+				if !reflect.DeepEqual(got, tc.want) {
+					t.Errorf("got: %#v, want: %#v", got, tc.want)
+				}
+			}
+		})
+	}
+}
+
+func TestParseMigrationFileWithJsonSyntax(t *testing.T) {
+	cases := []struct {
+		desc   string
+		source string
+		want   MigratorConfig
+		ok     bool
+	}{
+		{
+			desc: "state with dir",
+			source: `
+{
+  "migration": {
+    "state": {
+      "test": {
+        "dir": "dir1",
+        "actions": [
+          "mv aws_security_group.foo aws_security_group.foo2",
+          "mv aws_security_group.bar aws_security_group.bar2",
+          "rm aws_security_group.baz",
+          "import aws_security_group.qux qux"
+        ]
+      }
+    }
+  }
+}
+`,
+			want: &StateMigratorConfig{
+				Dir: "dir1",
+				Actions: []string{
+					"mv aws_security_group.foo aws_security_group.foo2",
+					"mv aws_security_group.bar aws_security_group.bar2",
+					"rm aws_security_group.baz",
+					"import aws_security_group.qux qux",
+				},
+			},
+			ok: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			got, err := ParseMigrationFile("test.json", []byte(tc.source))
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}
