@@ -1,6 +1,7 @@
 package history
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -21,7 +22,7 @@ func TestLocalStorageWrite(t *testing.T) {
 			ok:       true,
 		},
 		{
-			desc:     "not exist dir",
+			desc:     "dir does not exist",
 			path:     "not_exist/foo.tfmigrate",
 			contents: []byte("foo"),
 			ok:       false,
@@ -37,8 +38,10 @@ func TestLocalStorageWrite(t *testing.T) {
 			t.Cleanup(func() { os.RemoveAll(localDir) })
 
 			path := filepath.Join(localDir, tc.path)
-			s := NewLocalStorage(path)
-			err = s.Write(tc.contents)
+			s := &LocalStorage{
+				Path: path,
+			}
+			err = s.Write(context.Background(), tc.contents)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}
@@ -73,7 +76,7 @@ func TestLocalStorageRead(t *testing.T) {
 			ok:       true,
 		},
 		{
-			desc:     "not exist file",
+			desc:     "file does not exist",
 			path:     "not_exist.tfmigrate",
 			contents: []byte("foo"),
 			ok:       false,
@@ -94,8 +97,10 @@ func TestLocalStorageRead(t *testing.T) {
 			}
 
 			path := filepath.Join(localDir, tc.path)
-			s := NewLocalStorage(path)
-			got, err := s.Read()
+			s := &LocalStorage{
+				Path: path,
+			}
+			got, err := s.Read(context.Background())
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}

@@ -3,6 +3,7 @@ module github.com/minamijoyo/tfmigrate
 go 1.15
 
 require (
+	github.com/aws/aws-sdk-go v1.34.16
 	github.com/davecgh/go-spew v1.1.1
 	github.com/hashicorp/hcl/v2 v2.6.0
 	github.com/hashicorp/logutils v1.0.0
