@@ -78,8 +78,8 @@ func TestLocalStorageRead(t *testing.T) {
 		{
 			desc:     "file does not exist",
 			path:     "not_exist.tfmigrate",
-			contents: []byte("foo"),
-			ok:       false,
+			contents: []byte{},
+			ok:       true,
 		},
 	}
 
@@ -102,7 +102,7 @@ func TestLocalStorageRead(t *testing.T) {
 			}
 			got, err := s.Read(context.Background())
 			if tc.ok && err != nil {
-				t.Fatalf("unexpected err: %s", err)
+				t.Fatalf("unexpected err: %#v", err)
 			}
 			if !tc.ok && err == nil {
 				t.Fatal("expected to return an error, but no error")

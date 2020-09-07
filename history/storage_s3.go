@@ -5,6 +5,7 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -85,6 +86,8 @@ func (s *S3Storage) Write(ctx context.Context, b []byte) error {
 }
 
 // Read reads migration history data from storage.
+// If the key does not exist, it is assumed to be uninitialized and returns
+// an empty array instead of an error.
 func (s *S3Storage) Read(ctx context.Context) ([]byte, error) {
 	input := &s3.GetObjectInput{
 		Bucket: aws.String(s.bucket),
@@ -93,6 +96,11 @@ func (s *S3Storage) Read(ctx context.Context) ([]byte, error) {
 
 	output, err := s.client.GetObjectWithContext(ctx, input)
 	if err != nil {
+		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "NoSuchKey" {
+			// If the key does not exist
+			return []byte{}, nil
+		}
+		// unexpected error
 		return nil, err
 	}
 

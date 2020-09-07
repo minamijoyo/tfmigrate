@@ -120,8 +120,8 @@ func TestS3StorageRead(t *testing.T) {
 			},
 			bucket:   "tfmigrate-test",
 			key:      "not_exist.tfmigrate",
-			contents: nil,
-			ok:       false,
+			contents: []byte{},
+			ok:       true,
 		},
 	}
 

@@ -11,5 +11,7 @@ type Storage interface {
 	// Write writes migration history data to storage.
 	Write(ctx context.Context, b []byte) error
 	// Read reads migration history data from storage.
+	// If the key does not exist, it is assumed to be uninitialized and returns
+	// an empty array instead of an error.
 	Read(ctx context.Context) ([]byte, error)
 }

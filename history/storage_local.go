@@ -3,6 +3,7 @@ package history
 import (
 	"context"
 	"io/ioutil"
+	"os"
 )
 
 // LocalStorage is an implementation of Storage for local file.
@@ -20,6 +21,12 @@ func (s *LocalStorage) Write(ctx context.Context, b []byte) error {
 }
 
 // Read reads migration history data from storage.
+// If the key does not exist, it is assumed to be uninitialized and returns
+// an empty array instead of an error.
 func (s *LocalStorage) Read(ctx context.Context) ([]byte, error) {
+	if _, err := os.Stat(s.Path); os.IsNotExist(err) {
+		// If the key does not exist
+		return []byte{}, nil
+	}
 	return ioutil.ReadFile(s.Path)
 }
