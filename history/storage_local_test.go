@@ -38,9 +38,7 @@ func TestLocalStorageWrite(t *testing.T) {
 			t.Cleanup(func() { os.RemoveAll(localDir) })
 
 			path := filepath.Join(localDir, tc.path)
-			s := &LocalStorage{
-				Path: path,
-			}
+			s := NewLocalStorage(path)
 			err = s.Write(context.Background(), tc.contents)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
@@ -97,9 +95,7 @@ func TestLocalStorageRead(t *testing.T) {
 			}
 
 			path := filepath.Join(localDir, tc.path)
-			s := &LocalStorage{
-				Path: path,
-			}
+			s := NewLocalStorage(path)
 			got, err := s.Read(context.Background())
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %#v", err)

@@ -43,14 +43,35 @@ type S3Storage struct {
 	client S3Client
 	// Bucket is a name of s3 bucket.
 	bucket string
-	// Key is a path to the migration history file.
+	// Key is a path to a migration history file.
 	key string
 }
 
 var _ Storage = (*S3Storage)(nil)
 
+// S3StorageOption customizes a behavior of S3Storage.
+type S3StorageOption struct {
+	// Client is an instance of S3Client interface to call API.
+	// It is intended to be replaced with a mock for testing.
+	// If nil, it means that the real-world client implementation is used.
+	Client S3Client
+}
+
 // NewS3Storage returns a new instance of S3Storage.
-func NewS3Storage(client S3Client, bucket string, key string) (*S3Storage, error) {
+func NewS3Storage(bucket string, key string, option *S3StorageOption) (*S3Storage, error) {
+	var client S3Client
+	if option != nil {
+		if option.Client != nil {
+			client = option.Client
+		} else {
+			var err error
+			client, err = newS3Client()
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	s := &S3Storage{
 		client: client,
 		bucket: bucket,
@@ -60,8 +81,8 @@ func NewS3Storage(client S3Client, bucket string, key string) (*S3Storage, error
 	return s, nil
 }
 
-// NewS3Client returns a new instance of S3Client.
-func NewS3Client() (S3Client, error) {
+// newS3Client returns a new instance of S3Client.
+func newS3Client() (S3Client, error) {
 	sess, err := session.NewSession()
 	if err != nil {
 		return nil, err

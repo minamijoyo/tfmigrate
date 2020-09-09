@@ -32,7 +32,7 @@ func (c *mockS3Client) GetObjectWithContext(ctx aws.Context, input *s3.GetObject
 func TestS3StorageWrite(t *testing.T) {
 	cases := []struct {
 		desc     string
-		client   *mockS3Client
+		option   *S3StorageOption
 		bucket   string
 		key      string
 		contents []byte
@@ -40,9 +40,11 @@ func TestS3StorageWrite(t *testing.T) {
 	}{
 		{
 			desc: "simple",
-			client: &mockS3Client{
-				putOutput: &s3.PutObjectOutput{},
-				err:       nil,
+			option: &S3StorageOption{
+				Client: &mockS3Client{
+					putOutput: &s3.PutObjectOutput{},
+					err:       nil,
+				},
 			},
 			bucket:   "tfmigrate-test",
 			key:      "foo.tfmigrate",
@@ -51,9 +53,11 @@ func TestS3StorageWrite(t *testing.T) {
 		},
 		{
 			desc: "bucket does not exist",
-			client: &mockS3Client{
-				putOutput: nil,
-				err:       awserr.New("NoSuchBucket", "The specified bucket does not exist.", nil),
+			option: &S3StorageOption{
+				Client: &mockS3Client{
+					putOutput: nil,
+					err:       awserr.New("NoSuchBucket", "The specified bucket does not exist.", nil),
+				},
 			},
 			bucket:   "not-exist-bucket",
 			key:      "foo.tfmigrate",
@@ -64,7 +68,7 @@ func TestS3StorageWrite(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			s, err := NewS3Storage(tc.client, tc.bucket, tc.key)
+			s, err := NewS3Storage(tc.bucket, tc.key, tc.option)
 			if err != nil {
 				t.Fatalf("failed to NewS3Storage: %s", err)
 			}
@@ -82,7 +86,7 @@ func TestS3StorageWrite(t *testing.T) {
 func TestS3StorageRead(t *testing.T) {
 	cases := []struct {
 		desc     string
-		client   *mockS3Client
+		option   *S3StorageOption
 		bucket   string
 		key      string
 		contents []byte
@@ -90,11 +94,13 @@ func TestS3StorageRead(t *testing.T) {
 	}{
 		{
 			desc: "simple",
-			client: &mockS3Client{
-				getOutput: &s3.GetObjectOutput{
-					Body: ioutil.NopCloser(strings.NewReader("foo")),
+			option: &S3StorageOption{
+				Client: &mockS3Client{
+					getOutput: &s3.GetObjectOutput{
+						Body: ioutil.NopCloser(strings.NewReader("foo")),
+					},
+					err: nil,
 				},
-				err: nil,
 			},
 			bucket:   "tfmigrate-test",
 			key:      "foo.tfmigrate",
@@ -103,9 +109,11 @@ func TestS3StorageRead(t *testing.T) {
 		},
 		{
 			desc: "bucket does not exist",
-			client: &mockS3Client{
-				getOutput: nil,
-				err:       awserr.New("NoSuchBucket", "The specified bucket does not exist.", nil),
+			option: &S3StorageOption{
+				Client: &mockS3Client{
+					getOutput: nil,
+					err:       awserr.New("NoSuchBucket", "The specified bucket does not exist.", nil),
+				},
 			},
 			bucket:   "not-exist-bucket",
 			key:      "foo.tfmigrate",
@@ -114,9 +122,11 @@ func TestS3StorageRead(t *testing.T) {
 		},
 		{
 			desc: "key does not exist",
-			client: &mockS3Client{
-				getOutput: nil,
-				err:       awserr.New("NoSuchKey", "The specified key does not exist.", nil),
+			option: &S3StorageOption{
+				Client: &mockS3Client{
+					getOutput: nil,
+					err:       awserr.New("NoSuchKey", "The specified key does not exist.", nil),
+				},
 			},
 			bucket:   "tfmigrate-test",
 			key:      "not_exist.tfmigrate",
@@ -127,7 +137,7 @@ func TestS3StorageRead(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			s, err := NewS3Storage(tc.client, tc.bucket, tc.key)
+			s, err := NewS3Storage(tc.bucket, tc.key, tc.option)
 			if err != nil {
 				t.Fatalf("failed to NewS3Storage: %s", err)
 			}
