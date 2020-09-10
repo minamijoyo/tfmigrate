@@ -30,6 +30,12 @@ type MigrationBlock struct {
 	Remain hcl.Body `hcl:",remain"`
 }
 
+// MigratorConfig is an interface of factory method for Migrator.
+type MigratorConfig interface {
+	// NewMigrator returns a new instance of Migrator.
+	NewMigrator(o *tfmigrate.MigratorOption) (tfmigrate.Migrator, error)
+}
+
 // StateMigratorConfig is a config for StateMigrator.
 type StateMigratorConfig struct {
 	// Dir is a working directory for executing terraform command.
@@ -58,12 +64,6 @@ type MultiStateMigratorConfig struct {
 	// Valid formats are the following.
 	// "mv <source> <destination>"
 	Actions []string `hcl:"actions"`
-}
-
-// MigratorConfig is an interface of factory method for Migrator.
-type MigratorConfig interface {
-	// NewMigrator returns a new instance of Migrator.
-	NewMigrator(o *tfmigrate.MigratorOption) (tfmigrate.Migrator, error)
 }
 
 // StateMigratorConfig implements a MigratorConfig.
@@ -118,7 +118,7 @@ func (c *MultiStateMigratorConfig) NewMigrator(o *tfmigrate.MigratorOption) (tfm
 
 // ParseMigrationFile parses a given source of migration file and returns a MigratorConfig.
 // Note that this method does not read a file and you should pass source of config in bytes.
-// The filename is used for error message and selecting HCL syntax (.hcl and .hcl.json).
+// The filename is used for error message and selecting HCL syntax (.hcl and .json).
 func ParseMigrationFile(filename string, source []byte) (MigratorConfig, error) {
 	// Decode migration block header.
 	var f MigrationFile
