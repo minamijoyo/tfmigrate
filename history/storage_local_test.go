@@ -17,13 +17,13 @@ func TestLocalStorageWrite(t *testing.T) {
 	}{
 		{
 			desc:     "simple",
-			path:     "foo.tfmigrate",
+			path:     "history.json",
 			contents: []byte("foo"),
 			ok:       true,
 		},
 		{
 			desc:     "dir does not exist",
-			path:     "not_exist/foo.tfmigrate",
+			path:     "not_exist/history.json",
 			contents: []byte("foo"),
 			ok:       false,
 		},
@@ -69,13 +69,13 @@ func TestLocalStorageRead(t *testing.T) {
 	}{
 		{
 			desc:     "simple",
-			path:     "foo.tfmigrate",
+			path:     "history.json",
 			contents: []byte("foo"),
 			ok:       true,
 		},
 		{
 			desc:     "file does not exist",
-			path:     "not_exist.tfmigrate",
+			path:     "not_exist.json",
 			contents: []byte{},
 			ok:       true,
 		},
@@ -89,7 +89,7 @@ func TestLocalStorageRead(t *testing.T) {
 			}
 			t.Cleanup(func() { os.RemoveAll(localDir) })
 
-			err = ioutil.WriteFile(filepath.Join(localDir, "foo.tfmigrate"), tc.contents, 0644)
+			err = ioutil.WriteFile(filepath.Join(localDir, "history.json"), tc.contents, 0644)
 			if err != nil {
 				t.Fatalf("failed to write contents: %s", err)
 			}
