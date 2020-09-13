@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/minamijoyo/tfmigrate/history"
 )
 
@@ -20,30 +21,38 @@ type StorageBlock struct {
 	Remain hcl.Body `hcl:",remain"`
 }
 
-// StorageConfig is an interface of factory method for Storage
-type StorageConfig interface {
-	// NewStorage returns a new instance of Storage.
-	NewStorage() (history.Storage, error)
-}
-
-// parseStorageBlock parses a storage block and returns StorageConfig.
-func parseStorageBlock(b StorageBlock) (StorageConfig, error) {
+// parseStorageBlock parses a storage block and returns a hisotry.StorageConfig.
+func parseStorageBlock(b StorageBlock) (history.StorageConfig, error) {
 	switch b.Type {
 	case "local":
-		storage, err := parseLocalStorageBlock(b)
-		if err != nil {
-			return nil, err
-		}
-		return storage, nil
+		return parseLocalStorageBlock(b)
 
 	case "s3":
-		storage, err := parseS3StorageBlock(b)
-		if err != nil {
-			return nil, err
-		}
-		return storage, nil
+		return parseS3StorageBlock(b)
 
 	default:
 		return nil, fmt.Errorf("unknown history storage type: %s", b.Type)
 	}
+}
+
+// parseLocalStorageBlock parses a storage block for local and returns a history.StorageConfig.
+func parseLocalStorageBlock(b StorageBlock) (history.StorageConfig, error) {
+	var config history.LocalStorageConfig
+	diags := gohcl.DecodeBody(b.Remain, nil, &config)
+	if diags.HasErrors() {
+		return nil, diags
+	}
+
+	return &config, nil
+}
+
+// parseS3StorageBlock parses a storage block for s3 and returns a history.StorageConfig.
+func parseS3StorageBlock(b StorageBlock) (history.StorageConfig, error) {
+	var config history.S3StorageConfig
+	diags := gohcl.DecodeBody(b.Remain, nil, &config)
+	if diags.HasErrors() {
+		return nil, diags
+	}
+
+	return &config, nil
 }

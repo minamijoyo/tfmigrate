@@ -3,13 +3,15 @@ package config
 import (
 	"reflect"
 	"testing"
+
+	"github.com/minamijoyo/tfmigrate/history"
 )
 
 func TestParseHistoryBlock(t *testing.T) {
 	cases := []struct {
 		desc   string
 		source string
-		want   *HistoryConfig
+		want   *history.Config
 		ok     bool
 	}{
 		{
@@ -24,9 +26,9 @@ tfmigrate {
   }
 }
 `,
-			want: &HistoryConfig{
+			want: &history.Config{
 				MigrationDir: "tfmigrate",
-				Storage: &LocalStorageConfig{
+				Storage: &history.LocalStorageConfig{
 					Path: "tmp/history.json",
 				},
 			},

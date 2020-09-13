@@ -12,6 +12,22 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 )
 
+// S3StorageConfig is a config for s3 storage.
+type S3StorageConfig struct {
+	// Bucket is a name of s3 bucket.
+	Bucket string `hcl:"bucket"`
+	// Key is a path to a migration history file.
+	Key string `hcl:"key"`
+}
+
+// S3StorageConfig implements a StorageConfig.
+var _ StorageConfig = (*S3StorageConfig)(nil)
+
+// NewStorage returns a new instance of S3Storage.
+func (c *S3StorageConfig) NewStorage() (Storage, error) {
+	return NewS3Storage(c.Bucket, c.Key, nil)
+}
+
 // S3Client is an abstraction layer for AWS S3 API.
 // It is intended to be replaced with a mock for testing.
 type S3Client interface {

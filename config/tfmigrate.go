@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/hcl/v2/hclsimple"
+	"github.com/minamijoyo/tfmigrate/history"
 )
 
 // SettingFile represents a file for CLI settings in HCL.
@@ -24,7 +25,7 @@ type TfmigrateBlock struct {
 // TfmigrateConfig is used for building application logic.
 type TfmigrateConfig struct {
 	// History is a config for migration history management.
-	History *HistoryConfig
+	History *history.Config
 }
 
 // ParseSettingFile parses a given source of setting file and returns a TfmigrateConfig.

@@ -6,6 +6,21 @@ import (
 	"os"
 )
 
+// LocalStorageConfig is a config for local storage.
+type LocalStorageConfig struct {
+	// Path to a migration history file. Relative to the current working directory.
+	Path string `hcl:"path"`
+}
+
+// LocalStorageConfig implements a StorageConfig.
+var _ StorageConfig = (*LocalStorageConfig)(nil)
+
+// NewStorage returns a new instance of LocalStorage.
+func (c *LocalStorageConfig) NewStorage() (Storage, error) {
+	s := NewLocalStorage(c.Path)
+	return s, nil
+}
+
 // LocalStorage is an implementation of Storage for local file.
 // This was originally intended for debugging purposes, but it can also be used
 // as a workaround if Storage doesn't support your cloud provider.

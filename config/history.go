@@ -1,5 +1,7 @@
 package config
 
+import "github.com/minamijoyo/tfmigrate/history"
+
 // HistoryBlock represents a block for migration history management in HCL.
 type HistoryBlock struct {
 	// MigrationDir is a path to directory where migratoin files are stored.
@@ -8,22 +10,14 @@ type HistoryBlock struct {
 	Storage StorageBlock `hcl:"storage,block"`
 }
 
-// HistoryConfig is a config for migration history management.
-type HistoryConfig struct {
-	// MigrationDir is a path to directory where migratoin files are stored.
-	MigrationDir string
-	// Storage is an interface of factory method for Storage
-	Storage StorageConfig
-}
-
-// parseHistoryBlock parses a history block and returns a HistoryConfig.
-func parseHistoryBlock(b HistoryBlock) (*HistoryConfig, error) {
+// parseHistoryBlock parses a history block and returns a *history.Config.
+func parseHistoryBlock(b HistoryBlock) (*history.Config, error) {
 	storage, err := parseStorageBlock(b.Storage)
 	if err != nil {
 		return nil, err
 	}
 
-	history := &HistoryConfig{
+	history := &history.Config{
 		MigrationDir: b.MigrationDir,
 		Storage:      storage,
 	}

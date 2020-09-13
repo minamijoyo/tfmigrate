@@ -8,6 +8,37 @@ import (
 	"testing"
 )
 
+func TestLocalStorageConfigNewStorage(t *testing.T) {
+	cases := []struct {
+		desc   string
+		config *LocalStorageConfig
+		ok     bool
+	}{
+		{
+			desc: "valid",
+			config: &LocalStorageConfig{
+				Path: "tmp/history.json",
+			},
+			ok: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			got, err := tc.config.NewStorage()
+			if tc.ok && err != nil {
+				t.Fatalf("unexpected err: %s", err)
+			}
+			if !tc.ok && err == nil {
+				t.Fatalf("expected to return an error, but no error, got: %#v", got)
+			}
+			if tc.ok {
+				_ = got.(*LocalStorage)
+			}
+		})
+	}
+}
+
 func TestLocalStorageWrite(t *testing.T) {
 	cases := []struct {
 		desc     string

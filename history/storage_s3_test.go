@@ -12,6 +12,38 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
+func TestS3StorageConfigNewStorage(t *testing.T) {
+	cases := []struct {
+		desc   string
+		config *S3StorageConfig
+		ok     bool
+	}{
+		{
+			desc: "valid",
+			config: &S3StorageConfig{
+				Bucket: "tfmigrate-test",
+				Key:    "tfmigrate/history.json",
+			},
+			ok: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			got, err := tc.config.NewStorage()
+			if tc.ok && err != nil {
+				t.Fatalf("unexpected err: %s", err)
+			}
+			if !tc.ok && err == nil {
+				t.Fatalf("expected to return an error, but no error, got: %#v", got)
+			}
+			if tc.ok {
+				_ = got.(*S3Storage)
+			}
+		})
+	}
+}
+
 // mockS3Client is a mock implementation for testing.
 type mockS3Client struct {
 	putOutput *s3.PutObjectOutput
