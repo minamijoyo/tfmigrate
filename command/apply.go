@@ -52,7 +52,7 @@ func (c *ApplyCommand) Run(args []string) int {
 	}
 
 	log.Printf("[INFO] [command] new migrator: %#v\n", config)
-	m, err := config.NewMigrator(c.Option)
+	m, err := config.Migrator.NewMigrator(c.Option)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1

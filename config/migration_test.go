@@ -7,150 +7,11 @@ import (
 	"github.com/minamijoyo/tfmigrate/tfmigrate"
 )
 
-func TestStateMigratorConfigNewMigrator(t *testing.T) {
-	cases := []struct {
-		desc   string
-		config *StateMigratorConfig
-		o      *tfmigrate.MigratorOption
-		ok     bool
-	}{
-		{
-			desc: "valid (with dir)",
-			config: &StateMigratorConfig{
-				Dir: "dir1",
-				Actions: []string{
-					"mv aws_security_group.foo aws_security_group.foo2",
-					"mv aws_security_group.bar aws_security_group.bar2",
-					"rm aws_security_group.baz",
-					"import aws_security_group.qux qux",
-				},
-			},
-			o: &tfmigrate.MigratorOption{
-				ExecPath: "direnv exec . terraform",
-			},
-			ok: true,
-		},
-		{
-			desc: "valid (without dir)",
-			config: &StateMigratorConfig{
-				Dir: "",
-				Actions: []string{
-					"mv aws_security_group.foo aws_security_group.foo2",
-					"mv aws_security_group.bar aws_security_group.bar2",
-					"rm aws_security_group.baz",
-					"import aws_security_group.qux qux",
-				},
-			},
-			o: &tfmigrate.MigratorOption{
-				ExecPath: "direnv exec . terraform",
-			},
-			ok: true,
-		},
-		{
-			desc: "invalid action",
-			config: &StateMigratorConfig{
-				Dir: "",
-				Actions: []string{
-					"mv aws_security_group.foo",
-				},
-			},
-			o:  nil,
-			ok: false,
-		},
-		{
-			desc: "no actions",
-			config: &StateMigratorConfig{
-				Dir:     "",
-				Actions: []string{},
-			},
-			o:  nil,
-			ok: false,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.desc, func(t *testing.T) {
-			got, err := tc.config.NewMigrator(tc.o)
-			if tc.ok && err != nil {
-				t.Fatalf("unexpected err: %s", err)
-			}
-			if !tc.ok && err == nil {
-				t.Fatalf("expected to return an error, but no error, got: %#v", got)
-			}
-			if tc.ok {
-				_ = got.(*tfmigrate.StateMigrator)
-			}
-		})
-	}
-}
-
-func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
-	cases := []struct {
-		desc   string
-		config *MultiStateMigratorConfig
-		o      *tfmigrate.MigratorOption
-		ok     bool
-	}{
-		{
-			desc: "valid",
-			config: &MultiStateMigratorConfig{
-				FromDir: "dir1",
-				ToDir:   "dir2",
-				Actions: []string{
-					"mv aws_security_group.foo aws_security_group.foo2",
-					"mv aws_security_group.bar aws_security_group.bar2",
-				},
-			},
-			o: &tfmigrate.MigratorOption{
-				ExecPath: "direnv exec . terraform",
-			},
-			ok: true,
-		},
-		{
-			desc: "invalid action",
-			config: &MultiStateMigratorConfig{
-				FromDir: "dir1",
-				ToDir:   "dir2",
-				Actions: []string{
-					"mv aws_security_group.foo",
-				},
-			},
-			o:  nil,
-			ok: false,
-		},
-		{
-			desc: "no actions",
-			config: &MultiStateMigratorConfig{
-				FromDir: "dir1",
-				ToDir:   "dir2",
-				Actions: []string{},
-			},
-			o:  nil,
-			ok: false,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.desc, func(t *testing.T) {
-			got, err := tc.config.NewMigrator(tc.o)
-			if tc.ok && err != nil {
-				t.Fatalf("unexpected err: %s", err)
-			}
-			if !tc.ok && err == nil {
-				t.Fatalf("expected to return an error, but no error, got: %#v", got)
-			}
-			if tc.ok {
-				_ = got.(*tfmigrate.MultiStateMigrator)
-			}
-		})
-	}
-}
-
 func TestParseMigrationFileWithNativeSyntax(t *testing.T) {
 	cases := []struct {
 		desc   string
 		source string
-		want   MigratorConfig
+		want   *tfmigrate.MigrationConfig
 		ok     bool
 	}{
 		{
@@ -166,13 +27,17 @@ migration "state" "test" {
 	]
 }
 `,
-			want: &StateMigratorConfig{
-				Dir: "dir1",
-				Actions: []string{
-					"mv aws_security_group.foo aws_security_group.foo2",
-					"mv aws_security_group.bar aws_security_group.bar2",
-					"rm aws_security_group.baz",
-					"import aws_security_group.qux qux",
+			want: &tfmigrate.MigrationConfig{
+				Type: "state",
+				Name: "test",
+				Migrator: &tfmigrate.StateMigratorConfig{
+					Dir: "dir1",
+					Actions: []string{
+						"mv aws_security_group.foo aws_security_group.foo2",
+						"mv aws_security_group.bar aws_security_group.bar2",
+						"rm aws_security_group.baz",
+						"import aws_security_group.qux qux",
+					},
 				},
 			},
 			ok: true,
@@ -186,10 +51,14 @@ migration "state" "test" {
 	]
 }
 `,
-			want: &StateMigratorConfig{
-				Dir: "",
-				Actions: []string{
-					"mv aws_security_group.foo aws_security_group.foo2",
+			want: &tfmigrate.MigrationConfig{
+				Type: "state",
+				Name: "test",
+				Migrator: &tfmigrate.StateMigratorConfig{
+					Dir: "",
+					Actions: []string{
+						"mv aws_security_group.foo aws_security_group.foo2",
+					},
 				},
 			},
 			ok: true,
@@ -222,12 +91,16 @@ migration "multi_state" "mv_dir1_dir2" {
 	]
 }
 `,
-			want: &MultiStateMigratorConfig{
-				FromDir: "dir1",
-				ToDir:   "dir2",
-				Actions: []string{
-					"mv aws_security_group.foo aws_security_group.foo2",
-					"mv aws_security_group.bar aws_security_group.bar2",
+			want: &tfmigrate.MigrationConfig{
+				Type: "multi_state",
+				Name: "mv_dir1_dir2",
+				Migrator: &tfmigrate.MultiStateMigratorConfig{
+					FromDir: "dir1",
+					ToDir:   "dir2",
+					Actions: []string{
+						"mv aws_security_group.foo aws_security_group.foo2",
+						"mv aws_security_group.bar aws_security_group.bar2",
+					},
 				},
 			},
 			ok: true,
@@ -375,7 +248,7 @@ func TestParseMigrationFileWithJsonSyntax(t *testing.T) {
 	cases := []struct {
 		desc   string
 		source string
-		want   MigratorConfig
+		want   *tfmigrate.MigrationConfig
 		ok     bool
 	}{
 		{
@@ -397,13 +270,17 @@ func TestParseMigrationFileWithJsonSyntax(t *testing.T) {
   }
 }
 `,
-			want: &StateMigratorConfig{
-				Dir: "dir1",
-				Actions: []string{
-					"mv aws_security_group.foo aws_security_group.foo2",
-					"mv aws_security_group.bar aws_security_group.bar2",
-					"rm aws_security_group.baz",
-					"import aws_security_group.qux qux",
+			want: &tfmigrate.MigrationConfig{
+				Type: "state",
+				Name: "test",
+				Migrator: &tfmigrate.StateMigratorConfig{
+					Dir: "dir1",
+					Actions: []string{
+						"mv aws_security_group.foo aws_security_group.foo2",
+						"mv aws_security_group.bar aws_security_group.bar2",
+						"rm aws_security_group.baz",
+						"import aws_security_group.qux qux",
+					},
 				},
 			},
 			ok: true,
