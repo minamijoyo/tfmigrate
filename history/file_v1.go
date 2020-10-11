@@ -11,17 +11,20 @@ import (
 type FileV1 struct {
 	// Version is a file format version. It is always set to 1.
 	Version int `json:"version"`
-	// AppliedLogs is a history of which migrations were applied.
+	// Records is a set of applied migration log.
 	// Only success migrations are recorded.
-	AppliedLogs []AppliedLogV1 `json:"applied_logs"`
+	// A key is migration file name.
+	// We record only the file name not to invalidate history when the migration
+	// directory is moved.
+	Records map[string]RecordV1
 }
 
-// AppliedLogV1 represents an applied migration log.
-type AppliedLogV1 struct {
-	// Migration is a migration file name.
-	// Record only the file names not to invalidate history when the migration
-	// directory is moved.
-	Migration string `json:"migration"`
+// RecordV1 represents an applied migration log.
+type RecordV1 struct {
+	// Type is a migration type.
+	Type string `json:"type"`
+	// Name is a migration name.
+	Name string `json:"name"`
 	// AppliedAt is a timestamp when the migration was applied.
 	// Note that we only record it when the migration was succeed.
 	AppliedAt time.Time `json:"applied_at"`
@@ -29,23 +32,24 @@ type AppliedLogV1 struct {
 
 // newFileV1 converts a History to a FileV1 instance.
 func newFileV1(h History) *FileV1 {
-	logs := []AppliedLogV1{}
-	for _, l := range h.appliedLogs {
-		log := newAppliedLogV1(l)
-		logs = append(logs, log)
+	m := make(map[string]RecordV1)
+	for k, v := range h.records {
+		r := newRecordV1(v)
+		m[k] = r
 	}
 
 	return &FileV1{
-		Version:     1,
-		AppliedLogs: logs,
+		Version: 1,
+		Records: m,
 	}
 }
 
-// newAppliedLogV1 converts an appliedLog to an AppliedLogV1 instance.
-func newAppliedLogV1(l appliedLog) AppliedLogV1 {
-	return AppliedLogV1{
-		Migration: l.migration,
-		AppliedAt: l.appliedAt,
+// newRecordV1 converts a Record to a RecordV1 instance.
+func newRecordV1(r Record) RecordV1 {
+	return RecordV1{
+		Type:      r.Type,
+		Name:      r.Name,
+		AppliedAt: r.AppliedAt,
 	}
 }
 
@@ -70,20 +74,21 @@ func parseHistoryFileV1(b []byte) (*History, error) {
 
 // toHistory converts a FileV1 to a History instance.
 func (f *FileV1) toHistory() History {
-	logs := []appliedLog{}
-	for _, l := range f.AppliedLogs {
-		logs = append(logs, l.toAppliedLog())
+	m := make(map[string]Record)
+	for k, v := range f.Records {
+		r := v.toRecord()
+		m[k] = r
 	}
-
 	return History{
-		appliedLogs: logs,
+		records: m,
 	}
 }
 
-// toAppliedLog converts an AppliedLogV1 to an appliedLog instance.
-func (l AppliedLogV1) toAppliedLog() appliedLog {
-	return appliedLog{
-		migration: l.Migration,
-		appliedAt: l.AppliedAt,
+// toRecord converts a RecordV1 to a Record instance.
+func (r RecordV1) toRecord() Record {
+	return Record{
+		Type:      r.Type,
+		Name:      r.Name,
+		AppliedAt: r.AppliedAt,
 	}
 }
