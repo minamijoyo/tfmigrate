@@ -22,3 +22,26 @@ type Record struct {
 	// Note that we only record it when the migration was succeed.
 	AppliedAt time.Time
 }
+
+// Add adds a new record to history.
+// If a given filename already exists, it updates the existing record.
+func (h *History) Add(filename string, r Record) {
+	h.records[filename] = r
+}
+
+// Contains returns true if a given migration has been applied.
+func (h *History) Contains(filename string) bool {
+	_, ok := h.records[filename]
+	return ok
+}
+
+// Delete deletes a record from history.
+// If a given filename doesn't exist, no-op.
+func (h *History) Delete(filename string) {
+	delete(h.records, filename)
+}
+
+// Clear deletes all records from history.
+func (h *History) Clear() {
+	h.records = make(map[string]Record)
+}
