@@ -1,9 +1,10 @@
 package history
 
 import (
-	"reflect"
 	"testing"
 	"time"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestHistoryAdd(t *testing.T) {
@@ -78,8 +79,9 @@ func TestHistoryAdd(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			tc.h.Add(tc.filename, tc.r)
-			if !reflect.DeepEqual(tc.h, tc.want) {
-				t.Errorf("got: %#v, want: %#v", tc.h, tc.want)
+
+			if diff := cmp.Diff(tc.h, tc.want, cmp.AllowUnexported(tc.h)); diff != "" {
+				t.Errorf("got = %#v, want = %#v, diff = %s", tc.h, tc.want, diff)
 			}
 		})
 	}
@@ -191,8 +193,9 @@ func TestHistoryDelete(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			tc.h.Delete(tc.filename)
-			if !reflect.DeepEqual(tc.h, tc.want) {
-				t.Errorf("got: %#v, want: %#v", tc.h, tc.want)
+
+			if diff := cmp.Diff(tc.h, tc.want, cmp.AllowUnexported(tc.h)); diff != "" {
+				t.Errorf("got = %#v, want = %#v, diff = %s", tc.h, tc.want, diff)
 			}
 		})
 	}
@@ -229,8 +232,9 @@ func TestHistoryClear(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			tc.h.Clear()
-			if !reflect.DeepEqual(tc.h, tc.want) {
-				t.Errorf("got: %#v, want: %#v", tc.h, tc.want)
+
+			if diff := cmp.Diff(tc.h, tc.want, cmp.AllowUnexported(tc.h)); diff != "" {
+				t.Errorf("got = %#v, want = %#v, diff = %s", tc.h, tc.want, diff)
 			}
 		})
 	}

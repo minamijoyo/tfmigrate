@@ -50,8 +50,8 @@ func TestNewFileV1(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			got := newFileV1(tc.h)
-			opt := cmp.AllowUnexported(*got)
-			if diff := cmp.Diff(*got, *tc.want, opt); diff != "" {
+
+			if diff := cmp.Diff(*got, *tc.want, cmp.AllowUnexported(*got)); diff != "" {
 				t.Errorf("got = %#v, want = %#v, diff = %s", got, tc.want, diff)
 			}
 		})
@@ -176,8 +176,7 @@ func TestParseHistoryFileV1(t *testing.T) {
 				t.Fatalf("expected to return an error, but no error, got: %#v", got)
 			}
 			if tc.ok {
-				opt := cmp.AllowUnexported(*got)
-				if diff := cmp.Diff(*got, *tc.want, opt); diff != "" {
+				if diff := cmp.Diff(*got, *tc.want, cmp.AllowUnexported(*got)); diff != "" {
 					t.Errorf("got = %#v, want = %#v, diff = %s", got, tc.want, diff)
 				}
 			}
