@@ -16,7 +16,7 @@ type FileV1 struct {
 	// A key is migration file name.
 	// We record only the file name not to invalidate history when the migration
 	// directory is moved.
-	Records map[string]RecordV1
+	Records map[string]RecordV1 `json:"records"`
 }
 
 // RecordV1 represents an applied migration log.
