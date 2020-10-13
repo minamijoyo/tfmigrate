@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/aws/aws-sdk-go v1.34.16
 	github.com/davecgh/go-spew v1.1.1
+	github.com/google/go-cmp v0.5.2
 	github.com/hashicorp/hcl/v2 v2.6.0
 	github.com/hashicorp/logutils v1.0.0
 	github.com/mattn/go-shellwords v1.0.10
