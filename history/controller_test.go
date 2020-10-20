@@ -95,3 +95,59 @@ func TestLoadHistory(t *testing.T) {
 		})
 	}
 }
+
+func TestControllerSave(t *testing.T) {
+	cases := []struct {
+		desc string
+		h    *History
+		want []byte
+		ok   bool
+	}{
+		{
+			desc: "simple",
+			h:    newEmptyHistory(),
+			want: []byte(`{
+    "version": 1,
+    "records": {}
+}`),
+			ok: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			localDir, err := ioutil.TempDir("", "localDir")
+			if err != nil {
+				t.Fatalf("failed to craete temp dir: %s", err)
+			}
+			t.Cleanup(func() { os.RemoveAll(localDir) })
+
+			path := filepath.Join(localDir, "history.json")
+			c := &Controller{
+				history: *tc.h,
+				config: Config{
+					Storage: &LocalStorageConfig{
+						Path: path,
+					},
+				},
+			}
+			err = c.Save(context.Background())
+			if tc.ok && err != nil {
+				t.Fatalf("unexpected err: %s", err)
+			}
+			if !tc.ok && err == nil {
+				t.Fatal("expected to return an error, but no error")
+			}
+
+			if tc.ok {
+				got, err := ioutil.ReadFile(path)
+				if err != nil {
+					t.Fatalf("failed to read contents: %s", err)
+				}
+				if string(got) != string(tc.want) {
+					t.Errorf("got: %s, want: %s", string(got), string(tc.want))
+				}
+			}
+		})
+	}
+}
