@@ -68,6 +68,7 @@ func loadMigrationFileNames(dir string) ([]string, error) {
 }
 
 // loadHistory loads a history file from a storage.
+// If a given history is not found, create a new one.
 func loadHistory(ctx context.Context, c StorageConfig) (*History, error) {
 	s, err := c.NewStorage()
 	if err != nil {
@@ -77,6 +78,12 @@ func loadHistory(ctx context.Context, c StorageConfig) (*History, error) {
 	b, err := s.Read(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	// If a given history is not found, s.Read returns empty bytes with no error.
+	// In this case, we assume that it's the first use and create a new history.
+	if len(b) == 0 {
+		return newEmptyHistory(), nil
 	}
 
 	h, err := parseHistoryFile(b)

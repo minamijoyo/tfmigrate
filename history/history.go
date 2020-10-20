@@ -23,6 +23,14 @@ type Record struct {
 	AppliedAt time.Time
 }
 
+// newEmptyHistory initializes a new History.
+func newEmptyHistory() *History {
+	records := make(map[string]Record)
+	return &History{
+		records: records,
+	}
+}
+
 // Add adds a new record to history.
 // If a given filename already exists, it updates the existing record.
 func (h *History) Add(filename string, r Record) {
