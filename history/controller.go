@@ -109,3 +109,16 @@ func (c *Controller) Save(ctx context.Context) error {
 
 	return s.Write(ctx, b)
 }
+
+// UnappliedMigrations returns a list of migration file names which have not
+// been applied yet.
+func (c *Controller) UnappliedMigrations() []string {
+	unapplied := []string{}
+	for _, m := range c.migrations {
+		if !c.history.Contains(m) {
+			unapplied = append(unapplied, m)
+		}
+	}
+
+	return unapplied
+}

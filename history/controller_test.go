@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 	"time"
 
@@ -232,6 +233,105 @@ func TestControllerSave(t *testing.T) {
 				if string(got) != string(tc.want) {
 					t.Errorf("got: %s, want: %s", string(got), string(tc.want))
 				}
+			}
+		})
+	}
+}
+
+func TestUnappliedMigrations(t *testing.T) {
+	cases := []struct {
+		desc       string
+		migrations []string
+		history    History
+		want       []string
+	}{
+		{
+			desc: "simple",
+			migrations: []string{
+				"20201012010101_foo.hcl",
+				"20201012020202_foo.hcl",
+				"20201012030303_foo.hcl",
+				"20201012040404_foo.hcl",
+			},
+			history: History{
+				records: map[string]Record{
+					"20201012010101_foo.hcl": Record{
+						Type:      "state",
+						Name:      "foo",
+						AppliedAt: time.Date(2020, 10, 13, 1, 2, 3, 0, time.UTC),
+					},
+					"20201012020202_foo.hcl": Record{
+						Type:      "state",
+						Name:      "bar",
+						AppliedAt: time.Date(2020, 10, 13, 4, 5, 6, 0, time.UTC),
+					},
+				},
+			},
+			want: []string{
+				"20201012030303_foo.hcl",
+				"20201012040404_foo.hcl",
+			},
+		},
+		{
+			desc: "all applied",
+			migrations: []string{
+				"20201012010101_foo.hcl",
+				"20201012020202_foo.hcl",
+			},
+			history: History{
+				records: map[string]Record{
+					"20201012010101_foo.hcl": Record{
+						Type:      "state",
+						Name:      "foo",
+						AppliedAt: time.Date(2020, 10, 13, 1, 2, 3, 0, time.UTC),
+					},
+					"20201012020202_foo.hcl": Record{
+						Type:      "state",
+						Name:      "bar",
+						AppliedAt: time.Date(2020, 10, 13, 4, 5, 6, 0, time.UTC),
+					},
+				},
+			},
+			want: []string{},
+		},
+		{
+			desc: "ignore a missing migration file include in history",
+			migrations: []string{
+				"20201012020202_foo.hcl",
+				"20201012030303_foo.hcl",
+				"20201012040404_foo.hcl",
+			},
+			history: History{
+				records: map[string]Record{
+					"20201012010101_foo.hcl": Record{
+						Type:      "state",
+						Name:      "foo",
+						AppliedAt: time.Date(2020, 10, 13, 1, 2, 3, 0, time.UTC),
+					},
+					"20201012020202_foo.hcl": Record{
+						Type:      "state",
+						Name:      "bar",
+						AppliedAt: time.Date(2020, 10, 13, 4, 5, 6, 0, time.UTC),
+					},
+				},
+			},
+			want: []string{
+				"20201012030303_foo.hcl",
+				"20201012040404_foo.hcl",
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			c := &Controller{
+				migrations: tc.migrations,
+				history:    tc.history,
+			}
+
+			got := c.UnappliedMigrations()
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("got = %#v, want = %#v", got, tc.want)
 			}
 		})
 	}
