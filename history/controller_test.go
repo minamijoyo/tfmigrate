@@ -11,6 +11,91 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+func TestLoadMigrationFileNames(t *testing.T) {
+	cases := []struct {
+		desc  string
+		files []string
+		want  []string
+		ok    bool
+	}{
+		{
+			desc: "hcl",
+			files: []string{
+				"20201012010101_foo.hcl",
+				"20201012020202_foo.hcl",
+			},
+			want: []string{
+				"20201012010101_foo.hcl",
+				"20201012020202_foo.hcl",
+			},
+			ok: true,
+		},
+		{
+			desc: "json",
+			files: []string{
+				"20201012010101_foo.hcl",
+				"20201012020202_foo.json",
+				"20201012020202_foo.txt",
+			},
+			want: []string{
+				"20201012010101_foo.hcl",
+				"20201012020202_foo.json",
+			},
+			ok: true,
+		},
+		{
+			desc: "unsorted",
+			files: []string{
+				"20201012020202_foo.hcl",
+				"20201012010101_foo.hcl",
+			},
+			want: []string{
+				"20201012010101_foo.hcl",
+				"20201012020202_foo.hcl",
+			},
+			ok: true,
+		},
+		{
+			desc:  "empty",
+			files: []string{},
+			want:  []string{},
+			ok:    true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			migrationDir, err := ioutil.TempDir("", "migrationDir")
+			if err != nil {
+				t.Fatalf("failed to craete temp dir: %s", err)
+			}
+			t.Cleanup(func() { os.RemoveAll(migrationDir) })
+
+			for _, filename := range tc.files {
+				err = ioutil.WriteFile(filepath.Join(migrationDir, filename), []byte{}, 0644)
+				if err != nil {
+					t.Fatalf("failed to write dummy migration file: %s", err)
+				}
+			}
+
+			got, err := loadMigrationFileNames(migrationDir)
+
+			if tc.ok && err != nil {
+				t.Fatalf("unexpected err: %#v", err)
+			}
+			if !tc.ok && err == nil {
+				t.Fatal("expected to return an error, but no error")
+			}
+
+			if tc.ok {
+				if diff := cmp.Diff(got, tc.want); diff != "" {
+					t.Errorf("got = %#v, want = %#v, diff = %s", got, tc.want, diff)
+				}
+			}
+		})
+	}
+}
+
 func TestLoadHistory(t *testing.T) {
 	cases := []struct {
 		desc     string
