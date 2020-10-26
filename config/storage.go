@@ -21,7 +21,7 @@ type StorageBlock struct {
 	Remain hcl.Body `hcl:",remain"`
 }
 
-// parseStorageBlock parses a storage block and returns a hisotry.StorageConfig.
+// parseStorageBlock parses a storage block and returns a history.StorageConfig.
 func parseStorageBlock(b StorageBlock) (history.StorageConfig, error) {
 	switch b.Type {
 	case "local":
