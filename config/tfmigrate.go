@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"io/ioutil"
 
 	"github.com/hashicorp/hcl/v2/hclsimple"
 	"github.com/minamijoyo/tfmigrate/history"
@@ -26,6 +27,16 @@ type TfmigrateBlock struct {
 type TfmigrateConfig struct {
 	// History is a config for migration history management.
 	History *history.Config
+}
+
+// LoadSettingFile is a helper function which reads and parses a given setting file.
+func LoadSettingFile(filename string) (*TfmigrateConfig, error) {
+	source, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	return ParseSettingFile(filename, source)
 }
 
 // ParseSettingFile parses a given source of setting file and returns a TfmigrateConfig.

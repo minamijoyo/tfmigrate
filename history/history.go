@@ -53,3 +53,8 @@ func (h *History) Delete(filename string) {
 func (h *History) Clear() {
 	h.records = make(map[string]Record)
 }
+
+// Length returns a number of records in history.
+func (h *History) Length() int {
+	return len(h.records)
+}

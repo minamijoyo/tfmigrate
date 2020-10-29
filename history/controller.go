@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"sort"
+	"time"
 )
 
 // Controller manages a migration history.
@@ -22,7 +23,7 @@ type Controller struct {
 }
 
 // NewController returns a new Controller instance.
-func NewController(ctx context.Context, config Config) (*Controller, error) {
+func NewController(ctx context.Context, config *Config) (*Controller, error) {
 	migrations, err := loadMigrationFileNames(config.MigrationDir)
 	if err != nil {
 		return nil, err
@@ -36,7 +37,7 @@ func NewController(ctx context.Context, config Config) (*Controller, error) {
 	c := &Controller{
 		migrations: migrations,
 		history:    *h,
-		config:     config,
+		config:     *config,
 	}
 
 	return c, nil
@@ -121,4 +122,26 @@ func (c *Controller) UnappliedMigrations() []string {
 	}
 
 	return unapplied
+}
+
+// Length returns a number of records in history.
+func (c *Controller) Length() int {
+	return c.history.Length()
+}
+
+// AlreadyApplied returns true if a given migration file has already been applied.
+func (c *Controller) AlreadyApplied(filename string) bool {
+	return c.history.Contains(filename)
+}
+
+// AddRecord adds a record to history.
+// This method doesn't persist history. Call Save() to save the history.
+func (c *Controller) AddRecord(filename string, migrationType string, name string) {
+	r := Record{
+		Type:      migrationType,
+		Name:      name,
+		AppliedAt: time.Now(),
+	}
+
+	c.history.Add(filename, r)
 }
