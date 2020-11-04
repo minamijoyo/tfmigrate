@@ -336,3 +336,51 @@ func TestUnappliedMigrations(t *testing.T) {
 		})
 	}
 }
+
+func TestControllerHistoryLength(t *testing.T) {
+	cases := []struct {
+		desc       string
+		migrations []string
+		history    History
+		want       int
+	}{
+		{
+			desc: "simple",
+			migrations: []string{
+				"20201012010101_foo.hcl",
+				"20201012020202_foo.hcl",
+				"20201012030303_foo.hcl",
+				"20201012040404_foo.hcl",
+			},
+			history: History{
+				records: map[string]Record{
+					"20201012010101_foo.hcl": Record{
+						Type:      "state",
+						Name:      "foo",
+						AppliedAt: time.Date(2020, 10, 13, 1, 2, 3, 0, time.UTC),
+					},
+					"20201012020202_foo.hcl": Record{
+						Type:      "state",
+						Name:      "bar",
+						AppliedAt: time.Date(2020, 10, 13, 4, 5, 6, 0, time.UTC),
+					},
+				},
+			},
+			want: 2,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			c := &Controller{
+				migrations: tc.migrations,
+				history:    tc.history,
+			}
+
+			got := c.HistoryLength()
+			if got != tc.want {
+				t.Errorf("got = %d, want = %d", got, tc.want)
+			}
+		})
+	}
+}

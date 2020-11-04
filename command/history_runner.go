@@ -94,11 +94,11 @@ func (r *HistoryRunner) planDir(ctx context.Context) error {
 // If not set, run all unapplied migrations.
 func (r *HistoryRunner) Apply(ctx context.Context) (err error) {
 	// save history on exit
-	beforeLen := r.hc.Length()
+	beforeLen := r.hc.HistoryLength()
 	defer func() {
 		// if the number of records in history doesn't change,
 		// we don't want to update a timestamp of history file.
-		afterLen := r.hc.Length()
+		afterLen := r.hc.HistoryLength()
 		if beforeLen == afterLen {
 			return
 		}

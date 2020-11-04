@@ -239,3 +239,40 @@ func TestHistoryClear(t *testing.T) {
 		})
 	}
 }
+
+func TestHistoryLength(t *testing.T) {
+	cases := []struct {
+		desc string
+		h    History
+		want int
+	}{
+		{
+			desc: "count records",
+			h: History{
+				records: map[string]Record{
+					"20201012010101_foo.hcl": Record{
+						Type:      "state",
+						Name:      "foo",
+						AppliedAt: time.Date(2020, 10, 13, 1, 2, 3, 0, time.UTC),
+					},
+					"20201012020202_foo.hcl": Record{
+						Type:      "state",
+						Name:      "bar",
+						AppliedAt: time.Date(2020, 10, 13, 4, 5, 6, 0, time.UTC),
+					},
+				},
+			},
+			want: 2,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			got := tc.h.Length()
+
+			if got != tc.want {
+				t.Errorf("got = %d, want = %d", got, tc.want)
+			}
+		})
+	}
+}

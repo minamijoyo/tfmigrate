@@ -124,8 +124,8 @@ func (c *Controller) UnappliedMigrations() []string {
 	return unapplied
 }
 
-// Length returns a number of records in history.
-func (c *Controller) Length() int {
+// HistoryLength returns a number of records in history.
+func (c *Controller) HistoryLength() int {
 	return c.history.Length()
 }
 
