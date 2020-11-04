@@ -136,11 +136,17 @@ func (c *Controller) AlreadyApplied(filename string) bool {
 
 // AddRecord adds a record to history.
 // This method doesn't persist history. Call Save() to save the history.
-func (c *Controller) AddRecord(filename string, migrationType string, name string) {
+// If appliedAt is nil, a timestamp is automatically set to time.Now().
+func (c *Controller) AddRecord(filename string, migrationType string, name string, appliedAt *time.Time) {
+	timestamp := appliedAt
+	if timestamp == nil {
+		now := time.Now()
+		timestamp = &now
+	}
 	r := Record{
 		Type:      migrationType,
 		Name:      name,
-		AppliedAt: time.Now(),
+		AppliedAt: *timestamp,
 	}
 
 	c.history.Add(filename, r)

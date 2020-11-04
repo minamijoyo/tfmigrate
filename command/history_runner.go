@@ -146,7 +146,7 @@ func (r *HistoryRunner) applyFile(ctx context.Context, filename string) error {
 
 	mc := fr.MigrationConfig()
 	log.Printf("[INFO] [runner] add a record to history: %s, type: %s, name: %s\n", filename, mc.Type, mc.Name)
-	r.hc.AddRecord(filename, mc.Type, mc.Name)
+	r.hc.AddRecord(filename, mc.Type, mc.Name, nil)
 
 	return nil
 }

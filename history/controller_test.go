@@ -443,3 +443,80 @@ func TestControllerAlreadApplied(t *testing.T) {
 		})
 	}
 }
+
+func TestControllerAddRecord(t *testing.T) {
+	migrations := []string{
+		"20201012010101_foo.hcl",
+		"20201012020202_foo.hcl",
+		"20201012030303_foo.hcl",
+		"20201012040404_foo.hcl",
+	}
+	history := History{
+		records: map[string]Record{
+			"20201012010101_foo.hcl": Record{
+				Type:      "state",
+				Name:      "foo",
+				AppliedAt: time.Date(2020, 10, 13, 1, 2, 3, 0, time.UTC),
+			},
+			"20201012020202_foo.hcl": Record{
+				Type:      "state",
+				Name:      "bar",
+				AppliedAt: time.Date(2020, 10, 13, 4, 5, 6, 0, time.UTC),
+			},
+		},
+	}
+	cases := []struct {
+		desc          string
+		migrations    []string
+		history       History
+		filename      string
+		migrationType string
+		name          string
+		appliedAt     time.Time
+		want          History
+	}{
+		{
+			desc:          "add",
+			migrations:    migrations,
+			history:       history,
+			filename:      "20201012030303_foo.hcl",
+			migrationType: "multi_state",
+			name:          "baz",
+			appliedAt:     time.Date(2020, 10, 13, 7, 8, 9, 0, time.UTC),
+			want: History{
+				records: map[string]Record{
+					"20201012010101_foo.hcl": Record{
+						Type:      "state",
+						Name:      "foo",
+						AppliedAt: time.Date(2020, 10, 13, 1, 2, 3, 0, time.UTC),
+					},
+					"20201012020202_foo.hcl": Record{
+						Type:      "state",
+						Name:      "bar",
+						AppliedAt: time.Date(2020, 10, 13, 4, 5, 6, 0, time.UTC),
+					},
+					"20201012030303_foo.hcl": Record{
+						Type:      "multi_state",
+						Name:      "baz",
+						AppliedAt: time.Date(2020, 10, 13, 7, 8, 9, 0, time.UTC),
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			c := &Controller{
+				migrations: tc.migrations,
+				history:    tc.history,
+			}
+
+			c.AddRecord(tc.filename, tc.migrationType, tc.name, &tc.appliedAt)
+			got := tc.history
+			if diff := cmp.Diff(got, tc.want, cmp.AllowUnexported(got)); diff != "" {
+				t.Errorf("got = %#v, want = %#v, diff = %s", got, tc.want, diff)
+			}
+		})
+	}
+}
