@@ -384,3 +384,62 @@ func TestControllerHistoryLength(t *testing.T) {
 		})
 	}
 }
+
+func TestControllerAlreadApplied(t *testing.T) {
+	migrations := []string{
+		"20201012010101_foo.hcl",
+		"20201012020202_foo.hcl",
+		"20201012030303_foo.hcl",
+		"20201012040404_foo.hcl",
+	}
+	history := History{
+		records: map[string]Record{
+			"20201012010101_foo.hcl": Record{
+				Type:      "state",
+				Name:      "foo",
+				AppliedAt: time.Date(2020, 10, 13, 1, 2, 3, 0, time.UTC),
+			},
+			"20201012020202_foo.hcl": Record{
+				Type:      "state",
+				Name:      "bar",
+				AppliedAt: time.Date(2020, 10, 13, 4, 5, 6, 0, time.UTC),
+			},
+		},
+	}
+	cases := []struct {
+		desc       string
+		migrations []string
+		history    History
+		filename   string
+		want       bool
+	}{
+		{
+			desc:       "unapplied",
+			migrations: migrations,
+			history:    history,
+			filename:   "20201012030303_foo.hcl",
+			want:       false,
+		},
+		{
+			desc:       "applied",
+			migrations: migrations,
+			history:    history,
+			filename:   "20201012020202_foo.hcl",
+			want:       true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			c := &Controller{
+				migrations: tc.migrations,
+				history:    tc.history,
+			}
+
+			got := c.AlreadyApplied(tc.filename)
+			if got != tc.want {
+				t.Errorf("got = %t, want = %t", got, tc.want)
+			}
+		})
+	}
+}
