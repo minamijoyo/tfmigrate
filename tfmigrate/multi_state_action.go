@@ -3,7 +3,6 @@ package tfmigrate
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/minamijoyo/tfmigrate/tfexec"
 )
@@ -22,8 +21,11 @@ type MultiStateAction interface {
 // Valid formats are the following.
 // "mv <source> <destination>"
 func NewMultiStateActionFromString(cmdStr string) (MultiStateAction, error) {
-	// split cmdStr using Fields instead of Split to allow cmdStr to have duplicated white spaces.
-	args := strings.Fields(cmdStr)
+	args, err := splitStateAction(cmdStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse action: %s, err: %s", cmdStr, err)
+	}
+
 	if len(args) == 0 {
 		return nil, fmt.Errorf("multi state action is empty: %s", cmdStr)
 	}

@@ -3,8 +3,8 @@ package tfmigrate
 import (
 	"context"
 	"fmt"
-	"strings"
 
+	"github.com/mattn/go-shellwords"
 	"github.com/minamijoyo/tfmigrate/tfexec"
 )
 
@@ -23,8 +23,11 @@ type StateAction interface {
 // "rm <addresses>...
 // "import <address> <id>"
 func NewStateActionFromString(cmdStr string) (StateAction, error) {
-	// split cmdStr using Fields instead of Split to allow cmdStr to have duplicated white spaces.
-	args := strings.Fields(cmdStr)
+	args, err := splitStateAction(cmdStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse action: %s, err: %s", cmdStr, err)
+	}
+
 	if len(args) == 0 {
 		return nil, fmt.Errorf("state action is empty: %s", cmdStr)
 	}
@@ -61,4 +64,10 @@ func NewStateActionFromString(cmdStr string) (StateAction, error) {
 	}
 
 	return action, nil
+}
+
+// splitStateAction splits a given string like a shell.
+func splitStateAction(cmdStr string) ([]string, error) {
+	// Note that we cannot simply split it by space because the address of resource can contain spaces.
+	return shellwords.Parse(cmdStr)
 }
