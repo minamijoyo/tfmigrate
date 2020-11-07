@@ -8,8 +8,8 @@ import (
 	"github.com/minamijoyo/tfmigrate/history"
 )
 
-// SettingFile represents a file for CLI settings in HCL.
-type SettingFile struct {
+// ConfigurationFile represents a file for CLI settings in HCL.
+type ConfigurationFile struct {
 	// Tfmigrate is a top-level block.
 	// It must contain only one block, and multiple blocks are not allowed.
 	Tfmigrate TfmigrateBlock `hcl:"tfmigrate,block"`
@@ -29,22 +29,23 @@ type TfmigrateConfig struct {
 	History *history.Config
 }
 
-// LoadSettingFile is a helper function which reads and parses a given setting file.
-func LoadSettingFile(filename string) (*TfmigrateConfig, error) {
+// LoadConfigurationFile is a helper function which reads and parses a given configuration file.
+func LoadConfigurationFile(filename string) (*TfmigrateConfig, error) {
 	source, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	return ParseSettingFile(filename, source)
+	return ParseConfigurationFile(filename, source)
 }
 
-// ParseSettingFile parses a given source of setting file and returns a TfmigrateConfig.
+// ParseConfigurationFile parses a given source of configuration file and
+// returns a TfmigrateConfig.
 // Note that this method does not read a file and you should pass source of config in bytes.
 // The filename is used for error message and selecting HCL syntax (.hcl and .json).
-func ParseSettingFile(filename string, source []byte) (*TfmigrateConfig, error) {
+func ParseConfigurationFile(filename string, source []byte) (*TfmigrateConfig, error) {
 	// Decode tfmigrate block.
-	var f SettingFile
+	var f ConfigurationFile
 	err := hclsimple.Decode(filename, source, nil, &f)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode setting file: %s, err: %s", filename, err)

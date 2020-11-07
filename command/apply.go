@@ -25,7 +25,7 @@ func (c *ApplyCommand) Run(args []string) int {
 	}
 
 	if len(c.configFile) != 0 {
-		config, err := config.LoadSettingFile(c.configFile)
+		config, err := config.LoadConfigurationFile(c.configFile)
 		if err != nil {
 			c.UI.Error(fmt.Sprintf("failed to load config file: %s", err))
 			return 1

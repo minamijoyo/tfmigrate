@@ -7,7 +7,7 @@ import (
 	"github.com/minamijoyo/tfmigrate/history"
 )
 
-func TestParseSettingFile(t *testing.T) {
+func TestParseConfigurationFile(t *testing.T) {
 	cases := []struct {
 		desc   string
 		source string
@@ -64,7 +64,7 @@ foo {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			got, err := ParseSettingFile("test.hcl", []byte(tc.source))
+			got, err := ParseConfigurationFile("test.hcl", []byte(tc.source))
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}

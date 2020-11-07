@@ -49,7 +49,7 @@ tfmigrate {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			config, err := ParseSettingFile("test.hcl", []byte(tc.source))
+			config, err := ParseConfigurationFile("test.hcl", []byte(tc.source))
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}
