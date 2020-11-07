@@ -15,6 +15,24 @@ func TestParseMigrationFileWithNativeSyntax(t *testing.T) {
 		ok     bool
 	}{
 		{
+			desc: "mock",
+			source: `
+migration "mock" "test" {
+	plan_error  = true
+	apply_error = false
+}
+`,
+			want: &tfmigrate.MigrationConfig{
+				Type: "mock",
+				Name: "test",
+				Migrator: &tfmigrate.MockMigratorConfig{
+					PlanError:  true,
+					ApplyError: false,
+				},
+			},
+			ok: true,
+		},
+		{
 			desc: "state with dir",
 			source: `
 migration "state" "test" {

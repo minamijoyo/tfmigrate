@@ -58,6 +58,9 @@ func ParseMigrationFile(filename string, source []byte) (*tfmigrate.MigrationCon
 // parseMigrationBlock parses a migration block and returns a tfmigrate.MigratorConfig.
 func parseMigrationBlock(b MigrationBlock) (tfmigrate.MigratorConfig, error) {
 	switch b.Type {
+	case "mock": // only for testing
+		return parseMockMigrationBlock(b)
+
 	case "state":
 		return parseStateMigrationBlock(b)
 
@@ -67,6 +70,17 @@ func parseMigrationBlock(b MigrationBlock) (tfmigrate.MigratorConfig, error) {
 	default:
 		return nil, fmt.Errorf("unknown migration type: %s", b.Type)
 	}
+}
+
+// parseMockMigrationBlock parses a migration block for mock and returns a tfmigrate.MigratorConfig.
+func parseMockMigrationBlock(b MigrationBlock) (tfmigrate.MigratorConfig, error) {
+	var config tfmigrate.MockMigratorConfig
+	diags := gohcl.DecodeBody(b.Remain, nil, &config)
+	if diags.HasErrors() {
+		return nil, diags
+	}
+
+	return &config, nil
 }
 
 // parseStateMigrationBlock parses a migration block for state and returns a tfmigrate.MigratorConfig.
