@@ -12,6 +12,7 @@ import (
 type StorageBlock struct {
 	// Type is a type for storage.
 	// Valid values are as follows:
+	// - mock
 	// - local
 	// - s3
 	Type string `hcl:"type,label"`
@@ -24,6 +25,9 @@ type StorageBlock struct {
 // parseStorageBlock parses a storage block and returns a history.StorageConfig.
 func parseStorageBlock(b StorageBlock) (history.StorageConfig, error) {
 	switch b.Type {
+	case "mock": // only for testing
+		return parseMockStorageBlock(b)
+
 	case "local":
 		return parseLocalStorageBlock(b)
 
@@ -33,6 +37,17 @@ func parseStorageBlock(b StorageBlock) (history.StorageConfig, error) {
 	default:
 		return nil, fmt.Errorf("unknown history storage type: %s", b.Type)
 	}
+}
+
+// parseMockStorageBlock parses a storage block for mock and returns a history.StorageConfig.
+func parseMockStorageBlock(b StorageBlock) (history.StorageConfig, error) {
+	var config history.MockStorageConfig
+	diags := gohcl.DecodeBody(b.Remain, nil, &config)
+	if diags.HasErrors() {
+		return nil, diags
+	}
+
+	return &config, nil
 }
 
 // parseLocalStorageBlock parses a storage block for local and returns a history.StorageConfig.
