@@ -1,0 +1,44 @@
+package command
+
+import (
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"testing"
+)
+
+// setupMigrationFile is a test helper for setting up a temporary migration file.
+// It returns a path of migration file.
+func setupMigrationFile(t *testing.T, source string) string {
+	migrationDir, err := ioutil.TempDir("", "migrationDir")
+	if err != nil {
+		t.Fatalf("failed to craete migration dir: %s", err)
+	}
+	t.Cleanup(func() { os.RemoveAll(migrationDir) })
+
+	path := filepath.Join(migrationDir, "test.hcl")
+	err = ioutil.WriteFile(path, []byte(source), 0644)
+	if err != nil {
+		t.Fatalf("failed to write migration file: %s", err)
+	}
+
+	return path
+}
+
+// setupMigrationDir is a test helper for setting up a temporary migration dir.
+// A given files is a map of filename to source of migration file.
+func setupMigrationDir(t *testing.T, files map[string]string) {
+	migrationDir, err := ioutil.TempDir("", "migrationDir")
+	if err != nil {
+		t.Fatalf("failed to craete migration dir: %s", err)
+	}
+	t.Cleanup(func() { os.RemoveAll(migrationDir) })
+
+	for filename, source := range files {
+		path := filepath.Join(migrationDir, filename)
+		err = ioutil.WriteFile(path, []byte(source), 0644)
+		if err != nil {
+			t.Fatalf("failed to write migration file: %s", err)
+		}
+	}
+}

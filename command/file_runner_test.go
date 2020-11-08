@@ -2,9 +2,6 @@ package command
 
 import (
 	"context"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -40,17 +37,7 @@ migration "mock" "test" {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			migrationDir, err := ioutil.TempDir("", "migrationDir")
-			if err != nil {
-				t.Fatalf("failed to craete migration dir: %s", err)
-			}
-			t.Cleanup(func() { os.RemoveAll(migrationDir) })
-
-			path := filepath.Join(migrationDir, "test.hcl")
-			err = ioutil.WriteFile(path, []byte(tc.source), 0644)
-			if err != nil {
-				t.Fatalf("failed to write migration file: %s", err)
-			}
+			path := setupMigrationFile(t, tc.source)
 
 			got, err := loadMigrationFile(path)
 			if tc.ok && err != nil {
@@ -99,17 +86,7 @@ migration "mock" "test" {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			migrationDir, err := ioutil.TempDir("", "migrationDir")
-			if err != nil {
-				t.Fatalf("failed to craete migration dir: %s", err)
-			}
-			t.Cleanup(func() { os.RemoveAll(migrationDir) })
-
-			path := filepath.Join(migrationDir, "test.hcl")
-			err = ioutil.WriteFile(path, []byte(tc.source), 0644)
-			if err != nil {
-				t.Fatalf("failed to write migration file: %s", err)
-			}
+			path := setupMigrationFile(t, tc.source)
 
 			r, err := NewFileRunner(path, nil)
 			if err != nil {
@@ -168,17 +145,7 @@ migration "mock" "test" {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			migrationDir, err := ioutil.TempDir("", "migrationDir")
-			if err != nil {
-				t.Fatalf("failed to craete migration dir: %s", err)
-			}
-			t.Cleanup(func() { os.RemoveAll(migrationDir) })
-
-			path := filepath.Join(migrationDir, "test.hcl")
-			err = ioutil.WriteFile(path, []byte(tc.source), 0644)
-			if err != nil {
-				t.Fatalf("failed to write migration file: %s", err)
-			}
+			path := setupMigrationFile(t, tc.source)
 
 			r, err := NewFileRunner(path, nil)
 			if err != nil {
