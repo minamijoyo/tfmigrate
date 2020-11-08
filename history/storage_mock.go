@@ -13,6 +13,9 @@ type MockStorageConfig struct {
 	WriteError bool `hcl:"write_error"`
 	// ReadError is a flag to return an error on Read().
 	ReadError bool `hcl:"read_error"`
+
+	// A reference to an instance of mock storage for testing.
+	s *MockStorage
 }
 
 // MockStorageConfig implements a StorageConfig.
@@ -21,6 +24,9 @@ var _ StorageConfig = (*MockStorageConfig)(nil)
 // NewStorage returns a new instance of MockStorage.
 func (c *MockStorageConfig) NewStorage() (Storage, error) {
 	s := NewMockStorage(c.Data, c.WriteError, c.ReadError)
+
+	// store a reference for test assertion.
+	c.s = s
 	return s, nil
 }
 
@@ -49,7 +55,7 @@ func NewMockStorage(data string, writeError bool, readError bool) *MockStorage {
 // Write writes migration history data to storage.
 func (s *MockStorage) Write(ctx context.Context, b []byte) error {
 	if s.writeError {
-		return fmt.Errorf("failed to write mock storage: werr = %t", s.writeError)
+		return fmt.Errorf("failed to write mock storage: writeError = %t", s.writeError)
 	}
 	s.data = string(b)
 	return nil
@@ -58,7 +64,7 @@ func (s *MockStorage) Write(ctx context.Context, b []byte) error {
 // Read reads migration history data from storage.
 func (s *MockStorage) Read(ctx context.Context) ([]byte, error) {
 	if s.readError {
-		return nil, fmt.Errorf("failed to read mock storage: rerr = %t", s.readError)
+		return nil, fmt.Errorf("failed to read mock storage: readError = %t", s.readError)
 	}
 	return []byte(s.data), nil
 }

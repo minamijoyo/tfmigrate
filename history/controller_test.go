@@ -99,16 +99,15 @@ func TestLoadMigrationFileNames(t *testing.T) {
 
 func TestLoadHistory(t *testing.T) {
 	cases := []struct {
-		desc     string
-		path     string
-		contents []byte
-		want     *History
-		ok       bool
+		desc   string
+		config StorageConfig
+		want   *History
+		ok     bool
 	}{
 		{
 			desc: "simple",
-			path: "history.json",
-			contents: []byte(`{
+			config: &MockStorageConfig{
+				Data: `{
     "version": 1,
     "records": {
         "20201012010101_foo.hcl": {
@@ -122,7 +121,10 @@ func TestLoadHistory(t *testing.T) {
             "applied_at": "2020-10-13T04:05:06Z"
         }
     }
-}`),
+}`,
+				WriteError: false,
+				ReadError:  false,
+			},
 			want: &History{
 				records: map[string]Record{
 					"20201012010101_foo.hcl": Record{
@@ -140,32 +142,40 @@ func TestLoadHistory(t *testing.T) {
 			ok: true,
 		},
 		{
-			desc:     "file does not exist",
-			path:     "not_exist.json",
-			contents: []byte{},
-			want:     newEmptyHistory(),
-			ok:       true,
+			desc: "empty",
+			config: &MockStorageConfig{
+				Data:       "",
+				WriteError: false,
+				ReadError:  false,
+			},
+			want: newEmptyHistory(),
+			ok:   true,
+		},
+		{
+			desc: "read error",
+			config: &MockStorageConfig{
+				Data:       "",
+				WriteError: false,
+				ReadError:  true,
+			},
+			want: nil,
+			ok:   false,
+		},
+		{
+			desc: "invalid format",
+			config: &MockStorageConfig{
+				Data:       "foo",
+				WriteError: false,
+				ReadError:  false,
+			},
+			want: nil,
+			ok:   false,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			localDir, err := ioutil.TempDir("", "localDir")
-			if err != nil {
-				t.Fatalf("failed to craete temp dir: %s", err)
-			}
-			t.Cleanup(func() { os.RemoveAll(localDir) })
-
-			err = ioutil.WriteFile(filepath.Join(localDir, "history.json"), tc.contents, 0644)
-			if err != nil {
-				t.Fatalf("failed to write contents: %s", err)
-			}
-
-			config := &LocalStorageConfig{
-				Path: filepath.Join(localDir, tc.path),
-			}
-
-			got, err := loadHistory(context.Background(), config)
+			got, err := loadHistory(context.Background(), tc.config)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %#v", err)
 			}
@@ -184,40 +194,51 @@ func TestLoadHistory(t *testing.T) {
 
 func TestControllerSave(t *testing.T) {
 	cases := []struct {
-		desc string
-		h    *History
-		want []byte
-		ok   bool
+		desc   string
+		config *MockStorageConfig
+		h      *History
+		want   []byte
+		ok     bool
 	}{
 		{
 			desc: "simple",
-			h:    newEmptyHistory(),
+			config: &MockStorageConfig{
+				Data:       "",
+				WriteError: false,
+				ReadError:  false,
+			},
+			h: newEmptyHistory(),
 			want: []byte(`{
     "version": 1,
     "records": {}
 }`),
 			ok: true,
 		},
+		{
+			desc: "write error",
+			config: &MockStorageConfig{
+				Data:       "",
+				WriteError: true,
+				ReadError:  false,
+			},
+			h: newEmptyHistory(),
+			want: []byte(`{
+    "version": 1,
+    "records": {}
+}`),
+			ok: false,
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			localDir, err := ioutil.TempDir("", "localDir")
-			if err != nil {
-				t.Fatalf("failed to craete temp dir: %s", err)
-			}
-			t.Cleanup(func() { os.RemoveAll(localDir) })
-
-			path := filepath.Join(localDir, "history.json")
 			c := &Controller{
 				history: *tc.h,
 				config: Config{
-					Storage: &LocalStorageConfig{
-						Path: path,
-					},
+					Storage: tc.config,
 				},
 			}
-			err = c.Save(context.Background())
+			err := c.Save(context.Background())
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}
@@ -226,10 +247,7 @@ func TestControllerSave(t *testing.T) {
 			}
 
 			if tc.ok {
-				got, err := ioutil.ReadFile(path)
-				if err != nil {
-					t.Fatalf("failed to read contents: %s", err)
-				}
+				got := []byte(tc.config.s.data)
 				if string(got) != string(tc.want) {
 					t.Errorf("got: %s, want: %s", string(got), string(tc.want))
 				}
