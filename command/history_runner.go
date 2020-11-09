@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"path/filepath"
 
 	"github.com/minamijoyo/tfmigrate/config"
 	"github.com/minamijoyo/tfmigrate/history"
@@ -61,7 +62,8 @@ func (r *HistoryRunner) planFile(ctx context.Context, filename string) error {
 		return fmt.Errorf("a migration has already been applied: %s", filename)
 	}
 
-	fr, err := NewFileRunner(filename, r.option)
+	path := r.resolvePath(filename)
+	fr, err := NewFileRunner(path, r.option)
 	if err != nil {
 		return err
 	}
@@ -112,7 +114,7 @@ func (r *HistoryRunner) Apply(ctx context.Context) (err error) {
 
 		// return a named error from defer
 		log.Printf("[ERROR] [runner] failed to save history. The history may be inconsistent\n")
-		if err != nil {
+		if err == nil {
 			err = fmt.Errorf("apply succeed, but failed to save history: %v", serr)
 			return
 		}
@@ -121,11 +123,13 @@ func (r *HistoryRunner) Apply(ctx context.Context) (err error) {
 
 	if len(r.filename) != 0 {
 		// file mode
-		return r.applyFile(ctx, r.filename)
+		err = r.applyFile(ctx, r.filename)
+		return err
 	}
 
 	// directory mode
-	return r.applyDir(ctx)
+	err = r.applyDir(ctx)
+	return err
 }
 
 // applyFile applies a single migration.
@@ -134,7 +138,8 @@ func (r *HistoryRunner) applyFile(ctx context.Context, filename string) error {
 		return fmt.Errorf("a migration has already been applied: %s", filename)
 	}
 
-	fr, err := NewFileRunner(filename, r.option)
+	path := r.resolvePath(filename)
+	fr, err := NewFileRunner(path, r.option)
 	if err != nil {
 		return err
 	}
@@ -169,4 +174,9 @@ func (r *HistoryRunner) applyDir(ctx context.Context) (err error) {
 	}
 
 	return nil
+}
+
+// resolvePath returns a path of migration file in migration dir.
+func (r *HistoryRunner) resolvePath(filename string) string {
+	return filepath.Join(r.config.History.MigrationDir, filename)
 }

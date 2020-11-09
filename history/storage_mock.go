@@ -30,6 +30,11 @@ func (c *MockStorageConfig) NewStorage() (Storage, error) {
 	return s, nil
 }
 
+// StorageData returns a raw data in mock storage for testing.
+func (c *MockStorageConfig) StorageData() string {
+	return c.s.data
+}
+
 // MockStorage is an implementation of Storage for testing.
 // It writes and reads data from memory.
 type MockStorage struct {

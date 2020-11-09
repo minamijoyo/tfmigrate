@@ -11,8 +11,8 @@ type FileHeader struct {
 	Version int `json:"version"`
 }
 
-// parseHistoryFile parses bytes and reteurns a History instance.
-func parseHistoryFile(b []byte) (*History, error) {
+// ParseHistoryFile parses bytes and reteurns a History instance.
+func ParseHistoryFile(b []byte) (*History, error) {
 	version, err := detectHistoryFileVersion(b)
 	if err != nil {
 		return nil, err

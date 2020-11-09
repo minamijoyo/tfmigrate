@@ -87,7 +87,7 @@ func loadHistory(ctx context.Context, c StorageConfig) (*History, error) {
 		return newEmptyHistory(), nil
 	}
 
-	h, err := parseHistoryFile(b)
+	h, err := ParseHistoryFile(b)
 	if err != nil {
 		return nil, err
 	}

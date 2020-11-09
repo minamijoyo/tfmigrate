@@ -60,7 +60,7 @@ func TestParseHistoryFile(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			got, err := parseHistoryFile(tc.b)
+			got, err := ParseHistoryFile(tc.b)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}
