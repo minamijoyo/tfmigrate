@@ -213,9 +213,9 @@ migration "mock" "test4" {
 				ReadError:  false,
 			}
 			config := &config.TfmigrateConfig{
+				MigrationDir: migrationDir,
 				History: &history.Config{
-					MigrationDir: migrationDir,
-					Storage:      storage,
+					Storage: storage,
 				},
 			}
 			r, err := NewHistoryRunner(context.Background(), tc.filename, config, nil)
@@ -718,9 +718,9 @@ migration "mock" "test4" {
 				ReadError:  tc.readError,
 			}
 			config := &config.TfmigrateConfig{
+				MigrationDir: migrationDir,
 				History: &history.Config{
-					MigrationDir: migrationDir,
-					Storage:      storage,
+					Storage: storage,
 				},
 			}
 			r, err := NewHistoryRunner(context.Background(), tc.filename, config, nil)

@@ -25,6 +25,7 @@ func (c *PlanCommand) Run(args []string) int {
 		return 1
 	}
 
+	c.config = config.NewDefaultConfig()
 	if len(c.configFile) != 0 {
 		config, err := config.LoadConfigurationFile(c.configFile)
 		if err != nil {
@@ -80,7 +81,7 @@ func (c *PlanCommand) Run(args []string) int {
 
 // planWithoutHistory is a helper function which plans a given migration file without history.
 func (c *PlanCommand) planWithoutHistory(filename string) error {
-	fr, err := NewFileRunner(filename, c.Option)
+	fr, err := NewFileRunner(filename, c.config, c.Option)
 	if err != nil {
 		return err
 	}

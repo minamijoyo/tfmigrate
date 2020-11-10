@@ -24,6 +24,7 @@ func (c *ApplyCommand) Run(args []string) int {
 		return 1
 	}
 
+	c.config = config.NewDefaultConfig()
 	if len(c.configFile) != 0 {
 		config, err := config.LoadConfigurationFile(c.configFile)
 		if err != nil {
@@ -79,7 +80,7 @@ func (c *ApplyCommand) Run(args []string) int {
 
 // applyWithoutHistory is a helper function which applies a given migration file without history.
 func (c *ApplyCommand) applyWithoutHistory(filename string) error {
-	fr, err := NewFileRunner(filename, c.Option)
+	fr, err := NewFileRunner(filename, c.config, c.Option)
 	if err != nil {
 		return err
 	}

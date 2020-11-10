@@ -4,6 +4,7 @@ import (
 	"context"
 	"io/ioutil"
 	"log"
+	"path/filepath"
 
 	"github.com/minamijoyo/tfmigrate/config"
 	"github.com/minamijoyo/tfmigrate/tfmigrate"
@@ -13,6 +14,8 @@ import (
 type FileRunner struct {
 	// A path to migration file.
 	filename string
+	// A global configuration.
+	config *config.TfmigrateConfig
 	// A definition of migration.
 	mc *tfmigrate.MigrationConfig
 	// A migrator instance to be run.
@@ -20,9 +23,10 @@ type FileRunner struct {
 }
 
 // NewFileRunner returns a new FileRunner instance.
-func NewFileRunner(filename string, option *tfmigrate.MigratorOption) (*FileRunner, error) {
-	log.Printf("[INFO] [runner] load migration file: %s\n", filename)
-	mc, err := loadMigrationFile(filename)
+func NewFileRunner(filename string, config *config.TfmigrateConfig, option *tfmigrate.MigratorOption) (*FileRunner, error) {
+	path := resolveMigrationFile(config.MigrationDir, filename)
+	log.Printf("[INFO] [runner] load migration file: %s\n", path)
+	mc, err := loadMigrationFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -34,6 +38,7 @@ func NewFileRunner(filename string, option *tfmigrate.MigratorOption) (*FileRunn
 
 	r := &FileRunner{
 		filename: filename,
+		config:   config,
 		mc:       mc,
 		m:        m,
 	}
@@ -70,4 +75,13 @@ func (r *FileRunner) Apply(ctx context.Context) error {
 // This is required for metadata stored in history
 func (r *FileRunner) MigrationConfig() *tfmigrate.MigrationConfig {
 	return r.mc
+}
+
+// resolveMigrationFile returns a path of migration file in migration dir.
+// If a given filename is absolute path, just return it as it is.
+func resolveMigrationFile(migrationDir string, filename string) string {
+	if filepath.IsAbs(filename) {
+		return filename
+	}
+	return filepath.Join(migrationDir, filename)
 }

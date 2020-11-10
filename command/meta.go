@@ -24,6 +24,7 @@ type Meta struct {
 
 	// Option customizes a behaviror of Migrator.
 	// It is used for shared settings across Migrator instances.
+	// TODO: Merge option into config
 	Option *tfmigrate.MigratorOption
 }
 

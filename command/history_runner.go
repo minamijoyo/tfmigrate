@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"path/filepath"
 
 	"github.com/minamijoyo/tfmigrate/config"
 	"github.com/minamijoyo/tfmigrate/history"
@@ -28,7 +27,7 @@ type HistoryRunner struct {
 
 // NewHistoryRunner returns a new HistoryRunner instance.
 func NewHistoryRunner(ctx context.Context, filename string, config *config.TfmigrateConfig, option *tfmigrate.MigratorOption) (*HistoryRunner, error) {
-	hc, err := history.NewController(ctx, config.History)
+	hc, err := history.NewController(ctx, config.MigrationDir, config.History)
 	if err != nil {
 		return nil, err
 	}
@@ -62,8 +61,7 @@ func (r *HistoryRunner) planFile(ctx context.Context, filename string) error {
 		return fmt.Errorf("a migration has already been applied: %s", filename)
 	}
 
-	path := r.resolvePath(filename)
-	fr, err := NewFileRunner(path, r.option)
+	fr, err := NewFileRunner(filename, r.config, r.option)
 	if err != nil {
 		return err
 	}
@@ -138,8 +136,7 @@ func (r *HistoryRunner) applyFile(ctx context.Context, filename string) error {
 		return fmt.Errorf("a migration has already been applied: %s", filename)
 	}
 
-	path := r.resolvePath(filename)
-	fr, err := NewFileRunner(path, r.option)
+	fr, err := NewFileRunner(filename, r.config, r.option)
 	if err != nil {
 		return err
 	}
@@ -174,9 +171,4 @@ func (r *HistoryRunner) applyDir(ctx context.Context) (err error) {
 	}
 
 	return nil
-}
-
-// resolvePath returns a path of migration file in migration dir.
-func (r *HistoryRunner) resolvePath(filename string) string {
-	return filepath.Join(r.config.History.MigrationDir, filename)
 }

@@ -19,7 +19,6 @@ func TestParseMockStorageBlock(t *testing.T) {
 			source: `
 tfmigrate {
   history {
-    migration_dir = "tfmigrate"
     storage "mock" {
        data        = "foo"
        write_error = true

@@ -18,8 +18,8 @@ func TestParseConfigurationFile(t *testing.T) {
 			desc: "valid",
 			source: `
 tfmigrate {
+  migration_dir = "tfmigrate"
   history {
-    migration_dir = "tfmigrate"
     storage "local" {
       path = "tmp/history.json"
     }
@@ -27,8 +27,29 @@ tfmigrate {
 }
 `,
 			want: &TfmigrateConfig{
+				MigrationDir: "tfmigrate",
 				History: &history.Config{
-					MigrationDir: "tfmigrate",
+					Storage: &history.LocalStorageConfig{
+						Path: "tmp/history.json",
+					},
+				},
+			},
+			ok: true,
+		},
+		{
+			desc: "default migration_dir",
+			source: `
+tfmigrate {
+  history {
+    storage "local" {
+      path = "tmp/history.json"
+    }
+  }
+}
+`,
+			want: &TfmigrateConfig{
+				MigrationDir: ".",
+				History: &history.Config{
 					Storage: &history.LocalStorageConfig{
 						Path: "tmp/history.json",
 					},
@@ -42,8 +63,11 @@ tfmigrate {
 tfmigrate {
 }
 `,
-			want: &TfmigrateConfig{},
-			ok:   true,
+			want: &TfmigrateConfig{
+				MigrationDir: ".",
+				History:      nil,
+			},
+			ok: true,
 		},
 		{
 			desc: "unknown block",

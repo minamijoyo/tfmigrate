@@ -19,7 +19,6 @@ func TestParseLocalStorageBlock(t *testing.T) {
 			source: `
 tfmigrate {
   history {
-    migration_dir = "tfmigrate"
     storage "local" {
       path = "tmp/history.json"
     }
@@ -36,7 +35,6 @@ tfmigrate {
 			source: `
 tfmigrate {
   history {
-    migration_dir = "tfmigrate"
     storage "local" {
     }
   }

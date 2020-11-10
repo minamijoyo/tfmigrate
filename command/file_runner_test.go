@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/minamijoyo/tfmigrate/config"
 	"github.com/minamijoyo/tfmigrate/tfmigrate"
 )
 
@@ -88,7 +89,8 @@ migration "mock" "test" {
 		t.Run(tc.desc, func(t *testing.T) {
 			path := setupMigrationFile(t, tc.source)
 
-			r, err := NewFileRunner(path, nil)
+			config := config.NewDefaultConfig()
+			r, err := NewFileRunner(path, config, nil)
 			if err != nil {
 				t.Fatalf("failed to new file runner: %s", err)
 			}
@@ -147,7 +149,8 @@ migration "mock" "test" {
 		t.Run(tc.desc, func(t *testing.T) {
 			path := setupMigrationFile(t, tc.source)
 
-			r, err := NewFileRunner(path, nil)
+			config := config.NewDefaultConfig()
+			r, err := NewFileRunner(path, config, nil)
 			if err != nil {
 				t.Fatalf("failed to new file runner: %s", err)
 			}

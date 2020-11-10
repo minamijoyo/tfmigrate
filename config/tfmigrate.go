@@ -17,6 +17,9 @@ type ConfigurationFile struct {
 
 // TfmigrateBlock represents a block for CLI settings in HCL.
 type TfmigrateBlock struct {
+	// MigrationDir is a path to directory where migratoin files are stored.
+	// Default to `.` (current directory).
+	MigrationDir string `hcl:"migration_dir,optional"`
 	// History is a block for migration history management.
 	History *HistoryBlock `hcl:"history,block"`
 }
@@ -25,6 +28,9 @@ type TfmigrateBlock struct {
 // TfmigrateBlock is just used for parsing HCL and
 // TfmigrateConfig is used for building application logic.
 type TfmigrateConfig struct {
+	// MigrationDir is a path to directory where migratoin files are stored.
+	// Default to `.` (current directory).
+	MigrationDir string
 	// History is a config for migration history management.
 	History *history.Config
 }
@@ -51,7 +57,11 @@ func ParseConfigurationFile(filename string, source []byte) (*TfmigrateConfig, e
 		return nil, fmt.Errorf("failed to decode setting file: %s, err: %s", filename, err)
 	}
 
-	var config TfmigrateConfig
+	config := NewDefaultConfig()
+	if len(f.Tfmigrate.MigrationDir) > 0 {
+		config.MigrationDir = f.Tfmigrate.MigrationDir
+	}
+
 	if f.Tfmigrate.History != nil {
 		history, err := parseHistoryBlock(*f.Tfmigrate.History)
 		if err != nil {
@@ -60,5 +70,12 @@ func ParseConfigurationFile(filename string, source []byte) (*TfmigrateConfig, e
 		config.History = history
 	}
 
-	return &config, nil
+	return config, nil
+}
+
+// NewDefaultConfig returns a new instance of TfmigrateConfig.
+func NewDefaultConfig() *TfmigrateConfig {
+	return &TfmigrateConfig{
+		MigrationDir: ".",
+	}
 }

@@ -19,7 +19,6 @@ func TestParseS3StorageBlock(t *testing.T) {
 			source: `
 tfmigrate {
   history {
-    migration_dir = "tfmigrate"
     storage "s3" {
       bucket = "tfmigrate-test"
       key    = "tfmigrate/history.json"
@@ -38,7 +37,6 @@ tfmigrate {
 			source: `
 tfmigrate {
   history {
-    migration_dir = "tfmigrate"
     storage "s3" {
       key    = "tfmigrate/history.json"
     }
@@ -53,7 +51,6 @@ tfmigrate {
 			source: `
 tfmigrate {
   history {
-    migration_dir = "tfmigrate"
     storage "s3" {
       bucket = "tfmigrate-test"
     }

@@ -18,8 +18,8 @@ func TestParseHistoryBlock(t *testing.T) {
 			desc: "valid",
 			source: `
 tfmigrate {
+  migration_dir = "tfmigrate"
   history {
-    migration_dir = "tfmigrate"
     storage "local" {
       path = "tmp/history.json"
     }
@@ -27,7 +27,6 @@ tfmigrate {
 }
 `,
 			want: &history.Config{
-				MigrationDir: "tfmigrate",
 				Storage: &history.LocalStorageConfig{
 					Path: "tmp/history.json",
 				},
@@ -35,25 +34,11 @@ tfmigrate {
 			ok: true,
 		},
 		{
-			desc: "missing attribute (migration_dir)",
-			source: `
-tfmigrate {
-  history {
-    storage "local" {
-      path = "tmp/history.json"
-    }
-  }
-}
-`,
-			want: nil,
-			ok:   false,
-		},
-		{
 			desc: "missing block (storage)",
 			source: `
 tfmigrate {
+  migration_dir = "tfmigrate"
   history {
-    migration_dir = "tfmigrate"
   }
 }
 `,
