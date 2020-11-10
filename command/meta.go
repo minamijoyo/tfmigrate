@@ -28,6 +28,18 @@ type Meta struct {
 	Option *tfmigrate.MigratorOption
 }
 
+func newConfig(filename string) (*config.TfmigrateConfig, error) {
+	if filename == defaultConfigFile {
+		if _, err := os.Stat(defaultConfigFile); os.IsNotExist(err) {
+			// If defaultConfigFile doesn't exist,
+			// Ignore the error and just return a default config.
+			return config.NewDefaultConfig(), nil
+		}
+	}
+
+	return config.LoadConfigurationFile(filename)
+}
+
 func newOption() *tfmigrate.MigratorOption {
 	return &tfmigrate.MigratorOption{
 		ExecPath: os.Getenv("TFMIGRATE_EXEC_PATH"),

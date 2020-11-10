@@ -6,7 +6,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/minamijoyo/tfmigrate/config"
 	flag "github.com/spf13/pflag"
 )
 
@@ -20,20 +19,18 @@ type PlanCommand struct {
 func (c *PlanCommand) Run(args []string) int {
 	cmdFlags := flag.NewFlagSet("plan", flag.ContinueOnError)
 	cmdFlags.StringVar(&c.configFile, "config", defaultConfigFile, "A path to tfmigrate config file")
+
 	if err := cmdFlags.Parse(args); err != nil {
 		c.UI.Error(fmt.Sprintf("failed to parse arguments: %s", err))
 		return 1
 	}
 
-	c.config = config.NewDefaultConfig()
-	if len(c.configFile) != 0 {
-		config, err := config.LoadConfigurationFile(c.configFile)
-		if err != nil {
-			c.UI.Error(fmt.Sprintf("failed to load config file: %s", err))
-			return 1
-		}
-		c.config = config
+	var err error
+	if c.config, err = newConfig(c.configFile); err != nil {
+		c.UI.Error(fmt.Sprintf("failed to load config file: %s", err))
+		return 1
 	}
+	log.Printf("[DEBUG] [command] config: %#v\n", c.config)
 
 	c.Option = newOption()
 	// The option may contains sensitive values such as environment variables.
@@ -49,8 +46,7 @@ func (c *PlanCommand) Run(args []string) int {
 		}
 
 		migrationFile := cmdFlags.Arg(0)
-		err := c.planWithoutHistory(migrationFile)
-		if err != nil {
+		if err = c.planWithoutHistory(migrationFile); err != nil {
 			c.UI.Error(err.Error())
 			return 1
 		}
@@ -70,8 +66,7 @@ func (c *PlanCommand) Run(args []string) int {
 	}
 
 	// Plan all unapplied pending migrations.
-	err := c.planWithHistory(migrationFile)
-	if err != nil {
+	if err = c.planWithHistory(migrationFile); err != nil {
 		c.UI.Error(err.Error())
 		return 1
 	}
