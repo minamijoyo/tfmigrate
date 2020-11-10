@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -60,6 +61,10 @@ func loadMigrationFileNames(dir string) ([]string, error) {
 		// skip a file without .hcl or .json extension.
 		ext := filepath.Ext(f.Name())
 		if !(ext == ".hcl" || ext == ".json") {
+			continue
+		}
+		// skip a hidden file such as .tfmigrate.hcl or .terraform.lock.hcl.
+		if strings.HasPrefix(f.Name(), ".") {
 			continue
 		}
 

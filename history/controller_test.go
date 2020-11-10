@@ -45,6 +45,20 @@ func TestLoadMigrationFileNames(t *testing.T) {
 			ok: true,
 		},
 		{
+			desc: "ignore hidden files",
+			files: []string{
+				"20201012010101_foo.hcl",
+				"20201012020202_foo.json",
+				".tfmigrate.hcl",
+				".terraform.lock.hcl",
+			},
+			want: []string{
+				"20201012010101_foo.hcl",
+				"20201012020202_foo.json",
+			},
+			ok: true,
+		},
+		{
 			desc: "unsorted",
 			files: []string{
 				"20201012020202_foo.hcl",
