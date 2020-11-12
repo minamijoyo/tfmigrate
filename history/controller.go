@@ -3,6 +3,7 @@ package history
 import (
 	"context"
 	"io/ioutil"
+	"log"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -27,11 +28,13 @@ type Controller struct {
 
 // NewController returns a new Controller instance.
 func NewController(ctx context.Context, migrationDir string, config *Config) (*Controller, error) {
+	log.Printf("[DEBUG] [history] load migration dir: %s\n", migrationDir)
 	migrations, err := loadMigrationFileNames(migrationDir)
 	if err != nil {
 		return nil, err
 	}
 
+	log.Print("[DEBUG] [history] load history\n")
 	h, err := loadHistory(ctx, config.Storage)
 	if err != nil {
 		return nil, err
@@ -84,14 +87,17 @@ func loadHistory(ctx context.Context, c StorageConfig) (*History, error) {
 		return nil, err
 	}
 
+	log.Printf("[DEBUG] [history] read storage %#v\n", s)
 	b, err := s.Read(ctx)
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("[TRACE] [history] read history file: %#v\n", b)
 
 	// If a given history is not found, s.Read returns empty bytes with no error.
 	// In this case, we assume that it's the first use and create a new history.
 	if len(b) == 0 {
+		log.Print("[DEBUG] [history] new emptry history\n")
 		return newEmptyHistory(), nil
 	}
 
@@ -116,6 +122,8 @@ func (c *Controller) Save(ctx context.Context) error {
 		return err
 	}
 
+	log.Printf("[DEBUG] [history] write storage: %#v\n", s)
+	log.Printf("[TRACE] [history] write history file: %#v\n", b)
 	return s.Write(ctx, b)
 }
 

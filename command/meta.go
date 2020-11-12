@@ -1,6 +1,7 @@
 package command
 
 import (
+	"log"
 	"os"
 
 	"github.com/minamijoyo/tfmigrate/config"
@@ -37,6 +38,7 @@ func newConfig(filename string) (*config.TfmigrateConfig, error) {
 		}
 	}
 
+	log.Printf("[DEBUG] [command] load configuration file: %s\n", filename)
 	return config.LoadConfigurationFile(filename)
 }
 
