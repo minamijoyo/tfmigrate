@@ -50,6 +50,8 @@ func (c *PlanCommand) Run(args []string) int {
 			c.UI.Error(err.Error())
 			return 1
 		}
+
+		return 0
 	}
 
 	// history mode
