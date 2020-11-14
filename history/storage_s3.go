@@ -79,12 +79,12 @@ func NewS3Storage(bucket string, key string, option *S3StorageOption) (*S3Storag
 	if option != nil {
 		if option.Client != nil {
 			client = option.Client
-		} else {
-			var err error
-			client, err = newS3Client()
-			if err != nil {
-				return nil, err
-			}
+		}
+	} else {
+		var err error
+		client, err = newS3Client()
+		if err != nil {
+			return nil, err
 		}
 	}
 
