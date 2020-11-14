@@ -106,7 +106,7 @@ It will fail if terraform plan detects any diffs with the new state.
 
 Arguments
   PATH               A path of migration file
-                     Required in non-history mode. Optinal in history-mode.
+                     Required in non-history mode. Optional in history-mode.
 
 Options:
   --config           A path to tfmigrate config file
