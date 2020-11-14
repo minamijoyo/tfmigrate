@@ -30,96 +30,10 @@ type MigrationBlock struct {
 	Remain hcl.Body `hcl:",remain"`
 }
 
-// StateMigratorConfig is a config for StateMigrator.
-type StateMigratorConfig struct {
-	// Dir is a working directory for executing terraform command.
-	// Default to `.` (current directory).
-	Dir string `hcl:"dir,optional"`
-	// Actions is a list of state action.
-	// action is a plain text for state operation.
-	// Valid formats are the following.
-	// "mv <source> <destination>"
-	// "rm <addresses>...
-	// "import <address> <id>"
-	// We could define strict block schema for action, but intentionally use a
-	// schema-less string to allow us to easily copy terraform state command to
-	// action.
-	Actions []string `hcl:"actions"`
-}
-
-// MultiStateMigratorConfig is a config for MultiStateMigrator.
-type MultiStateMigratorConfig struct {
-	// FromDir is a working directory where states of resources move from.
-	FromDir string `hcl:"from_dir"`
-	// ToDir is a working directory where states of resources move to.
-	ToDir string `hcl:"to_dir"`
-	// Actions is a list of multi state action.
-	// action is a plain text for state operation.
-	// Valid formats are the following.
-	// "mv <source> <destination>"
-	Actions []string `hcl:"actions"`
-}
-
-// MigratorConfig is an interface of factory method for Migrator.
-type MigratorConfig interface {
-	// NewMigrator returns a new instance of Migrator.
-	NewMigrator(o *tfmigrate.MigratorOption) (tfmigrate.Migrator, error)
-}
-
-// StateMigratorConfig implements a MigratorConfig.
-var _ MigratorConfig = (*StateMigratorConfig)(nil)
-
-// MultiStateMigratorConfig implements a MigratorConfig.
-var _ MigratorConfig = (*MultiStateMigratorConfig)(nil)
-
-// NewMigrator returns a new instance of StateMigrator.
-func (c *StateMigratorConfig) NewMigrator(o *tfmigrate.MigratorOption) (tfmigrate.Migrator, error) {
-	// default working directory
-	dir := "."
-	if len(c.Dir) > 0 {
-		dir = c.Dir
-	}
-
-	if len(c.Actions) == 0 {
-		return nil, fmt.Errorf("faild to NewMigrator with no actions")
-	}
-
-	// build actions from config.
-	actions := []tfmigrate.StateAction{}
-	for _, cmdStr := range c.Actions {
-		action, err := tfmigrate.NewStateActionFromString(cmdStr)
-		if err != nil {
-			return nil, err
-		}
-		actions = append(actions, action)
-	}
-
-	return tfmigrate.NewStateMigrator(dir, actions, o), nil
-}
-
-// NewMigrator returns a new instance of MultiStateMigrator.
-func (c *MultiStateMigratorConfig) NewMigrator(o *tfmigrate.MigratorOption) (tfmigrate.Migrator, error) {
-	if len(c.Actions) == 0 {
-		return nil, fmt.Errorf("faild to NewMigrator with no actions")
-	}
-
-	// build actions from config.
-	actions := []tfmigrate.MultiStateAction{}
-	for _, cmdStr := range c.Actions {
-		action, err := tfmigrate.NewMultiStateActionFromString(cmdStr)
-		if err != nil {
-			return nil, err
-		}
-		actions = append(actions, action)
-	}
-
-	return tfmigrate.NewMultiStateMigrator(c.FromDir, c.ToDir, actions, o), nil
-}
-
-// ParseMigrationFile parses a given source of migration file and returns a MigratorConfig.
+// ParseMigrationFile parses a given source of migration file and returns a *tfmigrate.MigrationConfig.
 // Note that this method does not read a file and you should pass source of config in bytes.
-// The filename is used for error message and selecting HCL syntax (.hcl and .hcl.json).
-func ParseMigrationFile(filename string, source []byte) (MigratorConfig, error) {
+// The filename is used for error message and selecting HCL syntax (.hcl and .json).
+func ParseMigrationFile(filename string, source []byte) (*tfmigrate.MigrationConfig, error) {
 	// Decode migration block header.
 	var f MigrationFile
 	err := hclsimple.Decode(filename, source, nil, &f)
@@ -127,26 +41,67 @@ func ParseMigrationFile(filename string, source []byte) (MigratorConfig, error) 
 		return nil, fmt.Errorf("failed to decode migration file: %s, err: %s", filename, err)
 	}
 
-	// switch schema by migration type.
-	var config MigratorConfig
-	m := f.Migration
-	switch m.Type {
-	case "state":
-		var state StateMigratorConfig
-		diags := gohcl.DecodeBody(m.Remain, nil, &state)
-		if diags.HasErrors() {
-			return nil, diags
-		}
-		config = &state
-	case "multi_state":
-		var multiState MultiStateMigratorConfig
-		diags := gohcl.DecodeBody(m.Remain, nil, &multiState)
-		if diags.HasErrors() {
-			return nil, diags
-		}
-		config = &multiState
-	default:
-		return nil, fmt.Errorf("unknown migration type in %s: %s", filename, m.Type)
+	migrator, err := parseMigrationBlock(f.Migration)
+	if err != nil {
+		return nil, err
 	}
+
+	config := &tfmigrate.MigrationConfig{
+		Type:     f.Migration.Type,
+		Name:     f.Migration.Name,
+		Migrator: migrator,
+	}
+
 	return config, nil
+}
+
+// parseMigrationBlock parses a migration block and returns a tfmigrate.MigratorConfig.
+func parseMigrationBlock(b MigrationBlock) (tfmigrate.MigratorConfig, error) {
+	switch b.Type {
+	case "mock": // only for testing
+		return parseMockMigrationBlock(b)
+
+	case "state":
+		return parseStateMigrationBlock(b)
+
+	case "multi_state":
+		return parseMultiStateMigrationBlock(b)
+
+	default:
+		return nil, fmt.Errorf("unknown migration type: %s", b.Type)
+	}
+}
+
+// parseMockMigrationBlock parses a migration block for mock and returns a tfmigrate.MigratorConfig.
+func parseMockMigrationBlock(b MigrationBlock) (tfmigrate.MigratorConfig, error) {
+	var config tfmigrate.MockMigratorConfig
+	diags := gohcl.DecodeBody(b.Remain, nil, &config)
+	if diags.HasErrors() {
+		return nil, diags
+	}
+
+	return &config, nil
+}
+
+// parseStateMigrationBlock parses a migration block for state and returns a tfmigrate.MigratorConfig.
+func parseStateMigrationBlock(b MigrationBlock) (tfmigrate.MigratorConfig, error) {
+	var config tfmigrate.StateMigratorConfig
+	diags := gohcl.DecodeBody(b.Remain, nil, &config)
+	if diags.HasErrors() {
+		return nil, diags
+	}
+
+	return &config, nil
+}
+
+// parseMultiStateMigrationBlock parses a migration block for multi_state and
+// returns a tfmigrate.MigratorConfig.
+func parseMultiStateMigrationBlock(b MigrationBlock) (tfmigrate.MigratorConfig, error) {
+	var config tfmigrate.MultiStateMigratorConfig
+	diags := gohcl.DecodeBody(b.Remain, nil, &config)
+	if diags.HasErrors() {
+		return nil, diags
+	}
+
+	return &config, nil
 }

@@ -20,15 +20,6 @@ type Migrator interface {
 	Apply(ctx context.Context) error
 }
 
-// MigratorOption customizes a behaviror of Migrator.
-// It is used for shared settings across Migrator instances.
-type MigratorOption struct {
-	// ExecPath is a string how terraform command is executed. Default to terraform.
-	// It's intended to inject a wrapper command such as direnv.
-	// e.g.) direnv exec . terraform
-	ExecPath string
-}
-
 // setupWorkDir is a common helper function to setup work dir and returns the
 // current state and a swtich back function.
 func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI) (*tfexec.State, func(), error) {

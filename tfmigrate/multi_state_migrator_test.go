@@ -9,6 +9,68 @@ import (
 	"github.com/minamijoyo/tfmigrate/tfexec"
 )
 
+func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
+	cases := []struct {
+		desc   string
+		config *MultiStateMigratorConfig
+		o      *MigratorOption
+		ok     bool
+	}{
+		{
+			desc: "valid",
+			config: &MultiStateMigratorConfig{
+				FromDir: "dir1",
+				ToDir:   "dir2",
+				Actions: []string{
+					"mv aws_security_group.foo aws_security_group.foo2",
+					"mv aws_security_group.bar aws_security_group.bar2",
+				},
+			},
+			o: &MigratorOption{
+				ExecPath: "direnv exec . terraform",
+			},
+			ok: true,
+		},
+		{
+			desc: "invalid action",
+			config: &MultiStateMigratorConfig{
+				FromDir: "dir1",
+				ToDir:   "dir2",
+				Actions: []string{
+					"mv aws_security_group.foo",
+				},
+			},
+			o:  nil,
+			ok: false,
+		},
+		{
+			desc: "no actions",
+			config: &MultiStateMigratorConfig{
+				FromDir: "dir1",
+				ToDir:   "dir2",
+				Actions: []string{},
+			},
+			o:  nil,
+			ok: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			got, err := tc.config.NewMigrator(tc.o)
+			if tc.ok && err != nil {
+				t.Fatalf("unexpected err: %s", err)
+			}
+			if !tc.ok && err == nil {
+				t.Fatalf("expected to return an error, but no error, got: %#v", got)
+			}
+			if tc.ok {
+				_ = got.(*MultiStateMigrator)
+			}
+		})
+	}
+}
+
 func TestAccMultiStateMigratorApply(t *testing.T) {
 	tfexec.SkipUnlessAcceptanceTestEnabled(t)
 	ctx := context.Background()

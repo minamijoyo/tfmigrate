@@ -9,6 +9,51 @@ import (
 	"github.com/minamijoyo/tfmigrate/tfexec"
 )
 
+// StateMigratorConfig is a config for StateMigrator.
+type StateMigratorConfig struct {
+	// Dir is a working directory for executing terraform command.
+	// Default to `.` (current directory).
+	Dir string `hcl:"dir,optional"`
+	// Actions is a list of state action.
+	// action is a plain text for state operation.
+	// Valid formats are the following.
+	// "mv <source> <destination>"
+	// "rm <addresses>...
+	// "import <address> <id>"
+	// We could define strict block schema for action, but intentionally use a
+	// schema-less string to allow us to easily copy terraform state command to
+	// action.
+	Actions []string `hcl:"actions"`
+}
+
+// StateMigratorConfig implements a MigratorConfig.
+var _ MigratorConfig = (*StateMigratorConfig)(nil)
+
+// NewMigrator returns a new instance of StateMigrator.
+func (c *StateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, error) {
+	// default working directory
+	dir := "."
+	if len(c.Dir) > 0 {
+		dir = c.Dir
+	}
+
+	if len(c.Actions) == 0 {
+		return nil, fmt.Errorf("faild to NewMigrator with no actions")
+	}
+
+	// build actions from config.
+	actions := []StateAction{}
+	for _, cmdStr := range c.Actions {
+		action, err := NewStateActionFromString(cmdStr)
+		if err != nil {
+			return nil, err
+		}
+		actions = append(actions, action)
+	}
+
+	return NewStateMigrator(dir, actions, o), nil
+}
+
 // StateMigrator implements the Migrator interface.
 type StateMigrator struct {
 	// tf is an instance of TerraformCLI.

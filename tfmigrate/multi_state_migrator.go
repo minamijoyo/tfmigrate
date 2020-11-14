@@ -9,6 +9,41 @@ import (
 	"github.com/minamijoyo/tfmigrate/tfexec"
 )
 
+// MultiStateMigratorConfig is a config for MultiStateMigrator.
+type MultiStateMigratorConfig struct {
+	// FromDir is a working directory where states of resources move from.
+	FromDir string `hcl:"from_dir"`
+	// ToDir is a working directory where states of resources move to.
+	ToDir string `hcl:"to_dir"`
+	// Actions is a list of multi state action.
+	// action is a plain text for state operation.
+	// Valid formats are the following.
+	// "mv <source> <destination>"
+	Actions []string `hcl:"actions"`
+}
+
+// MultiStateMigratorConfig implements a MigratorConfig.
+var _ MigratorConfig = (*MultiStateMigratorConfig)(nil)
+
+// NewMigrator returns a new instance of MultiStateMigrator.
+func (c *MultiStateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, error) {
+	if len(c.Actions) == 0 {
+		return nil, fmt.Errorf("faild to NewMigrator with no actions")
+	}
+
+	// build actions from config.
+	actions := []MultiStateAction{}
+	for _, cmdStr := range c.Actions {
+		action, err := NewMultiStateActionFromString(cmdStr)
+		if err != nil {
+			return nil, err
+		}
+		actions = append(actions, action)
+	}
+
+	return NewMultiStateMigrator(c.FromDir, c.ToDir, actions, o), nil
+}
+
 // MultiStateMigrator implements the Migrator interface.
 type MultiStateMigrator struct {
 	// fromTf is an instance of TerraformCLI which executes terraform command in a fromDir.
