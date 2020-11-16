@@ -36,7 +36,7 @@ test: deps
 
 .PHONY: testacc
 testacc: deps
-	TEST_ACC=1 go test -count=1 ./...
+	TEST_ACC=1 go test -count=1 -failfast ./...
 
 .PHONY: check
 check: lint vet test build
