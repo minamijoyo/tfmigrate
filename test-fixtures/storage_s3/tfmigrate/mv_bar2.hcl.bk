@@ -1,0 +1,5 @@
+migration "state" "bar1" {
+  actions = [
+    "mv null_resource.foo2 null_resource.bar2"
+  ]
+}

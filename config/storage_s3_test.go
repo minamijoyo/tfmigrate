@@ -15,7 +15,7 @@ func TestParseS3StorageBlock(t *testing.T) {
 		ok     bool
 	}{
 		{
-			desc: "valid",
+			desc: "valid (required)",
 			source: `
 tfmigrate {
   history {
@@ -29,6 +29,41 @@ tfmigrate {
 			want: &history.S3StorageConfig{
 				Bucket: "tfmigrate-test",
 				Key:    "tfmigrate/history.json",
+			},
+			ok: true,
+		},
+		{
+			desc: "valid (with optional)",
+			source: `
+tfmigrate {
+  history {
+    storage "s3" {
+      bucket = "tfmigrate-test"
+      key    = "tfmigrate/history.json"
+
+      region                      = "ap-northeast-1"
+      endpoint                    = "http://localstack:4566"
+      access_key                  = "dummy"
+      secret_key                  = "dummy"
+      profile                     = "dev"
+      skip_credentials_validation = true
+      skip_metadata_api_check     = true
+      force_path_style            = true
+    }
+  }
+}
+`,
+			want: &history.S3StorageConfig{
+				Bucket:                    "tfmigrate-test",
+				Key:                       "tfmigrate/history.json",
+				Region:                    "ap-northeast-1",
+				Endpoint:                  "http://localstack:4566",
+				AccessKey:                 "dummy",
+				SecretKey:                 "dummy",
+				Profile:                   "dev",
+				SkipCredentialsValidation: true,
+				SkipMetadataAPICheck:      true,
+				ForcePathStyle:            true,
 			},
 			ok: true,
 		},
