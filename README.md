@@ -10,8 +10,29 @@ A Terraform state migration tool for GitOps.
 - GitOps friendly: Write terraform state mv/rm/import commands in HCL, plan and apply it.
 - Monorepo style support: Move resources to other tfstates to split and merge easily for refactoring.
 - Dry run migration: Simulate state operations with a temporary local tfstate and check to see if terraform plan has no changes after the migration without updating remote tfstate.
+- Migration history: Keep track of which migrations have been applied and apply all unapplied migrations in sequence.
 
-Note: In the analogy of database migration, a migration history management feature is missing for now, but we should support it.
+You can apply terraform state operations in a declarative way.
+
+In short, write the following migration file and save it as `state_mv.hcl`:
+
+```hcl
+migration "state" "test" {
+  dir = "dir1"
+  actions = [
+    "mv aws_security_group.foo aws_security_group.foo2",
+    "mv aws_security_group.bar aws_security_group.bar2",
+  ]
+}
+```
+
+Then, apply it:
+
+```
+$ tfmigrate apply state_mv.hcl
+```
+
+It works as you expect, but it's just a text file so you can commit it to git.
 
 ## Why?
 
@@ -185,93 +206,169 @@ Available commands are:
 
 ```
 $ tfmigrate plan --help
-Usage: tfmigrate plan <PATH>
+Usage: tfmigrate plan [PATH]
 
 Plan computes a new state by applying state migration operations to a temporary state.
 It will fail if terraform plan detects any diffs with the new state.
 
-Arguments
+Arguments:
   PATH               A path of migration file
+                     Required in non-history mode. Optional in history-mode.
+
+Options:
+  --config           A path to tfmigrate config file
 ```
 
 ```
 $ tfmigrate apply --help
-Usage: tfmigrate apply <PATH>
+Usage: tfmigrate apply [PATH]
 
 Apply computes a new state and pushes it to remote state.
 It will fail if terraform plan detects any diffs with the new state.
 
 Arguments
   PATH               A path of migration file
+                     Required in non-history mode. Optional in history-mode.
+
+Options:
+  --config           A path to tfmigrate config file
 ```
 
-## Settings
+## Configurations
+### Environment variables
 
 You can customize the behavior by setting environment variables.
 
 - `TFMIGRATE_LOG`: A log level. Valid values are `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`. Default to `INFO`.
 - `TFMIGRATE_EXEC_PATH`: A string how terraform command is executed. Default to `terraform`. It's intended to inject a wrapper command such as direnv. e.g.) `direnv exec . terraform`.
 
-## Migration file examples
+Some history storage implementations may read additional cloud provider-specific environment variables. For details, refer to a configuration file section for storage block described below.
 
-Examples of migration file are follows. The syntax is described below.
+### Configuration file
 
-### state mv
+You can customize the behavior by setting a configuration file.
+The path of configuration file defaults to `.tfmigrate.hcl`. You can change it with command line flag `--config`.
+
+The syntax of configuration file is as follows:
+
+- A configuration file must be written in the HCL2.
+- The extension of file must be `.hcl`(for HCL native syntax) or `.json`(for HCL JSON syntax).
+- The file must contain exactly one `tfmigrate` block.
+
+An example of configuration file is as follows.
 
 ```hcl
-migration "state" "test" {
-  dir = "dir1"
-  actions = [
-    "mv aws_security_group.foo aws_security_group.foo2",
-    "mv aws_security_group.bar aws_security_group.bar2",
-  ]
+tfmigrate {
+  migration_dir = "./tfmigrate"
+  history {
+    storage "s3" {
+      bucket = "tfmigrate-test"
+      key    = "tfmigrate/history.json"
+    }
+  }
 }
 ```
 
-### state rm
+#### tfmigrate block
+
+The `tfmigrate` block has the following attributes:
+
+- `migration_dir` (optional): A path to directory where migration files are stored. Default to `.` (current directory).
+
+The `tfmigrate` block has the following blocks:
+
+- `history` (optional): Keep track of which migrations have been applied.
+
+#### history block
+
+The `history` block has the following blocks:
+
+- `storage` (required): A migration history data store
+
+#### storage block
+
+The storage block has one label, which is a type of storage. Valid types are as follows:
+
+- `local`: Save a history file to local filesystem.
+- `s3`: Save a history file to AWS S3.
+
+If your cloud provider has not been supported yet, as a workaround, you can use `local` storage and synchronize a history file to your cloud storage with a wrapper script.
+
+#### storage block (local)
+
+The `local` storage has the following attributes:
+
+- `path` (required): A path to a migration history file.
+
+An example of configuration file is as follows.
 
 ```hcl
-migration "state" "test" {
-  dir = "dir1"
-  actions = [
-    "rm aws_security_group.baz",
-  ]
+tfmigrate {
+  migration_dir = "./tfmigrate"
+  history {
+    storage "local" {
+      path = "tmp/history.json"
+    }
+  }
 }
 ```
 
-### state import
+#### storage block (s3)
+
+The `s3` storage has the following attributes:
+
+- `bucket` (required): Name of the bucket.
+- `key` (required): Path to the migration history file.
+- `region` (optional): AWS region. This can also be sourced from the `AWS_DEFAULT_REGION` and `AWS_REGION` environment variables.
+- `access_key` (optional): AWS access key. This can also be sourced from the `AWS_ACCESS_KEY_ID` environment variable, AWS shared credentials file, or AWS shared configuration file.
+- `secret_key` (optional): AWS secret key. This can also be sourced from the `AWS_SECRET_ACCESS_KEY` environment variable, AWS shared credentials file, or AWS shared configuration file.
+- `profile` (optional): Name of AWS profile in AWS shared credentials file or AWS shared configuration file to use for credentials and/or configuration. This can also be sourced from the `AWS_PROFILE` environment variable.
+
+The following attributes are also available, but they are intended to use with `localstack` for testing.
+
+- `endpoint` (optional): Custom endpoint for the AWS S3 API.
+- `skip_credentials_validation` (optional): Skip credentials validation via the STS API.
+- `skip_metadata_api_check` (optional): Skip usage of EC2 Metadata API.
+- `force_path_style` (optional): Enable path-style S3 URLs (`https://<HOST>/<BUCKET>` instead of `https://<BUCKET>.<HOST>`).
+
+An example of configuration file is as follows.
 
 ```hcl
-migration "state" "test" {
-  dir = "dir1"
-  actions = [
-    "import aws_security_group.qux qux",
-  ]
+tfmigrate {
+  migration_dir = "./tfmigrate"
+  history {
+    storage "s3" {
+      bucket  = "tfmigrate-test"
+      key     = "tfmigrate/history.json"
+      region  = "ap-northeast-1"
+      profile = "dev"
+    }
+  }
 }
 ```
 
-### multi_state mv
+## Migration file
 
-```hcl
-migration "multi_state" "mv_dir1_dir2" {
-  from_dir = "dir1"
-  to_dir   = "dir2"
-  actions = [
-    "mv aws_security_group.foo aws_security_group.foo2",
-    "mv aws_security_group.bar aws_security_group.bar2",
-  ]
-}
-```
-
-## Migration file syntax
-
-### migration file
+You can write terraform state operations in HCL. The syntax of migration file is as follows:
 
 - A migration file must be written in the HCL2.
 - The extension of file must be `.hcl`(for HCL native syntax) or `.json`(for HCL JSON syntax).
 
-There are no rules for naming files for now.
-The above examples are written in HCL native syntax, but you can also write them in HCL JSON syntax.
+Although the filename can be arbitrary string, note that in history mode unapplied migrations will be applied in alphabetical order by filename. It's possible to use a serial number for a filename (e.g. `123.hcl`), but we recommend you to use a timestamp as a prefix to avoid git conflicts (e.g. `20201114000000_dir1.hcl`)
+
+An example of migration file is as follows.
+
+```hcl
+migration "state" "test" {
+  dir = "dir1"
+  actions = [
+    "mv aws_security_group.foo aws_security_group.foo2",
+    "mv aws_security_group.bar aws_security_group.bar2",
+  ]
+}
+```
+
+The above example is written in HCL native syntax, but you can also write them in HCL JSON syntax.
 This is useful when generating a migration file from other tools.
 
 ```json
@@ -312,6 +409,42 @@ Note that `dir` is relative path to the current working directory where `tfmigra
 
 We could define strict block schema for action, but intentionally use a schema-less string to allow us to easily copy terraform state command to action.
 
+Examples of migration block (state) are as follows.
+
+#### state mv
+
+```hcl
+migration "state" "test" {
+  dir = "dir1"
+  actions = [
+    "mv aws_security_group.foo aws_security_group.foo2",
+    "mv aws_security_group.bar aws_security_group.bar2",
+  ]
+}
+```
+
+#### state rm
+
+```hcl
+migration "state" "test" {
+  dir = "dir1"
+  actions = [
+    "rm aws_security_group.baz",
+  ]
+}
+```
+
+#### state import
+
+```hcl
+migration "state" "test" {
+  dir = "dir1"
+  actions = [
+    "import aws_security_group.qux qux",
+  ]
+}
+```
+
 ### migration block (multi_state)
 
 The `multi_state` migration updates states in two different directories. It is intended for moving resources across states. It has the following attributes.
@@ -322,6 +455,21 @@ The `multi_state` migration updates states in two different directories. It is i
   - `"mv <source> <destination>"`
 
 Note that `from_dir` and `to_dir` are relative path to the current working directory where `tfmigrate` command is invoked.
+
+Example of migration block (multi_state) are as follows.
+
+#### multi_state mv
+
+```hcl
+migration "multi_state" "mv_dir1_dir2" {
+  from_dir = "dir1"
+  to_dir   = "dir2"
+  actions = [
+    "mv aws_security_group.foo aws_security_group.foo2",
+    "mv aws_security_group.bar aws_security_group.bar2",
+  ]
+}
+```
 
 ## License
 
