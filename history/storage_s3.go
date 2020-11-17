@@ -18,8 +18,7 @@ import (
 // This is expected to have almost the same options as Terraform s3 backend.
 // https://www.terraform.io/docs/backends/types/s3.html
 // However, it has many minor options and it's a pain to test all options from
-// first, so we added only options we need for now. If something missing, feel
-// free to open an issue or submit a pull request.
+// first, so we added only options we need for now.
 type S3StorageConfig struct {
 	// Name of the bucket.
 	Bucket string `hcl:"bucket"`
