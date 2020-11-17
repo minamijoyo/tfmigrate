@@ -12,7 +12,7 @@ import (
 
 // Controller manages a migration history.
 type Controller struct {
-	// migrationDir is a path to directory where migratoin files are stored.
+	// migrationDir is a path to directory where migration files are stored.
 	migrationDir string
 	// migrations is a list of migration file names.
 	// We simply use the file name for identification to avoid parsing all files.

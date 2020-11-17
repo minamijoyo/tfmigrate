@@ -17,7 +17,7 @@ type ConfigurationFile struct {
 
 // TfmigrateBlock represents a block for CLI settings in HCL.
 type TfmigrateBlock struct {
-	// MigrationDir is a path to directory where migratoin files are stored.
+	// MigrationDir is a path to directory where migration files are stored.
 	// Default to `.` (current directory).
 	MigrationDir string `hcl:"migration_dir,optional"`
 	// History is a block for migration history management.
@@ -28,7 +28,7 @@ type TfmigrateBlock struct {
 // TfmigrateBlock is just used for parsing HCL and
 // TfmigrateConfig is used for building application logic.
 type TfmigrateConfig struct {
-	// MigrationDir is a path to directory where migratoin files are stored.
+	// MigrationDir is a path to directory where migration files are stored.
 	// Default to `.` (current directory).
 	MigrationDir string
 	// History is a config for migration history management.
