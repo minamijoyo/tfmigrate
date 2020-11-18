@@ -1,8 +1,13 @@
 ## master (Unreleased)
 
+## 0.2.0 (2020/11/18)
+
 NEW FEATURES:
 
 * Add support for migration history management ([#2](https://github.com/minamijoyo/tfmigrate/pull/2))
+
+You can now keep track of which migrations have been applied and apply all unapplied migrations in sequence. The migration history can be saved to `local` or `s3` storage. See the `Configurations` section in the README for how to configure it.
+If your cloud provider has not been supported yet, feel free to open an issue or submit a pull request. As a workaround, you can use `local` storage and synchronize a history file to your cloud storage with a wrapper script.
 
 ENHANCEMENTS:
 
