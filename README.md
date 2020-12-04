@@ -32,7 +32,7 @@ Then, apply it:
 $ tfmigrate apply state_mv.hcl
 ```
 
-It works as you expect, but it's just a text file so you can commit it to git.
+It works as you expect, but it's just a text file, so you can commit it to git.
 
 ## Why?
 
