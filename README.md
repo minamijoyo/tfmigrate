@@ -405,6 +405,7 @@ The `state` migration updates the state in a single directory. It has the follow
   - `"mv <source> <destination>"`
   - `"rm <addresses>...`
   - `"import <address> <id>"`
+- `force` (optional): Apply migrations even if plan show changes
 
 Note that `dir` is relative path to the current working directory where `tfmigrate` command is invoked.
 
@@ -454,6 +455,7 @@ The `multi_state` migration updates states in two different directories. It is i
 - `to_dir` (required): A working directory where states of resources move to.
 - `actions` (required): Actions is a list of multi state action. An action is a plain text for state operation. Valid formats are the following.
   - `"mv <source> <destination>"`
+- `force` (optional): Apply migrations even if plan show changes
 
 Note that `from_dir` and `to_dir` are relative path to the current working directory where `tfmigrate` command is invoked.
 

@@ -24,6 +24,9 @@ type StateMigratorConfig struct {
 	// schema-less string to allow us to easily copy terraform state command to
 	// action.
 	Actions []string `hcl:"actions"`
+	// Force option controls behaviour in case of unexpected diff in plan.
+	// When set forces applying even if plan shows diff.
+	Force bool `hcl:"force,optional"`
 }
 
 // StateMigratorConfig implements a MigratorConfig.
@@ -51,7 +54,7 @@ func (c *StateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, error) {
 		actions = append(actions, action)
 	}
 
-	return NewStateMigrator(dir, actions, o), nil
+	return NewStateMigrator(dir, actions, o, c.Force), nil
 }
 
 // StateMigrator implements the Migrator interface.
@@ -60,12 +63,14 @@ type StateMigrator struct {
 	tf tfexec.TerraformCLI
 	// actions is a list of state migration operations.
 	actions []StateAction
+	// force operation in case of unexpected diff
+	force bool
 }
 
 var _ Migrator = (*StateMigrator)(nil)
 
 // NewStateMigrator returns a new StateMigrator instance.
-func NewStateMigrator(dir string, actions []StateAction, o *MigratorOption) *StateMigrator {
+func NewStateMigrator(dir string, actions []StateAction, o *MigratorOption, force bool) *StateMigrator {
 	e := tfexec.NewExecutor(dir, os.Environ())
 	tf := tfexec.NewTerraformCLI(e)
 	if o != nil && len(o.ExecPath) > 0 {
@@ -75,6 +80,7 @@ func NewStateMigrator(dir string, actions []StateAction, o *MigratorOption) *Sta
 	return &StateMigrator{
 		tf:      tf,
 		actions: actions,
+		force: force,
 	}
 }
 
@@ -106,6 +112,10 @@ func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 	_, err = m.tf.Plan(ctx, currentState, "", "-input=false", "-no-color", "-detailed-exitcode")
 	if err != nil {
 		if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
+			if m.force {
+				log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true", m.tf.Dir())
+				return currentState, nil
+			}
 			log.Printf("[ERROR] [migrator@%s] unexpected diffs\n", m.tf.Dir())
 			return nil, fmt.Errorf("terraform plan command returns unexpected diffs: %s", err)
 		}

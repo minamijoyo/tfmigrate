@@ -44,7 +44,7 @@ resource "aws_iam_user" "baz" {
 		NewStateImportAction("aws_iam_user.baz", "baz"),
 	}
 
-	m := NewStateMigrator(tf.Dir(), actions, nil)
+	m := NewStateMigrator(tf.Dir(), actions, nil, false)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
