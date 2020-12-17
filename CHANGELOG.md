@@ -1,5 +1,11 @@
 ## master (Unreleased)
 
+## 0.2.1 (2020/12/17)
+
+NEW FEATURES:
+
+* Added force option to state and multistate migrations ([#10](https://github.com/minamijoyo/tfmigrate/pull/10))
+
 ENHANCEMENTS:
 
 * Support Terraform v0.14 ([#7](https://github.com/minamijoyo/tfmigrate/pull/7))
