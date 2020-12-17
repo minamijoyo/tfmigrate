@@ -20,6 +20,9 @@ type MultiStateMigratorConfig struct {
 	// Valid formats are the following.
 	// "mv <source> <destination>"
 	Actions []string `hcl:"actions"`
+	// Force option controls behaviour in case of unexpected diff in plan.
+	// When set forces applying even if plan shows diff.
+	Force bool `hcl:"force,optional"`
 }
 
 // MultiStateMigratorConfig implements a MigratorConfig.
@@ -41,7 +44,7 @@ func (c *MultiStateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, err
 		actions = append(actions, action)
 	}
 
-	return NewMultiStateMigrator(c.FromDir, c.ToDir, actions, o), nil
+	return NewMultiStateMigrator(c.FromDir, c.ToDir, actions, o, c.Force), nil
 }
 
 // MultiStateMigrator implements the Migrator interface.
@@ -54,12 +57,15 @@ type MultiStateMigrator struct {
 
 	// actions is a list of multi state migration operations.
 	actions []MultiStateAction
+
+	// force operation in case of unexpected diff
+	force bool
 }
 
 var _ Migrator = (*MultiStateMigrator)(nil)
 
 // NewMultiStateMigrator returns a new MultiStateMigrator instance.
-func NewMultiStateMigrator(fromDir string, toDir string, actions []MultiStateAction, o *MigratorOption) *MultiStateMigrator {
+func NewMultiStateMigrator(fromDir string, toDir string, actions []MultiStateAction, o *MigratorOption, force bool) *MultiStateMigrator {
 	fromTf := tfexec.NewTerraformCLI(tfexec.NewExecutor(fromDir, os.Environ()))
 	toTf := tfexec.NewTerraformCLI(tfexec.NewExecutor(toDir, os.Environ()))
 	if o != nil && len(o.ExecPath) > 0 {
@@ -71,6 +77,7 @@ func NewMultiStateMigrator(fromDir string, toDir string, actions []MultiStateAct
 		fromTf:  fromTf,
 		toTf:    toTf,
 		actions: actions,
+		force:   force,
 	}
 }
 
@@ -112,6 +119,10 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.S
 	_, err = m.fromTf.Plan(ctx, fromCurrentState, "", "-input=false", "-no-color", "-detailed-exitcode")
 	if err != nil {
 		if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
+			if m.force {
+				log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true", m.fromTf.Dir())
+				return fromCurrentState, toCurrentState, nil
+			}
 			log.Printf("[ERROR] [migrator@%s] unexpected diffs\n", m.fromTf.Dir())
 			return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs: %s", err)
 		}
@@ -123,6 +134,11 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.S
 	_, err = m.toTf.Plan(ctx, toCurrentState, "", "-input=false", "-no-color", "-detailed-exitcode")
 	if err != nil {
 		if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
+			if m.force {
+				log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true",
+					m.toTf.Dir())
+				return fromCurrentState, toCurrentState, nil
+			}
 			log.Printf("[ERROR] [migrator@%s] unexpected diffs\n", m.toTf.Dir())
 			return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs: %s", err)
 		}

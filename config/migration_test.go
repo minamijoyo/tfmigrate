@@ -98,6 +98,36 @@ migration "state" "test" {
 			ok:     false,
 		},
 		{
+			desc: "state with force",
+			source: `
+migration "state" "test" {
+	dir = "dir1"
+    force = true
+	actions = [
+		"mv aws_security_group.foo aws_security_group.foo2",
+		"mv aws_security_group.bar aws_security_group.bar2",
+		"rm aws_security_group.baz",
+		"import aws_security_group.qux qux",
+	]
+}
+`,
+			want: &tfmigrate.MigrationConfig{
+				Type: "state",
+				Name: "test",
+				Migrator: &tfmigrate.StateMigratorConfig{
+					Dir: "dir1",
+					Actions: []string{
+						"mv aws_security_group.foo aws_security_group.foo2",
+						"mv aws_security_group.bar aws_security_group.bar2",
+						"rm aws_security_group.baz",
+						"import aws_security_group.qux qux",
+					},
+					Force: true,
+				},
+			},
+			ok: true,
+		},
+		{
 			desc: "multi state with from_dir and to_dir",
 			source: `
 migration "multi_state" "mv_dir1_dir2" {
@@ -161,6 +191,34 @@ migration "multi_state" "mv_dir1_dir2" {
 `,
 			want: nil,
 			ok:   false,
+		},
+		{
+			desc: "multi state with force",
+			source: `
+migration "multi_state" "mv_dir1_dir2" {
+	from_dir = "dir1"
+	to_dir   = "dir2"
+	actions = [
+		"mv aws_security_group.foo aws_security_group.foo2",
+		"mv aws_security_group.bar aws_security_group.bar2",
+	]
+    force    = true
+}
+`,
+			want: &tfmigrate.MigrationConfig{
+				Type: "multi_state",
+				Name: "mv_dir1_dir2",
+				Migrator: &tfmigrate.MultiStateMigratorConfig{
+					FromDir: "dir1",
+					ToDir:   "dir2",
+					Actions: []string{
+						"mv aws_security_group.foo aws_security_group.foo2",
+						"mv aws_security_group.bar aws_security_group.bar2",
+					},
+					Force: true,
+				},
+			},
+			ok: true,
 		},
 		{
 			desc: "unknown migration type",
