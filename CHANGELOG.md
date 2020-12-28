@@ -1,5 +1,11 @@
 ## master (Unreleased)
 
+## 0.2.2 (2020/12/28)
+
+ENHANCEMENTS:
+
+* Show diffs in log if force is set to true ([#11](https://github.com/minamijoyo/tfmigrate/pull/11))
+
 ## 0.2.1 (2020/12/17)
 
 NEW FEATURES:
