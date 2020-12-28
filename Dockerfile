@@ -11,3 +11,5 @@ RUN go mod download
 
 COPY . .
 RUN make install
+
+ENTRYPOINT ["./entrypoint.sh"]
