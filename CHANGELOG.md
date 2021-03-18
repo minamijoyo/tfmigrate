@@ -3,6 +3,7 @@
 BUG FIXES:
 
 * Create a plugin cache directory in advance ([#12](https://github.com/minamijoyo/tfmigrate/pull/12))
+* Fix CI fail for TestExecutorDir in ubuntu-20.04 ([#18](https://github.com/minamijoyo/tfmigrate/pull/18))
 
 ## 0.2.2 (2020/12/28)
 
