@@ -5,6 +5,12 @@ BUG FIXES:
 * Create a plugin cache directory in advance ([#12](https://github.com/minamijoyo/tfmigrate/pull/12))
 * Fix CI fail for TestExecutorDir in ubuntu-20.04 ([#18](https://github.com/minamijoyo/tfmigrate/pull/18))
 
+ENHANCEMENTS:
+
+* Support Terraform v0.15 ([#17](https://github.com/minamijoyo/tfmigrate/pull/17))
+
+All we need was adding Terraform v0.15.0 to a test matrix. This means it works with tfmigrate v0.2.2 as it is.
+
 ## 0.2.2 (2020/12/28)
 
 ENHANCEMENTS:
