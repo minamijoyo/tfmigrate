@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.2.3 (2021/04/19)
+
 BUG FIXES:
 
 * Create a plugin cache directory in advance ([#12](https://github.com/minamijoyo/tfmigrate/pull/12))
