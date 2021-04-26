@@ -34,6 +34,9 @@ func parseStorageBlock(b StorageBlock) (history.StorageConfig, error) {
 	case "s3":
 		return parseS3StorageBlock(b)
 
+	case "gcs":
+		return parseGCSStorageBlock(b)
+
 	default:
 		return nil, fmt.Errorf("unknown history storage type: %s", b.Type)
 	}
@@ -64,6 +67,17 @@ func parseLocalStorageBlock(b StorageBlock) (history.StorageConfig, error) {
 // parseS3StorageBlock parses a storage block for s3 and returns a history.StorageConfig.
 func parseS3StorageBlock(b StorageBlock) (history.StorageConfig, error) {
 	var config history.S3StorageConfig
+	diags := gohcl.DecodeBody(b.Remain, nil, &config)
+	if diags.HasErrors() {
+		return nil, diags
+	}
+
+	return &config, nil
+}
+
+// parseGCSStorageBlock parses a storage block for gcs and returns a history.StorageConfig.
+func parseGCSStorageBlock(b StorageBlock) (history.StorageConfig, error) {
+	var config history.GCSStorageConfig
 	diags := gohcl.DecodeBody(b.Remain, nil, &config)
 	if diags.HasErrors() {
 		return nil, diags
