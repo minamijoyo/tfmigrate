@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Update aws-sdk-go to v1.37.0 to support AWS SSO ([#26](https://github.com/minamijoyo/tfmigrate/pull/26))
+
 ## 0.2.3 (2021/04/19)
 
 BUG FIXES:
