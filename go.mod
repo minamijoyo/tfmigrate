@@ -3,7 +3,7 @@ module github.com/minamijoyo/tfmigrate
 go 1.15
 
 require (
-	github.com/aws/aws-sdk-go v1.34.16
+	github.com/aws/aws-sdk-go v1.37.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/google/go-cmp v0.5.2
 	github.com/hashicorp/aws-sdk-go-base v0.6.0
