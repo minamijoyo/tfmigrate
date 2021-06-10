@@ -1,5 +1,11 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Add support for Terraform v1.0 ([#28](https://github.com/minamijoyo/tfmigrate/pull/28))
+
+All we need was adding Terraform v1.0.0 to a test matrix. This means it works with tfmigrate v0.2.4 as it is.
+
 ## 0.2.4 (2021/05/08)
 
 ENHANCEMENTS:
