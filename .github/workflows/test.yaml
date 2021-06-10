@@ -31,10 +31,11 @@ jobs:
     strategy:
       matrix:
         terraform:
-        - 0.15.0
-        - 0.14.10
-        - 0.13.6
-        - 0.12.30
+        - 1.0.0
+        - 0.15.5
+        - 0.14.11
+        - 0.13.7
+        - 0.12.31
     env:
       TERRAFORM_VERSION: ${{ matrix.terraform }}
     steps:
