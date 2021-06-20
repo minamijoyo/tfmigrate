@@ -15,6 +15,10 @@ type MultiStateMigratorConfig struct {
 	FromDir string `hcl:"from_dir"`
 	// ToDir is a working directory where states of resources move to.
 	ToDir string `hcl:"to_dir"`
+	// FromWorkspace is a workspace within FromDir
+	FromWorkspace string `hcl:"from_workspace,optional"`
+	// ToWorkspace is a workspace within ToDir
+	ToWorkspace string `hcl:"to_workspace,optional"`
 	// Actions is a list of multi state action.
 	// action is a plain text for state operation.
 	// Valid formats are the following.
@@ -44,20 +48,21 @@ func (c *MultiStateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, err
 		actions = append(actions, action)
 	}
 
-	return NewMultiStateMigrator(c.FromDir, c.ToDir, actions, o, c.Force), nil
+	return NewMultiStateMigrator(c.FromDir, c.ToDir, c.FromWorkspace, c.ToWorkspace, actions, o, c.Force), nil
 }
 
 // MultiStateMigrator implements the Migrator interface.
 type MultiStateMigrator struct {
 	// fromTf is an instance of TerraformCLI which executes terraform command in a fromDir.
 	fromTf tfexec.TerraformCLI
-
 	// fromTf is an instance of TerraformCLI which executes terraform command in a toDir.
 	toTf tfexec.TerraformCLI
-
+	//fromWorkspace is the workspace from which the resource will be migrated
+	fromWorkspace string
+	//toWorkspace is the workspace to which the resource will be migrated
+	toWorkspace string
 	// actions is a list of multi state migration operations.
 	actions []MultiStateAction
-
 	// force operation in case of unexpected diff
 	force bool
 }
@@ -65,7 +70,7 @@ type MultiStateMigrator struct {
 var _ Migrator = (*MultiStateMigrator)(nil)
 
 // NewMultiStateMigrator returns a new MultiStateMigrator instance.
-func NewMultiStateMigrator(fromDir string, toDir string, actions []MultiStateAction, o *MigratorOption, force bool) *MultiStateMigrator {
+func NewMultiStateMigrator(fromDir string, toDir string, fromWorkspace string, toWorkspace string, actions []MultiStateAction, o *MigratorOption, force bool) *MultiStateMigrator {
 	fromTf := tfexec.NewTerraformCLI(tfexec.NewExecutor(fromDir, os.Environ()))
 	toTf := tfexec.NewTerraformCLI(tfexec.NewExecutor(toDir, os.Environ()))
 	if o != nil && len(o.ExecPath) > 0 {
@@ -74,10 +79,12 @@ func NewMultiStateMigrator(fromDir string, toDir string, actions []MultiStateAct
 	}
 
 	return &MultiStateMigrator{
-		fromTf:  fromTf,
-		toTf:    toTf,
-		actions: actions,
-		force:   force,
+		fromTf:        fromTf,
+		toTf:          toTf,
+		fromWorkspace: fromWorkspace,
+		toWorkspace:   toWorkspace,
+		actions:       actions,
+		force:         force,
 	}
 }
 
@@ -87,15 +94,14 @@ func NewMultiStateMigrator(fromDir string, toDir string, actions []MultiStateAct
 // the Migrator interface between a single and multi state migrator.
 func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.State, error) {
 	// setup fromDir.
-	fromCurrentState, fromSwitchBackToRemotekFunc, err := setupWorkDir(ctx, m.fromTf)
+	fromCurrentState, fromSwitchBackToRemotekFunc, err := setupWorkDir(ctx, m.fromTf, m.fromWorkspace)
 	if err != nil {
 		return nil, nil, err
 	}
 	// switch back it to remote on exit.
 	defer fromSwitchBackToRemotekFunc()
-
 	// setup toDir.
-	toCurrentState, toSwitchBackToRemotekFunc, err := setupWorkDir(ctx, m.toTf)
+	toCurrentState, toSwitchBackToRemotekFunc, err := setupWorkDir(ctx, m.toTf, m.toWorkspace)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -113,7 +119,6 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.S
 		fromCurrentState = tfexec.NewState(fromNewState.Bytes())
 		toCurrentState = tfexec.NewState(toNewState.Bytes())
 	}
-
 	// check if a plan in fromDir has no changes.
 	log.Printf("[INFO] [migrator@%s] check diffs\n", m.fromTf.Dir())
 	_, err = m.fromTf.Plan(ctx, fromCurrentState, "", "-input=false", "-no-color", "-detailed-exitcode")

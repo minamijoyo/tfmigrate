@@ -124,8 +124,9 @@ resource "aws_security_group" "bar" {}
 	if _, err := os.Stat(filepath.Join(terraformCLI.Dir(), filename)); err == nil {
 		t.Fatalf("an override file already exists: %s", err)
 	}
+	workspace := "default"
 
-	switchBackToRemotekFunc, err := terraformCLI.OverrideBackendToLocal(context.Background(), filename)
+	switchBackToRemotekFunc, err := terraformCLI.OverrideBackendToLocal(context.Background(), filename, workspace)
 	if err != nil {
 		t.Fatalf("failed to run OverrideBackendToLocal: %s", err)
 	}

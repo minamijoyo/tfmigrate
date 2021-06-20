@@ -19,8 +19,10 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 		{
 			desc: "valid",
 			config: &MultiStateMigratorConfig{
-				FromDir: "dir1",
-				ToDir:   "dir2",
+				FromDir:       "dir1",
+				ToDir:         "dir2",
+				FromWorkspace: "default",
+				ToWorkspace:   "default",
 				Actions: []string{
 					"mv aws_security_group.foo aws_security_group.foo2",
 					"mv aws_security_group.bar aws_security_group.bar2",
@@ -34,8 +36,10 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 		{
 			desc: "invalid action",
 			config: &MultiStateMigratorConfig{
-				FromDir: "dir1",
-				ToDir:   "dir2",
+				FromDir:       "dir1",
+				ToDir:         "dir2",
+				FromWorkspace: "default",
+				ToWorkspace:   "default",
 				Actions: []string{
 					"mv aws_security_group.foo",
 				},
@@ -46,9 +50,11 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 		{
 			desc: "no actions",
 			config: &MultiStateMigratorConfig{
-				FromDir: "dir1",
-				ToDir:   "dir2",
-				Actions: []string{},
+				FromDir:       "dir1",
+				ToDir:         "dir2",
+				FromWorkspace: "default",
+				ToWorkspace:   "default",
+				Actions:       []string{},
 			},
 			o:  nil,
 			ok: false,
@@ -56,15 +62,17 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 		{
 			desc: "force true",
 			config: &MultiStateMigratorConfig{
-				FromDir: "dir1",
-				ToDir:   "dir2",
+				FromDir:       "dir1",
+				ToDir:         "dir2",
+				FromWorkspace: "default",
+				ToWorkspace:   "default",
 				Actions: []string{
 					"mv aws_security_group.foo aws_security_group.foo2",
 					"mv aws_security_group.bar aws_security_group.bar2",
 				},
 				Force: true,
 			},
-			o: nil,
+			o:  nil,
 			ok: true,
 		},
 	}
@@ -96,12 +104,13 @@ resource "aws_security_group" "bar" {}
 resource "aws_security_group" "baz" {}
 `
 	fromTf := tfexec.SetupTestAccWithApply(t, fromBackend+fromSource)
+	fromWorkspace := "default"
 	toBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/toDir")
 	toSource := `
 resource "aws_security_group" "qux" {}
 `
 	toTf := tfexec.SetupTestAccWithApply(t, toBackend+toSource)
-
+	toWorkspace := "default"
 	fromUpdatedSource := `
 resource "aws_security_group" "baz" {}
 `
@@ -133,7 +142,7 @@ resource "aws_security_group" "qux" {}
 		NewMultiStateMvAction("aws_security_group.bar", "aws_security_group.bar2"),
 	}
 
-	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), actions, nil, false)
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, nil, false)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
@@ -198,12 +207,13 @@ resource "aws_security_group" "bar" {}
 resource "aws_security_group" "baz" {}
 `
 	fromTf := tfexec.SetupTestAccWithApply(t, fromBackend+fromSource)
+	fromWorkspace := "default"
 	toBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/toDir")
 	toSource := `
 resource "aws_security_group" "qux" {}
 `
 	toTf := tfexec.SetupTestAccWithApply(t, toBackend+toSource)
-
+	toWorkspace := "default"
 	fromUpdatedSource := `
 resource "aws_security_group" "baz" {}
 `
@@ -236,7 +246,7 @@ resource "aws_security_group" "qux2" {}
 		NewMultiStateMvAction("aws_security_group.bar", "aws_security_group.bar2"),
 	}
 
-	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), actions, nil, true)
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, nil, true)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
