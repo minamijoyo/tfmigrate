@@ -23,7 +23,7 @@ resource "aws_iam_user" "baz" {
 	name = "baz"
 }
 `
-	tf := tfexec.SetupTestAccWithApply(t, backend+source)
+	tf := tfexec.SetupTestAccWithApply(t, "default", backend+source)
 	ctx := context.Background()
 
 	_, err := tf.StateRm(ctx, nil, []string{"aws_iam_user.foo", "aws_iam_user.baz"})

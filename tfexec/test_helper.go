@@ -282,7 +282,7 @@ provider "aws" {
 
 // SetupTestAccWithApply is an acceptance test helper for initializing a
 // temporary work directory and applying a given source.
-func SetupTestAccWithApply(t *testing.T, source string) TerraformCLI {
+func SetupTestAccWithApply(t *testing.T, workspace string, source string) TerraformCLI {
 	t.Helper()
 
 	e := SetupTestAcc(t, source)
@@ -292,6 +292,14 @@ func SetupTestAccWithApply(t *testing.T, source string) TerraformCLI {
 	err := tf.Init(ctx, "", "-input=false", "-no-color")
 	if err != nil {
 		t.Fatalf("failed to run terraform init: %s", err)
+	}
+
+	//default workspace always exists so don't try to create it
+	if workspace != "default" {
+		err = tf.WorkspaceNew(ctx, workspace, "")
+		if err != nil {
+			t.Fatalf("failed to run terraform workspace new %s : %s", workspace, err)
+		}
 	}
 
 	err = tf.Apply(ctx, nil, "", "-input=false", "-no-color", "-auto-approve")

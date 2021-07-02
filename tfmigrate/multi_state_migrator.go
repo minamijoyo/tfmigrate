@@ -48,6 +48,14 @@ func (c *MultiStateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, err
 		actions = append(actions, action)
 	}
 
+	//use default workspace if not specified by user
+	if len(c.FromWorkspace) == 0 {
+		c.FromWorkspace = "default"
+	}
+	if len(c.ToWorkspace) == 0 {
+		c.ToWorkspace = "default"
+	}
+
 	return NewMultiStateMigrator(c.FromDir, c.ToDir, c.FromWorkspace, c.ToWorkspace, actions, o, c.Force), nil
 }
 
