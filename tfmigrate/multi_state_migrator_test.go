@@ -17,7 +17,7 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 		ok     bool
 	}{
 		{
-			desc: "valid",
+			desc: "valid and default workspace",
 			config: &MultiStateMigratorConfig{
 				FromDir: "dir1",
 				ToDir:   "dir2",
@@ -32,10 +32,29 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 			ok: true,
 		},
 		{
+			desc: "valid and custom workspace",
+			config: &MultiStateMigratorConfig{
+				FromDir:       "dir1",
+				ToDir:         "dir2",
+				FromWorkspace: "work1",
+				ToWorkspace:   "work2",
+				Actions: []string{
+					"mv aws_security_group.foo aws_security_group.foo2",
+					"mv aws_security_group.bar aws_security_group.bar2",
+				},
+			},
+			o: &MigratorOption{
+				ExecPath: "direnv exec . terraform",
+			},
+			ok: true,
+		},
+		{
 			desc: "invalid action",
 			config: &MultiStateMigratorConfig{
-				FromDir: "dir1",
-				ToDir:   "dir2",
+				FromDir:       "dir1",
+				ToDir:         "dir2",
+				FromWorkspace: "work1",
+				ToWorkspace:   "work2",
 				Actions: []string{
 					"mv aws_security_group.foo",
 				},
@@ -46,9 +65,11 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 		{
 			desc: "no actions",
 			config: &MultiStateMigratorConfig{
-				FromDir: "dir1",
-				ToDir:   "dir2",
-				Actions: []string{},
+				FromDir:       "dir1",
+				ToDir:         "dir2",
+				FromWorkspace: "work1",
+				ToWorkspace:   "work2",
+				Actions:       []string{},
 			},
 			o:  nil,
 			ok: false,
@@ -56,15 +77,17 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 		{
 			desc: "force true",
 			config: &MultiStateMigratorConfig{
-				FromDir: "dir1",
-				ToDir:   "dir2",
+				FromDir:       "dir1",
+				ToDir:         "dir2",
+				FromWorkspace: "work1",
+				ToWorkspace:   "work2",
 				Actions: []string{
 					"mv aws_security_group.foo aws_security_group.foo2",
 					"mv aws_security_group.bar aws_security_group.bar2",
 				},
 				Force: true,
 			},
-			o: nil,
+			o:  nil,
 			ok: true,
 		},
 	}
@@ -90,18 +113,19 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 	ctx := context.Background()
 
 	fromBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/fromDir")
+	fromWorkspace := "work1"
 	fromSource := `
 resource "aws_security_group" "foo" {}
 resource "aws_security_group" "bar" {}
 resource "aws_security_group" "baz" {}
 `
-	fromTf := tfexec.SetupTestAccWithApply(t, fromBackend+fromSource)
+	fromTf := tfexec.SetupTestAccWithApply(t, fromWorkspace, fromBackend+fromSource)
 	toBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/toDir")
+	toWorkspace := "work2"
 	toSource := `
 resource "aws_security_group" "qux" {}
 `
-	toTf := tfexec.SetupTestAccWithApply(t, toBackend+toSource)
-
+	toTf := tfexec.SetupTestAccWithApply(t, toWorkspace, toBackend+toSource)
 	fromUpdatedSource := `
 resource "aws_security_group" "baz" {}
 `
@@ -133,7 +157,7 @@ resource "aws_security_group" "qux" {}
 		NewMultiStateMvAction("aws_security_group.bar", "aws_security_group.bar2"),
 	}
 
-	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), actions, nil, false)
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, nil, false)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
@@ -192,18 +216,19 @@ func TestAccMultiStateMigratorApplyForce(t *testing.T) {
 	ctx := context.Background()
 
 	fromBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/fromDir")
+	fromWorkspace := "work1"
 	fromSource := `
 resource "aws_security_group" "foo" {}
 resource "aws_security_group" "bar" {}
 resource "aws_security_group" "baz" {}
 `
-	fromTf := tfexec.SetupTestAccWithApply(t, fromBackend+fromSource)
+	fromTf := tfexec.SetupTestAccWithApply(t, fromWorkspace, fromBackend+fromSource)
+	toWorkspace := "work2"
 	toBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/toDir")
 	toSource := `
 resource "aws_security_group" "qux" {}
 `
-	toTf := tfexec.SetupTestAccWithApply(t, toBackend+toSource)
-
+	toTf := tfexec.SetupTestAccWithApply(t, toWorkspace, toBackend+toSource)
 	fromUpdatedSource := `
 resource "aws_security_group" "baz" {}
 `
@@ -236,7 +261,7 @@ resource "aws_security_group" "qux2" {}
 		NewMultiStateMvAction("aws_security_group.bar", "aws_security_group.bar2"),
 	}
 
-	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), actions, nil, true)
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, nil, true)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)

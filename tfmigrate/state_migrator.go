@@ -80,7 +80,7 @@ func NewStateMigrator(dir string, actions []StateAction, o *MigratorOption, forc
 	return &StateMigrator{
 		tf:      tf,
 		actions: actions,
-		force: force,
+		force:   force,
 	}
 }
 
@@ -90,7 +90,7 @@ func NewStateMigrator(dir string, actions []StateAction, o *MigratorOption, forc
 // the Migrator interface between a single and multi state migrator.
 func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 	// setup work dir.
-	currentState, switchBackToRemotekFunc, err := setupWorkDir(ctx, m.tf)
+	currentState, switchBackToRemotekFunc, err := setupWorkDir(ctx, m.tf, "default")
 	if err != nil {
 		return nil, err
 	}

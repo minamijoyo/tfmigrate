@@ -80,7 +80,7 @@ func TestStateMigratorConfigNewMigrator(t *testing.T) {
 				},
 				Force: true,
 			},
-			o: nil,
+			o:  nil,
 			ok: true,
 		},
 	}
@@ -114,7 +114,7 @@ resource "aws_iam_user" "qux" {
 	name = "qux"
 }
 `
-	tf := tfexec.SetupTestAccWithApply(t, backend+source)
+	tf := tfexec.SetupTestAccWithApply(t, "default", backend+source)
 	ctx := context.Background()
 
 	updatedSource := `
@@ -191,7 +191,7 @@ func TestAccStateMigratorApplyForce(t *testing.T) {
 resource "aws_security_group" "foo" {}
 resource "aws_security_group" "bar" {}
 `
-	tf := tfexec.SetupTestAccWithApply(t, backend+source)
+	tf := tfexec.SetupTestAccWithApply(t, "default", backend+source)
 	ctx := context.Background()
 
 	updatedSource := `

@@ -98,8 +98,8 @@ func TestAccTerraformCLIOverrideBackendToLocal(t *testing.T) {
 resource "aws_security_group" "foo" {}
 resource "aws_security_group" "bar" {}
 `
-
-	terraformCLI := SetupTestAccWithApply(t, backend+source)
+	workspace := "work1"
+	terraformCLI := SetupTestAccWithApply(t, workspace, backend+source)
 
 	updatedSource := `
 resource "aws_security_group" "foo2" {}
@@ -115,6 +115,11 @@ resource "aws_security_group" "bar" {}
 		t.Fatalf("expect to have changes")
 	}
 
+	// create local workspace folder
+	// this is a prerequisite before calling OverrideBackendToLocal
+	path := filepath.Join(terraformCLI.Dir(), "terraform.tfstate.d", workspace)
+	os.MkdirAll(path, os.ModePerm)
+
 	state, err := terraformCLI.StatePull(context.Background())
 	if err != nil {
 		t.Fatalf("failed to run terraform state pull: %s", err)
@@ -125,7 +130,7 @@ resource "aws_security_group" "bar" {}
 		t.Fatalf("an override file already exists: %s", err)
 	}
 
-	switchBackToRemotekFunc, err := terraformCLI.OverrideBackendToLocal(context.Background(), filename)
+	switchBackToRemotekFunc, err := terraformCLI.OverrideBackendToLocal(context.Background(), filename, workspace)
 	if err != nil {
 		t.Fatalf("failed to run OverrideBackendToLocal: %s", err)
 	}

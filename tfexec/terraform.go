@@ -101,7 +101,16 @@ type TerraformCLI interface {
 	// StatePush pushs a given State to remote.
 	StatePush(ctx context.Context, state *State, opts ...string) error
 
-	// Run is a low-level generic method for running an arbitrary terraform comamnd.
+	// Create a new workspace with name "workspace".
+	WorkspaceNew(ctx context.Context, workspace string, dir string, opts ...string) error
+
+	// Returns the current selected workspace.
+	WorkspaceShow(ctx context.Context) (string, error)
+
+	// Switch to the workspace with name "workspace". This workspace should already exist
+	WorkspaceSelect(ctx context.Context, workspace string, dir string) error
+
+	// Run is a low-level generic method for running an arbitrary terraform command.
 	Run(ctx context.Context, args ...string) (string, string, error)
 
 	// dir returns a working directory where terraform command is executed.
@@ -117,7 +126,7 @@ type TerraformCLI interface {
 	// so we need to switch the backend to local for temporary state operations.
 	// The filename argument must meet constraints for override file.
 	// (e.g.) _tfexec_override.tf
-	OverrideBackendToLocal(ctx context.Context, filename string) (func(), error)
+	OverrideBackendToLocal(ctx context.Context, filename string, workspace string) (func(), error)
 
 	// PlanHasChange is a helper method which runs plan and return true if the plan has change.
 	PlanHasChange(ctx context.Context, state *State, dir string, opts ...string) (bool, error)
@@ -189,7 +198,7 @@ func (c *terraformCLI) SetExecPath(execPath string) {
 // so we need to switch the backend to local for temporary state operations.
 // The filename argument must meet constraints for override file.
 // (e.g.) _tfexec_override.tf
-func (c *terraformCLI) OverrideBackendToLocal(ctx context.Context, filename string) (func(), error) {
+func (c *terraformCLI) OverrideBackendToLocal(ctx context.Context, filename string, workspace string) (func(), error) {
 	// create local backend override file.
 	path := filepath.Join(c.Dir(), filename)
 	contents := `
@@ -218,6 +227,19 @@ terraform {
 			// we cannot return error here.
 			log.Printf("[ERROR] [executor@%s] failed to remove the override file: %s\n", c.Dir(), err)
 			log.Printf("[ERROR] [executor@%s] please remove the override file(%s) and re-run terraform init -reconfigure\n", c.Dir(), path)
+		}
+		// cleanup the local workspace directly used for local state
+		workspaceFolder := filepath.Join(c.Dir(), "terraform.tfstate.d", workspace)
+		err = os.Remove(workspaceFolder)
+		if err != nil {
+			// we cannot return error here.
+			log.Printf("[ERROR] [executor@%s] failed to remove local workspace directory: %s\n", workspaceFolder, err)
+		}
+		workspaceFolder = filepath.Join(c.Dir(), "terraform.tfstate.d")
+		err = os.Remove(workspaceFolder)
+		if err != nil {
+			// we cannot return error here.
+			log.Printf("[ERROR] [executor@%s] failed to remove local workspace directory: %s\n", workspaceFolder, err)
 		}
 		log.Printf("[INFO] [executor@%s] switch back to remote\n", c.Dir())
 		err = c.Init(ctx, "", "-input=false", "-no-color", "-reconfigure")
