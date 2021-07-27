@@ -10,7 +10,6 @@ func TestTerraformCLIWorkspaceSelect(t *testing.T) {
 		desc         string
 		mockCommands []*mockCommand
 		workspace    string
-		dir          string
 		ok           bool
 	}{
 		{
@@ -34,24 +33,12 @@ func TestTerraformCLIWorkspaceSelect(t *testing.T) {
 			workspace: "foo",
 			ok:        true,
 		},
-		{
-			desc: "with workspace and dir",
-			mockCommands: []*mockCommand{
-				{
-					args:     []string{"terraform", "workspace", "select", "foo", "bar"},
-					exitCode: 0,
-				},
-			},
-			workspace: "foo",
-			dir:       "bar",
-			ok:        true,
-		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			e := NewMockExecutor(tc.mockCommands)
 			terraformCLI := NewTerraformCLI(e)
-			err := terraformCLI.WorkspaceSelect(context.Background(), tc.workspace, tc.dir)
+			err := terraformCLI.WorkspaceSelect(context.Background(), tc.workspace)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}
@@ -74,12 +61,12 @@ func TestAccTerraformCLIWorkspaceSelect(t *testing.T) {
 		t.Fatalf("failed to run terraform init: %s", err)
 	}
 
-	err = terraformCLI.WorkspaceNew(context.Background(), "myworkspace", "")
+	err = terraformCLI.WorkspaceNew(context.Background(), "myworkspace")
 	if err != nil {
 		t.Fatalf("failed to create a new workspace: %s", err)
 	}
 
-	err = terraformCLI.WorkspaceSelect(context.Background(), "default", "")
+	err = terraformCLI.WorkspaceSelect(context.Background(), "default")
 	if err != nil {
 		t.Fatalf("failed to switch back to default workspace: %s", err)
 	}

@@ -102,13 +102,13 @@ type TerraformCLI interface {
 	StatePush(ctx context.Context, state *State, opts ...string) error
 
 	// Create a new workspace with name "workspace".
-	WorkspaceNew(ctx context.Context, workspace string, dir string, opts ...string) error
+	WorkspaceNew(ctx context.Context, workspace string, opts ...string) error
 
 	// Returns the current selected workspace.
 	WorkspaceShow(ctx context.Context) (string, error)
 
 	// Switch to the workspace with name "workspace". This workspace should already exist
-	WorkspaceSelect(ctx context.Context, workspace string, dir string) error
+	WorkspaceSelect(ctx context.Context, workspace string) error
 
 	// Run is a low-level generic method for running an arbitrary terraform command.
 	Run(ctx context.Context, args ...string) (string, string, error)

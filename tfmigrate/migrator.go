@@ -44,7 +44,7 @@ func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI, workspace string)
 	}
 	//switch to workspace
 	log.Printf("[INFO] [migrator@%s] switch to remote workspace %s\n", tf.Dir(), workspace)
-	err = tf.WorkspaceSelect(ctx, workspace, "")
+	err = tf.WorkspaceSelect(ctx, workspace)
 	if err != nil {
 		return nil, nil, err
 	}
