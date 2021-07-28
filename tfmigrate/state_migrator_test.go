@@ -2,6 +2,8 @@ package tfmigrate
 
 import (
 	"context"
+	"io/ioutil"
+	"path/filepath"
 	"reflect"
 	"sort"
 	"testing"
@@ -146,7 +148,7 @@ resource "aws_iam_user" "qux" {
 		NewStateImportAction("aws_iam_user.qux", "qux"),
 	}
 
-	m := NewStateMigrator(tf.Dir(), actions, nil, false)
+	m := NewStateMigrator(tf.Dir(), actions, &MigratorOption{}, false)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
@@ -214,7 +216,10 @@ resource "aws_security_group" "baz" {}
 		NewStateMvAction("aws_security_group.foo", "aws_security_group.foo2"),
 	}
 
-	m := NewStateMigrator(tf.Dir(), actions, nil, true)
+	o := &MigratorOption{}
+	o.PlanOut = "foo.tfplan"
+
+	m := NewStateMigrator(tf.Dir(), actions, o, true)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
@@ -246,5 +251,36 @@ resource "aws_security_group" "baz" {}
 	}
 	if !changed {
 		t.Fatalf("expect to have changes")
+	}
+
+	// apply the saved plan files
+	plan, err := ioutil.ReadFile(filepath.Join(tf.Dir(), o.PlanOut))
+	if err != nil {
+		t.Fatalf("failed to read a saved plan file: %s", err)
+	}
+	err = tf.Apply(ctx, tfexec.NewPlan(plan), "", "-input=false", "-no-color")
+	if err != nil {
+		t.Fatalf("failed to apply the saved plan file: %s", err)
+	}
+
+	// Note that applying the plan file only affects a local state,
+	// make sure to force push it to remote after terraform apply.
+	// The -force flag is required here because the lineage of the state was changed.
+	state, err := ioutil.ReadFile(filepath.Join(tf.Dir(), "terraform.tfstate"))
+	if err != nil {
+		t.Fatalf("failed to read a local state file: %s", err)
+	}
+	err = tf.StatePush(ctx, tfexec.NewState(state), "-force")
+	if err != nil {
+		t.Fatalf("failed to force push the local state: %s", err)
+	}
+
+	// confirm no changes
+	changed, err = tf.PlanHasChange(ctx, nil, "")
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange: %s", err)
+	}
+	if changed {
+		t.Fatalf("expect not to have changes")
 	}
 }

@@ -2,6 +2,8 @@ package tfmigrate
 
 import (
 	"context"
+	"io/ioutil"
+	"path/filepath"
 	"reflect"
 	"sort"
 	"testing"
@@ -238,11 +240,13 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			ctx := context.Background()
+
 			//setup the initial files and states
 			fromBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/fromDir")
 			fromTf := tfexec.SetupTestAccWithApply(t, tc.fromWorkspace, fromBackend+tc.fromSource)
 			toBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/toDir")
 			toTf := tfexec.SetupTestAccWithApply(t, tc.toWorkspace, toBackend+tc.toSource)
+
 			//update terraform resource files for migration
 			tfexec.UpdateTestAccSource(t, fromTf, fromBackend+tc.fromUpdatedSource)
 			tfexec.UpdateTestAccSource(t, toTf, toBackend+tc.toUpdatedSource)
@@ -260,6 +264,7 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 			if !changed {
 				t.Fatalf("expect to have changes in toDir")
 			}
+
 			//perform state migration
 			actions := []MultiStateAction{}
 			for _, cmdStr := range tc.actions {
@@ -269,7 +274,13 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 				}
 				actions = append(actions, action)
 			}
-			m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), tc.fromWorkspace, tc.toWorkspace, actions, nil, tc.force)
+
+			o := &MigratorOption{}
+			if tc.force {
+				o.PlanOut = "foo.tfplan"
+			}
+
+			m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), tc.fromWorkspace, tc.toWorkspace, actions, o, tc.force)
 			err = m.Plan(ctx)
 			if err != nil {
 				t.Fatalf("failed to run migrator plan: %s", err)
@@ -279,6 +290,7 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to run migrator apply: %s", err)
 			}
+
 			//verify state migration results
 			fromGot, err := fromTf.StateList(ctx, nil, nil)
 			if err != nil {
@@ -311,6 +323,62 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 			}
 			if changed != tc.toStateExpectChange {
 				t.Fatalf("expected change in toDir is %t but actual value is %t", tc.toStateExpectChange, changed)
+			}
+
+			if tc.force {
+				// apply the saved plan files
+				fromPlan, err := ioutil.ReadFile(filepath.Join(fromTf.Dir(), o.PlanOut))
+				if err != nil {
+					t.Fatalf("failed to read a saved plan file in fromDir: %s", err)
+				}
+				err = fromTf.Apply(ctx, tfexec.NewPlan(fromPlan), "", "-input=false", "-no-color")
+				if err != nil {
+					t.Fatalf("failed to apply the saved plan file in fromDir: %s", err)
+				}
+				toPlan, err := ioutil.ReadFile(filepath.Join(toTf.Dir(), o.PlanOut))
+				if err != nil {
+					t.Fatalf("failed to read a saved plan file in toDir: %s", err)
+				}
+				err = toTf.Apply(ctx, tfexec.NewPlan(toPlan), "", "-input=false", "-no-color")
+				if err != nil {
+					t.Fatalf("failed to apply the saved plan file in toDir: %s", err)
+				}
+
+				// Note that applying the plan file only affects a local state,
+				// make sure to force push it to remote after terraform apply.
+				// The -force flag is required here because the lineage of the state was changed.
+				fromState, err := ioutil.ReadFile(filepath.Join(fromTf.Dir(), "terraform.tfstate"))
+				if err != nil {
+					t.Fatalf("failed to read a local state file in fromDir: %s", err)
+				}
+				err = fromTf.StatePush(ctx, tfexec.NewState(fromState), "-force")
+				if err != nil {
+					t.Fatalf("failed to force push the local state in fromDir: %s", err)
+				}
+				toState, err := ioutil.ReadFile(filepath.Join(toTf.Dir(), "terraform.tfstate"))
+				if err != nil {
+					t.Fatalf("failed to read a local state file in toDir: %s", err)
+				}
+				err = toTf.StatePush(ctx, tfexec.NewState(toState), "-force")
+				if err != nil {
+					t.Fatalf("failed to force push the local state in toDir: %s", err)
+				}
+
+				// confirm no changes
+				changed, err := fromTf.PlanHasChange(ctx, nil, "")
+				if err != nil {
+					t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
+				}
+				if changed {
+					t.Fatalf("expect not to have changes in fromDir")
+				}
+				changed, err = toTf.PlanHasChange(ctx, nil, "")
+				if err != nil {
+					t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
+				}
+				if changed {
+					t.Fatalf("expect not to have changes in toDir")
+				}
 			}
 		})
 	}

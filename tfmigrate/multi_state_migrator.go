@@ -71,6 +71,9 @@ type MultiStateMigrator struct {
 	toWorkspace string
 	// actions is a list of multi state migration operations.
 	actions []MultiStateAction
+	// o is an option for migrator.
+	// It is used for shared settings across Migrator instances.
+	o *MigratorOption
 	// force operation in case of unexpected diff
 	force bool
 }
@@ -92,6 +95,7 @@ func NewMultiStateMigrator(fromDir string, toDir string, fromWorkspace string, t
 		fromWorkspace: fromWorkspace,
 		toWorkspace:   toWorkspace,
 		actions:       actions,
+		o:             o,
 		force:         force,
 	}
 }
@@ -127,9 +131,16 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.S
 		fromCurrentState = tfexec.NewState(fromNewState.Bytes())
 		toCurrentState = tfexec.NewState(toNewState.Bytes())
 	}
+
+	// build plan options
+	planOpts := []string{"-input=false", "-no-color", "-detailed-exitcode"}
+	if m.o.PlanOut != "" {
+		planOpts = append(planOpts, "-out="+m.o.PlanOut)
+	}
+
 	// check if a plan in fromDir has no changes.
 	log.Printf("[INFO] [migrator@%s] check diffs\n", m.fromTf.Dir())
-	_, err = m.fromTf.Plan(ctx, fromCurrentState, "", "-input=false", "-no-color", "-detailed-exitcode")
+	_, err = m.fromTf.Plan(ctx, fromCurrentState, "", planOpts...)
 	if err != nil {
 		if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
 			if m.force {
@@ -144,7 +155,7 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.S
 
 	// check if a plan in toDir has no changes.
 	log.Printf("[INFO] [migrator@%s] check diffs\n", m.toTf.Dir())
-	_, err = m.toTf.Plan(ctx, toCurrentState, "", "-input=false", "-no-color", "-detailed-exitcode")
+	_, err = m.toTf.Plan(ctx, toCurrentState, "", planOpts...)
 	if err != nil {
 		if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
 			if m.force {

@@ -13,12 +13,14 @@ import (
 // migration operations to a temporary state.
 type PlanCommand struct {
 	Meta
+	out string
 }
 
 // Run runs the procedure of this command.
 func (c *PlanCommand) Run(args []string) int {
 	cmdFlags := flag.NewFlagSet("plan", flag.ContinueOnError)
 	cmdFlags.StringVar(&c.configFile, "config", defaultConfigFile, "A path to tfmigrate config file")
+	cmdFlags.StringVar(&c.out, "out", "", "Save a plan file after dry-run migration to the given path")
 
 	if err := cmdFlags.Parse(args); err != nil {
 		c.UI.Error(fmt.Sprintf("failed to parse arguments: %s", err))
@@ -33,6 +35,7 @@ func (c *PlanCommand) Run(args []string) int {
 	log.Printf("[DEBUG] [command] config: %#v\n", c.config)
 
 	c.Option = newOption()
+	c.Option.PlanOut = c.out
 	// The option may contains sensitive values such as environment variables.
 	// So logging the option set log level to DEBUG instead of INFO.
 	log.Printf("[DEBUG] [command] option: %#v\n", c.Option)
@@ -111,6 +114,9 @@ Arguments:
 
 Options:
   --config           A path to tfmigrate config file
+  --out=path         Save a plan file after dry-run migration to the given path.
+                     Note that applying the plan file only affects a local state,
+                     make sure to force push it to remote after terraform apply.
 `
 	return strings.TrimSpace(helpText)
 }

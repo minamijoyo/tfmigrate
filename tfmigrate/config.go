@@ -24,4 +24,7 @@ type MigratorOption struct {
 	// It's intended to inject a wrapper command such as direnv.
 	// e.g.) direnv exec . terraform
 	ExecPath string
+
+	// PlanOut is a path to plan file to be saved.
+	PlanOut string
 }

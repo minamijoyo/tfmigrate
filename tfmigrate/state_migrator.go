@@ -63,6 +63,9 @@ type StateMigrator struct {
 	tf tfexec.TerraformCLI
 	// actions is a list of state migration operations.
 	actions []StateAction
+	// o is an option for migrator.
+	// It is used for shared settings across Migrator instances.
+	o *MigratorOption
 	// force operation in case of unexpected diff
 	force bool
 }
@@ -80,6 +83,7 @@ func NewStateMigrator(dir string, actions []StateAction, o *MigratorOption, forc
 	return &StateMigrator{
 		tf:      tf,
 		actions: actions,
+		o:       o,
 		force:   force,
 	}
 }
@@ -108,8 +112,14 @@ func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 		currentState = tfexec.NewState(newState.Bytes())
 	}
 
+	// build plan options
+	planOpts := []string{"-input=false", "-no-color", "-detailed-exitcode"}
+	if m.o.PlanOut != "" {
+		planOpts = append(planOpts, "-out="+m.o.PlanOut)
+	}
+
 	log.Printf("[INFO] [migrator@%s] check diffs\n", m.tf.Dir())
-	_, err = m.tf.Plan(ctx, currentState, "", "-input=false", "-no-color", "-detailed-exitcode")
+	_, err = m.tf.Plan(ctx, currentState, "", planOpts...)
 	if err != nil {
 		if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
 			if m.force {
