@@ -76,7 +76,7 @@ func TestAccTerraformCLIWorkspaceSelect(t *testing.T) {
 		t.Fatalf("failed to run terraform workspace show: %s", err)
 	}
 
-	if got == "" {
+	if got != "default" {
 		t.Error("The current workspace doesn't match the workspace that was just selected")
 	}
 }
