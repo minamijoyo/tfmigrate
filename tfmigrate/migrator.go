@@ -3,8 +3,6 @@ package tfmigrate
 import (
 	"context"
 	"log"
-	"os"
-	"path/filepath"
 
 	"github.com/minamijoyo/tfmigrate/tfexec"
 )
@@ -32,10 +30,6 @@ func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI, workspace string)
 	}
 	log.Printf("[INFO] [migrator@%s] terraform version: %s\n", tf.Dir(), version)
 
-	// create local workspace folder
-	path := filepath.Join(tf.Dir(), "terraform.tfstate.d", workspace)
-	log.Printf("[INFO] [migrator@%s] creating local workspace folder in: %s\n", tf.Dir(), path)
-	os.MkdirAll(path, os.ModePerm)
 	// init folder
 	log.Printf("[INFO] [migrator@%s] initialize work dir\n", tf.Dir())
 	err = tf.Init(ctx, "", "-input=false", "-no-color")

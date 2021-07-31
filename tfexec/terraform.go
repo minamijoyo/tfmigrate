@@ -212,6 +212,13 @@ terraform {
 		return nil, fmt.Errorf("failed to create override file: %s", err)
 	}
 
+	// create local workspace state directory
+	workspaceStatePath := filepath.Join(c.Dir(), "terraform.tfstate.d", workspace)
+	log.Printf("[INFO] [migrator@%s] creating local workspace folder in: %s\n", c.Dir(), workspaceStatePath)
+	if err := os.MkdirAll(workspaceStatePath, os.ModePerm); err != nil {
+		return nil, fmt.Errorf("failed to create local workspace state directory: %s", err)
+	}
+
 	log.Printf("[INFO] [executor@%s] switch backend to local\n", c.Dir())
 	err := c.Init(ctx, "", "-input=false", "-no-color", "-reconfigure")
 	if err != nil {
