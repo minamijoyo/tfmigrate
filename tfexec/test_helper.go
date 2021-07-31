@@ -296,7 +296,7 @@ func SetupTestAccWithApply(t *testing.T, workspace string, source string) Terraf
 
 	//default workspace always exists so don't try to create it
 	if workspace != "default" {
-		err = tf.WorkspaceNew(ctx, workspace, "")
+		err = tf.WorkspaceNew(ctx, workspace)
 		if err != nil {
 			t.Fatalf("failed to run terraform workspace new %s : %s", workspace, err)
 		}

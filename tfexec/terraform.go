@@ -102,13 +102,13 @@ type TerraformCLI interface {
 	StatePush(ctx context.Context, state *State, opts ...string) error
 
 	// Create a new workspace with name "workspace".
-	WorkspaceNew(ctx context.Context, workspace string, dir string, opts ...string) error
+	WorkspaceNew(ctx context.Context, workspace string, opts ...string) error
 
 	// Returns the current selected workspace.
 	WorkspaceShow(ctx context.Context) (string, error)
 
 	// Switch to the workspace with name "workspace". This workspace should already exist
-	WorkspaceSelect(ctx context.Context, workspace string, dir string) error
+	WorkspaceSelect(ctx context.Context, workspace string) error
 
 	// Run is a low-level generic method for running an arbitrary terraform command.
 	Run(ctx context.Context, args ...string) (string, string, error)
@@ -212,11 +212,21 @@ terraform {
 		return nil, fmt.Errorf("failed to create override file: %s", err)
 	}
 
+	// create local workspace state directory
+	workspaceStatePath := filepath.Join(c.Dir(), "terraform.tfstate.d", workspace)
+	workspacePath := filepath.Join(c.Dir(), "terraform.tfstate.d")
+	log.Printf("[INFO] [migrator@%s] creating local workspace folder in: %s\n", c.Dir(), workspaceStatePath)
+	if err := os.MkdirAll(workspaceStatePath, os.ModePerm); err != nil {
+		return nil, fmt.Errorf("failed to create local workspace state directory: %s", err)
+	}
+
 	log.Printf("[INFO] [executor@%s] switch backend to local\n", c.Dir())
 	err := c.Init(ctx, "", "-input=false", "-no-color", "-reconfigure")
 	if err != nil {
 		// remove the override file before return an error.
 		os.Remove(path)
+		os.Remove(workspacePath)
+		os.Remove(workspaceStatePath)
 		return nil, fmt.Errorf("failed to switch backend to local: %s", err)
 	}
 
@@ -229,17 +239,18 @@ terraform {
 			log.Printf("[ERROR] [executor@%s] please remove the override file(%s) and re-run terraform init -reconfigure\n", c.Dir(), path)
 		}
 		// cleanup the local workspace directly used for local state
-		workspaceFolder := filepath.Join(c.Dir(), "terraform.tfstate.d", workspace)
-		err = os.Remove(workspaceFolder)
+		log.Printf("[INFO] [executor@%s] remove the workspace state folder\n", c.Dir())
+		err = os.Remove(workspaceStatePath)
 		if err != nil {
 			// we cannot return error here.
-			log.Printf("[ERROR] [executor@%s] failed to remove local workspace directory: %s\n", workspaceFolder, err)
+			log.Printf("[ERROR] [executor@%s] failed to remove local workspace state directory: %s\n", c.Dir(), err)
+			log.Printf("[ERROR] [executor@%s] please remove the local workspace state directory(%s) and re-run terraform init -reconfigure\n", c.Dir(), workspaceStatePath)
 		}
-		workspaceFolder = filepath.Join(c.Dir(), "terraform.tfstate.d")
-		err = os.Remove(workspaceFolder)
+		err = os.Remove(workspacePath)
 		if err != nil {
 			// we cannot return error here.
-			log.Printf("[ERROR] [executor@%s] failed to remove local workspace directory: %s\n", workspaceFolder, err)
+			log.Printf("[ERROR] [executor@%s] failed to remove local workspace directory: %s\n", c.Dir(), err)
+			log.Printf("[ERROR] [executor@%s] please remove the local workspace directory(%s) and re-run terraform init -reconfigure\n", c.Dir(), workspacePath)
 		}
 		log.Printf("[INFO] [executor@%s] switch back to remote\n", c.Dir())
 		err = c.Init(ctx, "", "-input=false", "-no-color", "-reconfigure")
