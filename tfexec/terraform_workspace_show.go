@@ -2,12 +2,8 @@ package tfexec
 
 import (
 	"context"
-	"fmt"
-	"regexp"
+	"strings"
 )
-
-// tfWorkspaceRe is a pattern to parse outputs from terraform workspace show.
-var tfWorkspaceRe = regexp.MustCompile(`^[a-zA-Z\d_-]{1,90}`)
 
 //WorkspaceShow returns the currently selected workspace
 func (c *terraformCLI) WorkspaceShow(ctx context.Context) (string, error) {
@@ -16,10 +12,5 @@ func (c *terraformCLI) WorkspaceShow(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	matched := tfWorkspaceRe.FindString(stdout)
-	if matched == "" {
-		return "", fmt.Errorf("failed to parse the current workspace : %s", stdout)
-	}
-	return matched, nil
+	return strings.TrimRight(stdout, "\n"), nil
 }
