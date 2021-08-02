@@ -225,8 +225,8 @@ terraform {
 	if err != nil {
 		// remove the override file before return an error.
 		os.Remove(path)
-		os.Remove(workspacePath)
 		os.Remove(workspaceStatePath)
+		os.Remove(workspacePath)
 		return nil, fmt.Errorf("failed to switch backend to local: %s", err)
 	}
 

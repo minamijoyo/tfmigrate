@@ -13,7 +13,7 @@ func TestTerraformCLIWorkspaceSelect(t *testing.T) {
 		ok           bool
 	}{
 		{
-			desc: "no workspace and no dir",
+			desc: "no workspace",
 			mockCommands: []*mockCommand{
 				{
 					args:     []string{"terraform", "workspace", "select"},

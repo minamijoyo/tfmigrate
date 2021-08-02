@@ -115,11 +115,6 @@ resource "aws_security_group" "bar" {}
 		t.Fatalf("expect to have changes")
 	}
 
-	// create local workspace folder
-	// this is a prerequisite before calling OverrideBackendToLocal
-	path := filepath.Join(terraformCLI.Dir(), "terraform.tfstate.d", workspace)
-	os.MkdirAll(path, os.ModePerm)
-
 	state, err := terraformCLI.StatePull(context.Background())
 	if err != nil {
 		t.Fatalf("failed to run terraform state pull: %s", err)
