@@ -33,6 +33,17 @@ func TestTerraformCLIWorkspaceSelect(t *testing.T) {
 			workspace: "foo",
 			ok:        true,
 		},
+		{
+			desc: "failed to run terraform workspace select",
+			mockCommands: []*mockCommand{
+				{
+					args:     []string{"terraform", "workspace", "select", "foo"},
+					exitCode: 1,
+				},
+			},
+			workspace: "foo",
+			ok:        false,
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
