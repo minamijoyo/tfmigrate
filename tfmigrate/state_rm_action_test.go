@@ -18,7 +18,7 @@ resource "aws_security_group" "bar" {}
 resource "aws_security_group" "baz" {}
 resource "aws_security_group" "qux" {}
 `
-	tf := tfexec.SetupTestAccWithApply(t, backend+source)
+	tf := tfexec.SetupTestAccWithApply(t, "default", backend+source)
 	ctx := context.Background()
 
 	updatedSource := `

@@ -101,7 +101,16 @@ type TerraformCLI interface {
 	// StatePush pushs a given State to remote.
 	StatePush(ctx context.Context, state *State, opts ...string) error
 
-	// Run is a low-level generic method for running an arbitrary terraform comamnd.
+	// Create a new workspace with name "workspace".
+	WorkspaceNew(ctx context.Context, workspace string, opts ...string) error
+
+	// Returns the current selected workspace.
+	WorkspaceShow(ctx context.Context) (string, error)
+
+	// Switch to the workspace with name "workspace". This workspace should already exist
+	WorkspaceSelect(ctx context.Context, workspace string) error
+
+	// Run is a low-level generic method for running an arbitrary terraform command.
 	Run(ctx context.Context, args ...string) (string, string, error)
 
 	// dir returns a working directory where terraform command is executed.
@@ -117,7 +126,7 @@ type TerraformCLI interface {
 	// so we need to switch the backend to local for temporary state operations.
 	// The filename argument must meet constraints for override file.
 	// (e.g.) _tfexec_override.tf
-	OverrideBackendToLocal(ctx context.Context, filename string) (func(), error)
+	OverrideBackendToLocal(ctx context.Context, filename string, workspace string) (func(), error)
 
 	// PlanHasChange is a helper method which runs plan and return true if the plan has change.
 	PlanHasChange(ctx context.Context, state *State, dir string, opts ...string) (bool, error)
@@ -189,7 +198,7 @@ func (c *terraformCLI) SetExecPath(execPath string) {
 // so we need to switch the backend to local for temporary state operations.
 // The filename argument must meet constraints for override file.
 // (e.g.) _tfexec_override.tf
-func (c *terraformCLI) OverrideBackendToLocal(ctx context.Context, filename string) (func(), error) {
+func (c *terraformCLI) OverrideBackendToLocal(ctx context.Context, filename string, workspace string) (func(), error) {
 	// create local backend override file.
 	path := filepath.Join(c.Dir(), filename)
 	contents := `
@@ -203,11 +212,21 @@ terraform {
 		return nil, fmt.Errorf("failed to create override file: %s", err)
 	}
 
+	// create local workspace state directory
+	workspaceStatePath := filepath.Join(c.Dir(), "terraform.tfstate.d", workspace)
+	workspacePath := filepath.Join(c.Dir(), "terraform.tfstate.d")
+	log.Printf("[INFO] [migrator@%s] creating local workspace folder in: %s\n", c.Dir(), workspaceStatePath)
+	if err := os.MkdirAll(workspaceStatePath, os.ModePerm); err != nil {
+		return nil, fmt.Errorf("failed to create local workspace state directory: %s", err)
+	}
+
 	log.Printf("[INFO] [executor@%s] switch backend to local\n", c.Dir())
 	err := c.Init(ctx, "", "-input=false", "-no-color", "-reconfigure")
 	if err != nil {
 		// remove the override file before return an error.
 		os.Remove(path)
+		os.Remove(workspaceStatePath)
+		os.Remove(workspacePath)
 		return nil, fmt.Errorf("failed to switch backend to local: %s", err)
 	}
 
@@ -218,6 +237,20 @@ terraform {
 			// we cannot return error here.
 			log.Printf("[ERROR] [executor@%s] failed to remove the override file: %s\n", c.Dir(), err)
 			log.Printf("[ERROR] [executor@%s] please remove the override file(%s) and re-run terraform init -reconfigure\n", c.Dir(), path)
+		}
+		// cleanup the local workspace directly used for local state
+		log.Printf("[INFO] [executor@%s] remove the workspace state folder\n", c.Dir())
+		err = os.Remove(workspaceStatePath)
+		if err != nil {
+			// we cannot return error here.
+			log.Printf("[ERROR] [executor@%s] failed to remove local workspace state directory: %s\n", c.Dir(), err)
+			log.Printf("[ERROR] [executor@%s] please remove the local workspace state directory(%s) and re-run terraform init -reconfigure\n", c.Dir(), workspaceStatePath)
+		}
+		err = os.Remove(workspacePath)
+		if err != nil {
+			// we cannot return error here.
+			log.Printf("[ERROR] [executor@%s] failed to remove local workspace directory: %s\n", c.Dir(), err)
+			log.Printf("[ERROR] [executor@%s] please remove the local workspace directory(%s) and re-run terraform init -reconfigure\n", c.Dir(), workspacePath)
 		}
 		log.Printf("[INFO] [executor@%s] switch back to remote\n", c.Dir())
 		err = c.Init(ctx, "", "-input=false", "-no-color", "-reconfigure")

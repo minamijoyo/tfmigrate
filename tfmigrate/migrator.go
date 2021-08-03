@@ -21,8 +21,8 @@ type Migrator interface {
 }
 
 // setupWorkDir is a common helper function to setup work dir and returns the
-// current state and a swtich back function.
-func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI) (*tfexec.State, func(), error) {
+// current state and a switch back function.
+func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI, workspace string) (*tfexec.State, func(), error) {
 	// check if terraform command is available.
 	version, err := tf.Version(ctx)
 	if err != nil {
@@ -30,27 +30,29 @@ func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI) (*tfexec.State, f
 	}
 	log.Printf("[INFO] [migrator@%s] terraform version: %s\n", tf.Dir(), version)
 
-	// initialize work dir.
+	// init folder
 	log.Printf("[INFO] [migrator@%s] initialize work dir\n", tf.Dir())
 	err = tf.Init(ctx, "", "-input=false", "-no-color")
 	if err != nil {
 		return nil, nil, err
 	}
-
+	//switch to workspace
+	log.Printf("[INFO] [migrator@%s] switch to remote workspace %s\n", tf.Dir(), workspace)
+	err = tf.WorkspaceSelect(ctx, workspace)
+	if err != nil {
+		return nil, nil, err
+	}
 	// get the current remote state.
 	log.Printf("[INFO] [migrator@%s] get the current remote state\n", tf.Dir())
 	currentState, err := tf.StatePull(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
-
-	// The -state flag for terraform command is not valid for remote state,
-	// so we need to switch the backend to local for temporary state operations.
+	//override backend to local
 	log.Printf("[INFO] [migrator@%s] override backend to local\n", tf.Dir())
-	switchBackToRemotekFunc, err := tf.OverrideBackendToLocal(ctx, "_tfmigrate_override.tf")
+	switchBackToRemotekFunc, err := tf.OverrideBackendToLocal(ctx, "_tfmigrate_override.tf", workspace)
 	if err != nil {
 		return nil, nil, err
 	}
-
 	return currentState, switchBackToRemotekFunc, nil
 }

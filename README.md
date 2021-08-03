@@ -5,6 +5,36 @@
 
 A Terraform state migration tool for GitOps.
 
+## Table of content
+<!--ts-->
+   * [Features](#features)
+   * [Why?](#why)
+   * [Supported Terraform versions](#supported-terraform-versions)
+   * [Getting Started](#getting-started)
+   * [Install](#install)
+      * [Homebrew](#homebrew)
+      * [Download](#download)
+      * [Source](#source)
+   * [Usage](#usage)
+   * [Configurations](#configurations)
+      * [Environment variables](#environment-variables)
+      * [Configuration file](#configuration-file)
+         * [tfmigrate block](#tfmigrate-block)
+         * [history block](#history-block)
+         * [storage block](#storage-block)
+         * [storage block (local)](#storage-block-local)
+         * [storage block (s3)](#storage-block-s3)
+   * [Migration file](#migration-file)
+      * [migration block](#migration-block)
+      * [migration block (state)](#migration-block-state)
+         * [state mv](#state-mv)
+         * [state rm](#state-rm)
+         * [state import](#state-import)
+      * [migration block (multi_state)](#migration-block-multi_state)
+         * [multi_state mv](#multi_state-mv)
+   * [License](#license)
+<!--te-->
+
 ## Features
 
 - GitOps friendly: Write terraform state mv/rm/import commands in HCL, plan and apply it.
@@ -454,7 +484,9 @@ migration "state" "test" {
 The `multi_state` migration updates states in two different directories. It is intended for moving resources across states. It has the following attributes.
 
 - `from_dir` (required): A working directory where states of resources move from.
+- `from_workspace` (optional): A terraform workspace in the FROM directory. Defaults to "default".
 - `to_dir` (required): A working directory where states of resources move to.
+- `to_workspace` (optional): A terraform workspace in the TO directory. Defaults to "default".
 - `actions` (required): Actions is a list of multi state action. An action is a plain text for state operation. Valid formats are the following.
   - `"mv <source> <destination>"`
 - `force` (optional): Apply migrations even if plan show changes
