@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.2.6 (2021/08/03)
+
 NEW FEATURES:
 
 * Support workspaces for multi-state migrations ([#31](https://github.com/minamijoyo/tfmigrate/pull/31))
