@@ -344,6 +344,23 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 					t.Fatalf("failed to apply the saved plan file in toDir: %s", err)
 				}
 
+				// Terraform >= v0.12.25 and < v0.13 has a bug for state push -force
+				// https://github.com/hashicorp/terraform/issues/25761
+				fromTfVersionMatched, err := tfexec.MatchTerraformVersion(ctx, fromTf, ">= 0.12.25, < 0.13")
+				if err != nil {
+					t.Fatalf("failed to check terraform version constraints in fromDir: %s", err)
+				}
+				if fromTfVersionMatched {
+					t.Skip("skip the following test due to a bug in Terraform v0.12")
+				}
+				toTfVersionMatched, err := tfexec.MatchTerraformVersion(ctx, toTf, ">= 0.12.25, < 0.13")
+				if err != nil {
+					t.Fatalf("failed to check terraform version constraints in toDir: %s", err)
+				}
+				if toTfVersionMatched {
+					t.Skip("skip the following test due to a bug in Terraform v0.12")
+				}
+
 				// Note that applying the plan file only affects a local state,
 				// make sure to force push it to remote after terraform apply.
 				// The -force flag is required here because the lineage of the state was changed.

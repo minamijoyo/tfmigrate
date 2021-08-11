@@ -263,6 +263,16 @@ resource "aws_security_group" "baz" {}
 		t.Fatalf("failed to apply the saved plan file: %s", err)
 	}
 
+	// Terraform >= v0.12.25 and < v0.13 has a bug for state push -force
+	// https://github.com/hashicorp/terraform/issues/25761
+	tfVersionMatched, err := tfexec.MatchTerraformVersion(ctx, tf, ">= 0.12.25, < 0.13")
+	if err != nil {
+		t.Fatalf("failed to check terraform version constraints: %s", err)
+	}
+	if tfVersionMatched {
+		t.Skip("skip the following test due to a bug in Terraform v0.12")
+	}
+
 	// Note that applying the plan file only affects a local state,
 	// make sure to force push it to remote after terraform apply.
 	// The -force flag is required here because the lineage of the state was changed.
