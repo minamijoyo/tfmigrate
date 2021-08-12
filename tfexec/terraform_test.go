@@ -196,3 +196,34 @@ func TestAccTerraformCLIPlanHasChange(t *testing.T) {
 		t.Fatalf("expect to have changes")
 	}
 }
+
+func TestGetOptionValue(t *testing.T) {
+	cases := []struct {
+		desc   string
+		opts   []string
+		prefix string
+		want   string
+	}{
+		{
+			desc:   "found",
+			opts:   []string{"-input=false", "-no-color", "-out=foo.tfplan", "-detailed-exitcode"},
+			prefix: "-out=",
+			want:   "foo.tfplan",
+		},
+		{
+			desc:   "not found",
+			opts:   []string{"-input=false", "-no-color", "-detailed-exitcode"},
+			prefix: "-out=",
+			want:   "",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			got := getOptionValue(tc.opts, tc.prefix)
+			if got != tc.want {
+				t.Errorf("got: %s, want: %s", got, tc.want)
+			}
+		})
+	}
+}

@@ -320,3 +320,13 @@ func hasPrefixOptions(opts []string, prefix string) bool {
 	}
 	return false
 }
+
+// getOptionValue returns a value if any element in a list of options has a given prefix.
+func getOptionValue(opts []string, prefix string) string {
+	for _, opt := range opts {
+		if strings.HasPrefix(opt, prefix) {
+			return opt[len(prefix):]
+		}
+	}
+	return ""
+}

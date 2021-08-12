@@ -11,6 +11,8 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/hashicorp/go-version"
 )
 
 // mockExecutor impolements the Executor interface for testing.
@@ -324,4 +326,21 @@ func UpdateTestAccSource(t *testing.T, tf TerraformCLI, source string) {
 	if err := ioutil.WriteFile(filepath.Join(tf.Dir(), testAccSourceFileName), []byte(source), 0644); err != nil {
 		t.Fatalf("failed to update source: %s", err)
 	}
+}
+
+// MatchTerraformVersion returns true if terraform version matches a given constraints.
+func MatchTerraformVersion(ctx context.Context, tf TerraformCLI, constraints string) (bool, error) {
+	tfVersionRaw, err := tf.Version(ctx)
+	if err != nil {
+		return false, fmt.Errorf("failed to get terraform version: %s", err)
+	}
+	v, err := version.NewVersion(tfVersionRaw)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse terraform version: %s", err)
+	}
+	c, err := version.NewConstraint(constraints)
+	if err != nil {
+		return false, fmt.Errorf("failed to new version constraint: %s", err)
+	}
+	return c.Check(v), nil
 }

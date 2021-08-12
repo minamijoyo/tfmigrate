@@ -24,21 +24,24 @@ func (c *terraformCLI) Plan(ctx context.Context, state *State, dir string, opts 
 		args = append(args, "-state="+tmpState.Name())
 	}
 
-	// disallow -out option for writing a plan file to a temporary file and load it to memory
+	// To return a plan file as a return value, we always use an -out option and load it to memory.
+	// if the option exists just use it else create a temporary file.
+	planOut := ""
 	if hasPrefixOptions(opts, "-out=") {
-		return nil, fmt.Errorf("failed to build options. The -out= option is not allowed. Read a return value: %v", opts)
-	}
+		planOut = getOptionValue(opts, "-out=")
+	} else {
+		tmpPlan, err := ioutil.TempFile("", "tfplan")
+		if err != nil {
+			return nil, fmt.Errorf("failed to create temporary plan file: %s", err)
+		}
+		planOut = tmpPlan.Name()
+		defer os.Remove(planOut)
 
-	tmpPlan, err := ioutil.TempFile("", "tfplan")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create temporary plan file: %s", err)
+		if err := tmpPlan.Close(); err != nil {
+			return nil, fmt.Errorf("failed to close temporary plan file: %s", err)
+		}
+		args = append(args, "-out="+planOut)
 	}
-	defer os.Remove(tmpPlan.Name())
-
-	if err := tmpPlan.Close(); err != nil {
-		return nil, fmt.Errorf("failed to close temporary plan file: %s", err)
-	}
-	args = append(args, "-out="+tmpPlan.Name())
 
 	args = append(args, opts...)
 
@@ -46,11 +49,11 @@ func (c *terraformCLI) Plan(ctx context.Context, state *State, dir string, opts 
 		args = append(args, dir)
 	}
 
-	_, _, err = c.Run(ctx, args...)
+	_, _, err := c.Run(ctx, args...)
 
 	// terraform plan -detailed-exitcode returns 2 if there is a diff.
 	// So we intentionally ignore an error of read the plan file and returns the
 	// original error of terraform plan command.
-	plan, _ := ioutil.ReadFile(tmpPlan.Name())
+	plan, _ := ioutil.ReadFile(planOut)
 	return NewPlan(plan), err
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
@@ -139,22 +141,6 @@ func TestTerraformCLIPlan(t *testing.T) {
 			want:  nil,
 			ok:    false,
 		},
-		{
-			desc: "with -out= (conflict error)",
-			mockCommands: []*mockCommand{
-				{
-					args:     []string{"terraform", "plan", "-state=/path/to/tempfile", "-out=/path/to/planfile", "-input=false", "-out=foo.tfplan", "foo"},
-					argsRe:   regexp.MustCompile(`^terraform plan -state=.+ -out=\S+ -input=false -no-color -out=foo.tfplan foo$`),
-					runFunc:  runFunc,
-					exitCode: 0,
-				},
-			},
-			dir:   "foo",
-			opts:  []string{"-input=false", "-out=foo.tfplan"},
-			state: state,
-			want:  nil,
-			ok:    false,
-		},
 	}
 
 	for _, tc := range cases {
@@ -194,5 +180,32 @@ func TestAccTerraformCLIPlan(t *testing.T) {
 
 	if plan == nil {
 		t.Error("plan success but returns nil")
+	}
+}
+
+func TestAccTerraformCLIPlanWithOut(t *testing.T) {
+	SkipUnlessAcceptanceTestEnabled(t)
+
+	source := `resource "null_resource" "foo" {}`
+	e := SetupTestAcc(t, source)
+	terraformCLI := NewTerraformCLI(e)
+
+	err := terraformCLI.Init(context.Background(), "", "-input=false", "-no-color")
+	if err != nil {
+		t.Fatalf("failed to run terraform init: %s", err)
+	}
+
+	planOut := "foo.tfplan"
+	plan, err := terraformCLI.Plan(context.Background(), nil, "", "-input=false", "-no-color", "-out="+planOut)
+	if err != nil {
+		t.Fatalf("failed to run terraform plan: %s", err)
+	}
+
+	if plan == nil {
+		t.Error("plan success but returns nil")
+	}
+
+	if _, err := os.Stat(filepath.Join(e.Dir(), planOut)); os.IsNotExist(err) {
+		t.Errorf("failed to find a plan file: %s, err %s", planOut, err)
 	}
 }
