@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.2.7 (2021/08/12)
+
 NEW FEATURES:
 
 * Add a new flag --out for saving a plan file after dry-run migrations ([#37](https://github.com/minamijoyo/tfmigrate/pull/37))
