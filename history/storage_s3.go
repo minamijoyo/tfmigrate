@@ -35,6 +35,8 @@ type S3StorageConfig struct {
 	SecretKey string `hcl:"secret_key,optional"`
 	// Name of AWS profile in AWS shared credentials file.
 	Profile string `hcl:"profile,optional"`
+	// Amazon Resource Name (ARN) of the IAM Role to assume.
+	RoleARN string `hcl:"role_arn,optional"`
 	// Skip credentials validation via the STS API.
 	SkipCredentialsValidation bool `hcl:"skip_credentials_validation,optional"`
 	// Skip usage of EC2 Metadata API.
@@ -109,6 +111,7 @@ func NewS3Storage(config *S3StorageConfig, client S3Client) (*S3Storage, error) 
 func newS3Client(config *S3StorageConfig) (S3Client, error) {
 	cfg := &awsbase.Config{
 		AccessKey:            config.AccessKey,
+		AssumeRoleARN:        config.RoleARN,
 		Profile:              config.Profile,
 		Region:               config.Region,
 		SecretKey:            config.SecretKey,
