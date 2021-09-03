@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+NEW FEATURES:
+
+* Add role_arn to S3StorageConfig ([#33](https://github.com/minamijoyo/tfmigrate/pull/33))
+
 ## 0.2.7 (2021/08/12)
 
 NEW FEATURES:
