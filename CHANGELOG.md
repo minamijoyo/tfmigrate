@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.2.9 (2021/09/04)
+
 BUG FIXES:
 
 * Fix a bug of multi_state doesn't show diffs in to_dir if force=true ([#40](https://github.com/minamijoyo/tfmigrate/pull/40))
