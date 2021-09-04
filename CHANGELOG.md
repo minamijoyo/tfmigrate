@@ -1,5 +1,14 @@
 ## master (Unreleased)
 
+BUG FIXES:
+
+* Fix a bug of multi_state doesn't show diffs in to_dir if force=true ([#40](https://github.com/minamijoyo/tfmigrate/pull/40))
+
+ENHANCEMENTS:
+
+* Restrict permissions for GitHub Actions ([#41](https://github.com/minamijoyo/tfmigrate/pull/41))
+* Set timeout for GitHub Actions ([#42](https://github.com/minamijoyo/tfmigrate/pull/42))
+
 ## 0.2.8 (2021/09/03)
 
 NEW FEATURES:
