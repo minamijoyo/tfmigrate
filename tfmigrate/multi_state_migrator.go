@@ -159,8 +159,7 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.S
 	if err != nil {
 		if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
 			if m.force {
-				log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true",
-					m.toTf.Dir())
+				log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true: %s", m.toTf.Dir(), err)
 				return fromCurrentState, toCurrentState, nil
 			}
 			log.Printf("[ERROR] [migrator@%s] unexpected diffs\n", m.toTf.Dir())
