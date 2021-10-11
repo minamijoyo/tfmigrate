@@ -189,15 +189,74 @@ YYYY/MM/DD hh:mm:ss [INFO] [migrator] state migrator apply success!
 The apply command computes a new state and pushes it to remote state.
 It will fail if terraform plan detects any diffs with the new state.
 
-Finally, you can check the latest remote state has no changes with terraform plan:
+You can confirm the latest remote state has no changes with terraform plan:
 
 ```
 # terraform plan
 (snip.)
 No changes. Infrastructure is up-to-date.
+
+# terraform state list
+aws_security_group.bar
+aws_security_group.baz
 ```
 
 There is no magic. The tfmigrate just did the boring work for you.
+
+Furthermore, you can also move resources to another directory. Let's split the tfstate in two.
+Create a new empty directory with a different remote state path:
+
+```
+# mkdir dir2
+# cat config.tf | sed 's/test\/terraform.tfstate/dir2\/terraform.tfstate/' > dir2/config.tf
+```
+
+Move the resource definition of `aws_security_group.baz` in `main.tf` to `dir2/main.tf` and rename it to `aws_security_group.baz2`:
+
+```
+# cat << EOF > main.tf
+resource "aws_security_group" "bar" {
+  name = "bar"
+}
+EOF
+
+# cat << EOF > dir2/main.tf
+resource "aws_security_group" "baz2" {
+  name = "foo"
+}
+EOF
+```
+
+Create a `multi_state` migration file:
+
+```
+# cat << EOF > tfmigrate_multi_state_test.hcl
+migration "multi_state" "test" {
+  from_dir = "."
+  to_dir   = "dir2"
+
+  actions = [
+    "mv aws_security_group.baz aws_security_group.baz2",
+  ]
+}
+EOF
+```
+
+Run tfmigrate plan & apply:
+
+```
+# tfmigrate plan tfmigrate_multi_state_test.hcl
+# tfmigrate apply tfmigrate_multi_state_test.hcl
+```
+
+You can see the tfstate was split in two:
+
+```
+# terraform state list
+aws_security_group.bar
+# cd dir2 && terraform state list
+aws_security_group.baz2
+```
 
 ## Install
 
