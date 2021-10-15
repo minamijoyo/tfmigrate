@@ -1,5 +1,10 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Skip workspace select if already selected ([#47](https://github.com/minamijoyo/tfmigrate/pull/47))
+* Cancel test if stale ([#48](https://github.com/minamijoyo/tfmigrate/pull/48))
+
 ## 0.2.9 (2021/09/04)
 
 BUG FIXES:
