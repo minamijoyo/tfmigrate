@@ -14,7 +14,7 @@ import (
 )
 
 // Version is a version number.
-var version = "0.2.9"
+var version = "0.2.10"
 
 func main() {
 	log.SetOutput(logOutput())
