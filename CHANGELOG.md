@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.2.10 (2021/10/15)
+
 ENHANCEMENTS:
 
 * Skip workspace select if already selected ([#47](https://github.com/minamijoyo/tfmigrate/pull/47))
