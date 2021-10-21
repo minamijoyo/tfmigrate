@@ -61,8 +61,8 @@ type TerraformCLI interface {
 	// Verison returns a version number of Terraform.
 	Version(ctx context.Context) (string, error)
 
-	// Init initializes a given work directory.
-	Init(ctx context.Context, dir string, opts ...string) error
+	// Init initializes the current work directory.
+	Init(ctx context.Context, opts ...string) error
 
 	// Plan computes expected changes.
 	// If a state is given, use it for the input state.
@@ -221,7 +221,7 @@ terraform {
 	}
 
 	log.Printf("[INFO] [executor@%s] switch backend to local\n", c.Dir())
-	err := c.Init(ctx, "", "-input=false", "-no-color", "-reconfigure")
+	err := c.Init(ctx, "-input=false", "-no-color", "-reconfigure")
 	if err != nil {
 		// remove the override file before return an error.
 		os.Remove(path)
@@ -253,7 +253,7 @@ terraform {
 			log.Printf("[ERROR] [executor@%s] please remove the local workspace directory(%s) and re-run terraform init -reconfigure\n", c.Dir(), workspacePath)
 		}
 		log.Printf("[INFO] [executor@%s] switch back to remote\n", c.Dir())
-		err = c.Init(ctx, "", "-input=false", "-no-color", "-reconfigure")
+		err = c.Init(ctx, "-input=false", "-no-color", "-reconfigure")
 		if err != nil {
 			// we cannot return error here.
 			log.Printf("[ERROR] [executor@%s] failed to switch back to remote: %s\n", c.Dir(), err)
