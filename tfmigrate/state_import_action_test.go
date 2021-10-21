@@ -31,7 +31,7 @@ resource "aws_iam_user" "baz" {
 		t.Fatalf("failed to run terraform state rm: %s", err)
 	}
 
-	changed, err := tf.PlanHasChange(ctx, nil, "")
+	changed, err := tf.PlanHasChange(ctx, nil)
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange: %s", err)
 	}

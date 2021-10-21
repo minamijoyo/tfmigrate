@@ -66,7 +66,7 @@ type TerraformCLI interface {
 
 	// Plan computes expected changes.
 	// If a state is given, use it for the input state.
-	Plan(ctx context.Context, state *State, dir string, opts ...string) (*Plan, error)
+	Plan(ctx context.Context, state *State, opts ...string) (*Plan, error)
 
 	// Apply applies changes.
 	// If a plan is given, use it for the input plan.
@@ -129,7 +129,7 @@ type TerraformCLI interface {
 	OverrideBackendToLocal(ctx context.Context, filename string, workspace string) (func(), error)
 
 	// PlanHasChange is a helper method which runs plan and return true if the plan has change.
-	PlanHasChange(ctx context.Context, state *State, dir string, opts ...string) (bool, error)
+	PlanHasChange(ctx context.Context, state *State, opts ...string) (bool, error)
 }
 
 // terraformCLI implements the TerraformCLI interface.
@@ -265,10 +265,10 @@ terraform {
 }
 
 // PlanHasChange is a helper method which runs plan and return true only if the plan has change.
-func (c *terraformCLI) PlanHasChange(ctx context.Context, state *State, dir string, opts ...string) (bool, error) {
+func (c *terraformCLI) PlanHasChange(ctx context.Context, state *State, opts ...string) (bool, error) {
 
 	merged := mergeOptions(opts, []string{"-input=false", "-no-color", "-detailed-exitcode"})
-	_, err := c.Plan(ctx, state, dir, merged...)
+	_, err := c.Plan(ctx, state, merged...)
 	if err != nil {
 		if exitErr, ok := err.(ExitError); ok && exitErr.ExitCode() == 2 {
 			return true, nil

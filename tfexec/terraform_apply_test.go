@@ -128,7 +128,7 @@ func TestAccTerraformCLIApply(t *testing.T) {
 		t.Fatalf("failed to run terraform init: %s", err)
 	}
 
-	plan, err := terraformCLI.Plan(context.Background(), nil, "", "-input=false", "-no-color")
+	plan, err := terraformCLI.Plan(context.Background(), nil, "-input=false", "-no-color")
 	if err != nil {
 		t.Fatalf("failed to run terraform plan: %s", err)
 	}

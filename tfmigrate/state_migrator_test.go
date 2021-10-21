@@ -134,7 +134,7 @@ resource "aws_iam_user" "qux" {
 		t.Fatalf("failed to run terraform state rm: %s", err)
 	}
 
-	changed, err := tf.PlanHasChange(ctx, nil, "")
+	changed, err := tf.PlanHasChange(ctx, nil)
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange: %s", err)
 	}
@@ -175,7 +175,7 @@ resource "aws_iam_user" "qux" {
 		t.Errorf("got state: %v, want state: %v", got, want)
 	}
 
-	changed, err = tf.PlanHasChange(ctx, nil, "")
+	changed, err = tf.PlanHasChange(ctx, nil)
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange: %s", err)
 	}
@@ -204,7 +204,7 @@ resource "aws_security_group" "baz" {}
 
 	tfexec.UpdateTestAccSource(t, tf, backend+updatedSource)
 
-	changed, err := tf.PlanHasChange(ctx, nil, "")
+	changed, err := tf.PlanHasChange(ctx, nil)
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange: %s", err)
 	}
@@ -245,7 +245,7 @@ resource "aws_security_group" "baz" {}
 		t.Errorf("got state: %v, want state: %v", got, want)
 	}
 
-	changed, err = tf.PlanHasChange(ctx, nil, "")
+	changed, err = tf.PlanHasChange(ctx, nil)
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange: %s", err)
 	}
@@ -286,7 +286,7 @@ resource "aws_security_group" "baz" {}
 	}
 
 	// confirm no changes
-	changed, err = tf.PlanHasChange(ctx, nil, "")
+	changed, err = tf.PlanHasChange(ctx, nil)
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange: %s", err)
 	}

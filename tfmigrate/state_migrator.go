@@ -119,7 +119,7 @@ func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 	}
 
 	log.Printf("[INFO] [migrator@%s] check diffs\n", m.tf.Dir())
-	_, err = m.tf.Plan(ctx, currentState, "", planOpts...)
+	_, err = m.tf.Plan(ctx, currentState, planOpts...)
 	if err != nil {
 		if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
 			if m.force {

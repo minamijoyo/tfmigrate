@@ -107,7 +107,7 @@ resource "aws_security_group" "bar" {}
 `
 	UpdateTestAccSource(t, terraformCLI, backend+updatedSource)
 
-	changed, err := terraformCLI.PlanHasChange(context.Background(), nil, "")
+	changed, err := terraformCLI.PlanHasChange(context.Background(), nil)
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange: %s", err)
 	}
@@ -139,7 +139,7 @@ resource "aws_security_group" "bar" {}
 		t.Fatalf("failed to run terraform state mv: %s", err)
 	}
 
-	changed, err = terraformCLI.PlanHasChange(context.Background(), updatedState, "")
+	changed, err = terraformCLI.PlanHasChange(context.Background(), updatedState)
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange: %s", err)
 	}
@@ -153,7 +153,7 @@ resource "aws_security_group" "bar" {}
 		t.Fatalf("the override file wasn't removed: %s", err)
 	}
 
-	changed, err = terraformCLI.PlanHasChange(context.Background(), nil, "")
+	changed, err = terraformCLI.PlanHasChange(context.Background(), nil)
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange: %s", err)
 	}
@@ -174,7 +174,7 @@ func TestAccTerraformCLIPlanHasChange(t *testing.T) {
 		t.Fatalf("failed to run terraform init: %s", err)
 	}
 
-	changed, err := terraformCLI.PlanHasChange(context.Background(), nil, "")
+	changed, err := terraformCLI.PlanHasChange(context.Background(), nil)
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange: %s", err)
 	}
@@ -187,7 +187,7 @@ func TestAccTerraformCLIPlanHasChange(t *testing.T) {
 		t.Fatalf("failed to run terraform apply: %s", err)
 	}
 
-	changed, err = terraformCLI.PlanHasChange(context.Background(), nil, "")
+	changed, err = terraformCLI.PlanHasChange(context.Background(), nil)
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange: %s", err)
 	}

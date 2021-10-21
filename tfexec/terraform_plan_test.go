@@ -31,13 +31,12 @@ func TestTerraformCLIPlan(t *testing.T) {
 		desc         string
 		mockCommands []*mockCommand
 		state        *State
-		dir          string
 		opts         []string
 		want         *Plan
 		ok           bool
 	}{
 		{
-			desc: "no dir and no opts",
+			desc: "no opts",
 			mockCommands: []*mockCommand{
 				{
 					args:     []string{"terraform", "plan", "-out=/path/to/planfile"},
@@ -64,21 +63,6 @@ func TestTerraformCLIPlan(t *testing.T) {
 			ok:    false,
 		},
 		{
-			desc: "with dir",
-			mockCommands: []*mockCommand{
-				{
-					args:     []string{"terraform", "plan", "-out=/path/to/planfile", "foo"},
-					argsRe:   regexp.MustCompile(`^terraform plan -out=.+ foo$`),
-					runFunc:  runFunc,
-					exitCode: 0,
-				},
-			},
-			dir:   "foo",
-			state: nil,
-			want:  plan,
-			ok:    true,
-		},
-		{
 			desc: "with opts",
 			mockCommands: []*mockCommand{
 				{
@@ -94,32 +78,15 @@ func TestTerraformCLIPlan(t *testing.T) {
 			ok:    true,
 		},
 		{
-			desc: "with dir and opts",
-			mockCommands: []*mockCommand{
-				{
-					args:     []string{"terraform", "plan", "-out=/path/to/planfile", "-input=false", "-no-color", "foo"},
-					argsRe:   regexp.MustCompile(`^terraform plan -out=.+ -input=false -no-color foo$`),
-					runFunc:  runFunc,
-					exitCode: 0,
-				},
-			},
-			dir:   "foo",
-			opts:  []string{"-input=false", "-no-color"},
-			state: nil,
-			want:  plan,
-			ok:    true,
-		},
-		{
 			desc: "with state",
 			mockCommands: []*mockCommand{
 				{
-					args:     []string{"terraform", "plan", "-state=/path/to/tempfile", "-out=/path/to/planfile", "-input=false", "-no-color", "foo"},
-					argsRe:   regexp.MustCompile(`^terraform plan -state=.+ -out=.+ -input=false -no-color foo$`),
+					args:     []string{"terraform", "plan", "-state=/path/to/tempfile", "-out=/path/to/planfile", "-input=false", "-no-color"},
+					argsRe:   regexp.MustCompile(`^terraform plan -state=.+ -out=.+ -input=false -no-color$`),
 					runFunc:  runFunc,
 					exitCode: 0,
 				},
 			},
-			dir:   "foo",
 			opts:  []string{"-input=false", "-no-color"},
 			state: state,
 			want:  plan,
@@ -129,13 +96,12 @@ func TestTerraformCLIPlan(t *testing.T) {
 			desc: "with state and -state= (conflict error)",
 			mockCommands: []*mockCommand{
 				{
-					args:     []string{"terraform", "plan", "-state=/path/to/tempfile", "-out=/path/to/planfile", "-input=false", "-state=foo.tfstate", "foo"},
-					argsRe:   regexp.MustCompile(`^terraform plan -state=\S+ -out=.+ -input=false -no-color -state=foo.tfstate foo$`),
+					args:     []string{"terraform", "plan", "-state=/path/to/tempfile", "-out=/path/to/planfile", "-input=false", "-state=foo.tfstate"},
+					argsRe:   regexp.MustCompile(`^terraform plan -state=\S+ -out=.+ -input=false -no-color -state=foo.tfstate$`),
 					runFunc:  runFunc,
 					exitCode: 0,
 				},
 			},
-			dir:   "foo",
 			opts:  []string{"-input=false", "-state=foo.tfstate"},
 			state: state,
 			want:  nil,
@@ -147,7 +113,7 @@ func TestTerraformCLIPlan(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			e := NewMockExecutor(tc.mockCommands)
 			terraformCLI := NewTerraformCLI(e)
-			got, err := terraformCLI.Plan(context.Background(), tc.state, tc.dir, tc.opts...)
+			got, err := terraformCLI.Plan(context.Background(), tc.state, tc.opts...)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}
@@ -173,7 +139,7 @@ func TestAccTerraformCLIPlan(t *testing.T) {
 		t.Fatalf("failed to run terraform init: %s", err)
 	}
 
-	plan, err := terraformCLI.Plan(context.Background(), nil, "", "-input=false", "-no-color")
+	plan, err := terraformCLI.Plan(context.Background(), nil, "-input=false", "-no-color")
 	if err != nil {
 		t.Fatalf("failed to run terraform plan: %s", err)
 	}
@@ -196,7 +162,7 @@ func TestAccTerraformCLIPlanWithOut(t *testing.T) {
 	}
 
 	planOut := "foo.tfplan"
-	plan, err := terraformCLI.Plan(context.Background(), nil, "", "-input=false", "-no-color", "-out="+planOut)
+	plan, err := terraformCLI.Plan(context.Background(), nil, "-input=false", "-no-color", "-out="+planOut)
 	if err != nil {
 		t.Fatalf("failed to run terraform plan: %s", err)
 	}
