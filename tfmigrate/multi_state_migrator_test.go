@@ -331,7 +331,7 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 				if err != nil {
 					t.Fatalf("failed to read a saved plan file in fromDir: %s", err)
 				}
-				err = fromTf.Apply(ctx, tfexec.NewPlan(fromPlan), "", "-input=false", "-no-color")
+				err = fromTf.Apply(ctx, tfexec.NewPlan(fromPlan), "-input=false", "-no-color")
 				if err != nil {
 					t.Fatalf("failed to apply the saved plan file in fromDir: %s", err)
 				}
@@ -339,7 +339,7 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 				if err != nil {
 					t.Fatalf("failed to read a saved plan file in toDir: %s", err)
 				}
-				err = toTf.Apply(ctx, tfexec.NewPlan(toPlan), "", "-input=false", "-no-color")
+				err = toTf.Apply(ctx, tfexec.NewPlan(toPlan), "-input=false", "-no-color")
 				if err != nil {
 					t.Fatalf("failed to apply the saved plan file in toDir: %s", err)
 				}

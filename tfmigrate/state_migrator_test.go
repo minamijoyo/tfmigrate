@@ -258,7 +258,7 @@ resource "aws_security_group" "baz" {}
 	if err != nil {
 		t.Fatalf("failed to read a saved plan file: %s", err)
 	}
-	err = tf.Apply(ctx, tfexec.NewPlan(plan), "", "-input=false", "-no-color")
+	err = tf.Apply(ctx, tfexec.NewPlan(plan), "-input=false", "-no-color")
 	if err != nil {
 		t.Fatalf("failed to apply the saved plan file: %s", err)
 	}

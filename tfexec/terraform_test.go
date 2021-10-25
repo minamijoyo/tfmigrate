@@ -182,7 +182,7 @@ func TestAccTerraformCLIPlanHasChange(t *testing.T) {
 		t.Fatalf("expect not to have changes")
 	}
 
-	err = terraformCLI.Apply(context.Background(), nil, "", "-input=false", "-no-color", "-auto-approve")
+	err = terraformCLI.Apply(context.Background(), nil, "-input=false", "-no-color", "-auto-approve")
 	if err != nil {
 		t.Fatalf("failed to run terraform apply: %s", err)
 	}

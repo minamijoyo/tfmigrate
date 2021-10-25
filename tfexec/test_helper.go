@@ -304,7 +304,7 @@ func SetupTestAccWithApply(t *testing.T, workspace string, source string) Terraf
 		}
 	}
 
-	err = tf.Apply(ctx, nil, "", "-input=false", "-no-color", "-auto-approve")
+	err = tf.Apply(ctx, nil, "-input=false", "-no-color", "-auto-approve")
 	if err != nil {
 		t.Fatalf("failed to run terraform apply: %s", err)
 	}
