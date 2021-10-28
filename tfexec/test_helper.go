@@ -291,7 +291,7 @@ func SetupTestAccWithApply(t *testing.T, workspace string, source string) Terraf
 	tf := NewTerraformCLI(e)
 	ctx := context.Background()
 
-	err := tf.Init(ctx, "", "-input=false", "-no-color")
+	err := tf.Init(ctx, "-input=false", "-no-color")
 	if err != nil {
 		t.Fatalf("failed to run terraform init: %s", err)
 	}
@@ -304,14 +304,14 @@ func SetupTestAccWithApply(t *testing.T, workspace string, source string) Terraf
 		}
 	}
 
-	err = tf.Apply(ctx, nil, "", "-input=false", "-no-color", "-auto-approve")
+	err = tf.Apply(ctx, nil, "-input=false", "-no-color", "-auto-approve")
 	if err != nil {
 		t.Fatalf("failed to run terraform apply: %s", err)
 	}
 
 	// destroy resources after each test not to have any state.
 	t.Cleanup(func() {
-		err := tf.Destroy(ctx, "", "-input=false", "-no-color", "-auto-approve")
+		err := tf.Destroy(ctx, "-input=false", "-no-color", "-auto-approve")
 		if err != nil {
 			t.Fatalf("failed to run terraform destroy: %s", err)
 		}

@@ -28,7 +28,7 @@ resource "aws_security_group" "baz" {}
 
 	tfexec.UpdateTestAccSource(t, tf, backend+updatedSource)
 
-	changed, err := tf.PlanHasChange(ctx, nil, "")
+	changed, err := tf.PlanHasChange(ctx, nil)
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange: %s", err)
 	}

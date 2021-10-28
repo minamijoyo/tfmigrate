@@ -107,7 +107,7 @@ resource "aws_security_group" "bar" {}
 `
 	UpdateTestAccSource(t, terraformCLI, backend+updatedSource)
 
-	changed, err := terraformCLI.PlanHasChange(context.Background(), nil, "")
+	changed, err := terraformCLI.PlanHasChange(context.Background(), nil)
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange: %s", err)
 	}
@@ -139,7 +139,7 @@ resource "aws_security_group" "bar" {}
 		t.Fatalf("failed to run terraform state mv: %s", err)
 	}
 
-	changed, err = terraformCLI.PlanHasChange(context.Background(), updatedState, "")
+	changed, err = terraformCLI.PlanHasChange(context.Background(), updatedState)
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange: %s", err)
 	}
@@ -153,7 +153,7 @@ resource "aws_security_group" "bar" {}
 		t.Fatalf("the override file wasn't removed: %s", err)
 	}
 
-	changed, err = terraformCLI.PlanHasChange(context.Background(), nil, "")
+	changed, err = terraformCLI.PlanHasChange(context.Background(), nil)
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange: %s", err)
 	}
@@ -169,12 +169,12 @@ func TestAccTerraformCLIPlanHasChange(t *testing.T) {
 	e := SetupTestAcc(t, source)
 	terraformCLI := NewTerraformCLI(e)
 
-	err := terraformCLI.Init(context.Background(), "", "-input=false", "-no-color")
+	err := terraformCLI.Init(context.Background(), "-input=false", "-no-color")
 	if err != nil {
 		t.Fatalf("failed to run terraform init: %s", err)
 	}
 
-	changed, err := terraformCLI.PlanHasChange(context.Background(), nil, "")
+	changed, err := terraformCLI.PlanHasChange(context.Background(), nil)
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange: %s", err)
 	}
@@ -182,12 +182,12 @@ func TestAccTerraformCLIPlanHasChange(t *testing.T) {
 		t.Fatalf("expect not to have changes")
 	}
 
-	err = terraformCLI.Apply(context.Background(), nil, "", "-input=false", "-no-color", "-auto-approve")
+	err = terraformCLI.Apply(context.Background(), nil, "-input=false", "-no-color", "-auto-approve")
 	if err != nil {
 		t.Fatalf("failed to run terraform apply: %s", err)
 	}
 
-	changed, err = terraformCLI.PlanHasChange(context.Background(), nil, "")
+	changed, err = terraformCLI.PlanHasChange(context.Background(), nil)
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange: %s", err)
 	}

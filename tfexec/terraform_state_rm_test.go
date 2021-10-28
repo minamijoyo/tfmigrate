@@ -152,12 +152,12 @@ resource "null_resource" "bar" {}
 	e := SetupTestAcc(t, source)
 	terraformCLI := NewTerraformCLI(e)
 
-	err := terraformCLI.Init(context.Background(), "", "-input=false", "-no-color")
+	err := terraformCLI.Init(context.Background(), "-input=false", "-no-color")
 	if err != nil {
 		t.Fatalf("failed to run terraform init: %s", err)
 	}
 
-	err = terraformCLI.Apply(context.Background(), nil, "", "-input=false", "-no-color", "-auto-approve")
+	err = terraformCLI.Apply(context.Background(), nil, "-input=false", "-no-color", "-auto-approve")
 	if err != nil {
 		t.Fatalf("failed to run terraform apply: %s", err)
 	}

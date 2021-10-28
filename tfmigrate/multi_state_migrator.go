@@ -140,7 +140,7 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.S
 
 	// check if a plan in fromDir has no changes.
 	log.Printf("[INFO] [migrator@%s] check diffs\n", m.fromTf.Dir())
-	_, err = m.fromTf.Plan(ctx, fromCurrentState, "", planOpts...)
+	_, err = m.fromTf.Plan(ctx, fromCurrentState, planOpts...)
 	if err != nil {
 		if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
 			if m.force {
@@ -155,7 +155,7 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.S
 
 	// check if a plan in toDir has no changes.
 	log.Printf("[INFO] [migrator@%s] check diffs\n", m.toTf.Dir())
-	_, err = m.toTf.Plan(ctx, toCurrentState, "", planOpts...)
+	_, err = m.toTf.Plan(ctx, toCurrentState, planOpts...)
 	if err != nil {
 		if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
 			if m.force {

@@ -250,14 +250,14 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 			//update terraform resource files for migration
 			tfexec.UpdateTestAccSource(t, fromTf, fromBackend+tc.fromUpdatedSource)
 			tfexec.UpdateTestAccSource(t, toTf, toBackend+tc.toUpdatedSource)
-			changed, err := fromTf.PlanHasChange(ctx, nil, "")
+			changed, err := fromTf.PlanHasChange(ctx, nil)
 			if err != nil {
 				t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
 			}
 			if !changed {
 				t.Fatalf("expect to have changes in fromDir")
 			}
-			changed, err = toTf.PlanHasChange(ctx, nil, "")
+			changed, err = toTf.PlanHasChange(ctx, nil)
 			if err != nil {
 				t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
 			}
@@ -310,14 +310,14 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 			if !reflect.DeepEqual(toGot, tc.toUpdatedState) {
 				t.Errorf("got state: %v, want state: %v in toDir", toGot, tc.toUpdatedState)
 			}
-			changed, err = fromTf.PlanHasChange(ctx, nil, "")
+			changed, err = fromTf.PlanHasChange(ctx, nil)
 			if err != nil {
 				t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
 			}
 			if changed != tc.fromStateExpectChange {
 				t.Fatalf("expected change in fromDir is %t but actual value is %t", tc.fromStateExpectChange, changed)
 			}
-			changed, err = toTf.PlanHasChange(ctx, nil, "")
+			changed, err = toTf.PlanHasChange(ctx, nil)
 			if err != nil {
 				t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
 			}
@@ -331,7 +331,7 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 				if err != nil {
 					t.Fatalf("failed to read a saved plan file in fromDir: %s", err)
 				}
-				err = fromTf.Apply(ctx, tfexec.NewPlan(fromPlan), "", "-input=false", "-no-color")
+				err = fromTf.Apply(ctx, tfexec.NewPlan(fromPlan), "-input=false", "-no-color")
 				if err != nil {
 					t.Fatalf("failed to apply the saved plan file in fromDir: %s", err)
 				}
@@ -339,7 +339,7 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 				if err != nil {
 					t.Fatalf("failed to read a saved plan file in toDir: %s", err)
 				}
-				err = toTf.Apply(ctx, tfexec.NewPlan(toPlan), "", "-input=false", "-no-color")
+				err = toTf.Apply(ctx, tfexec.NewPlan(toPlan), "-input=false", "-no-color")
 				if err != nil {
 					t.Fatalf("failed to apply the saved plan file in toDir: %s", err)
 				}
@@ -382,14 +382,14 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 				}
 
 				// confirm no changes
-				changed, err := fromTf.PlanHasChange(ctx, nil, "")
+				changed, err := fromTf.PlanHasChange(ctx, nil)
 				if err != nil {
 					t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
 				}
 				if changed {
 					t.Fatalf("expect not to have changes in fromDir")
 				}
-				changed, err = toTf.PlanHasChange(ctx, nil, "")
+				changed, err = toTf.PlanHasChange(ctx, nil)
 				if err != nil {
 					t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
 				}

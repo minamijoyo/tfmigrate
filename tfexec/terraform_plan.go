@@ -9,7 +9,7 @@ import (
 
 // Plan computes expected changes.
 // If a state is given, use it for the input state.
-func (c *terraformCLI) Plan(ctx context.Context, state *State, dir string, opts ...string) (*Plan, error) {
+func (c *terraformCLI) Plan(ctx context.Context, state *State, opts ...string) (*Plan, error) {
 	args := []string{"plan"}
 
 	if state != nil {
@@ -44,10 +44,6 @@ func (c *terraformCLI) Plan(ctx context.Context, state *State, dir string, opts 
 	}
 
 	args = append(args, opts...)
-
-	if len(dir) > 0 {
-		args = append(args, dir)
-	}
 
 	_, _, err := c.Run(ctx, args...)
 

@@ -61,19 +61,19 @@ type TerraformCLI interface {
 	// Verison returns a version number of Terraform.
 	Version(ctx context.Context) (string, error)
 
-	// Init initializes a given work directory.
-	Init(ctx context.Context, dir string, opts ...string) error
+	// Init initializes the current work directory.
+	Init(ctx context.Context, opts ...string) error
 
 	// Plan computes expected changes.
 	// If a state is given, use it for the input state.
-	Plan(ctx context.Context, state *State, dir string, opts ...string) (*Plan, error)
+	Plan(ctx context.Context, state *State, opts ...string) (*Plan, error)
 
 	// Apply applies changes.
 	// If a plan is given, use it for the input plan.
-	Apply(ctx context.Context, plan *Plan, dir string, opts ...string) error
+	Apply(ctx context.Context, plan *Plan, opts ...string) error
 
 	// Destroy destroys resources.
-	Destroy(ctx context.Context, dir string, opts ...string) error
+	Destroy(ctx context.Context, opts ...string) error
 
 	// Import imports an existing resource to state.
 	// If a state is given, use it for the input state.
@@ -129,7 +129,7 @@ type TerraformCLI interface {
 	OverrideBackendToLocal(ctx context.Context, filename string, workspace string) (func(), error)
 
 	// PlanHasChange is a helper method which runs plan and return true if the plan has change.
-	PlanHasChange(ctx context.Context, state *State, dir string, opts ...string) (bool, error)
+	PlanHasChange(ctx context.Context, state *State, opts ...string) (bool, error)
 }
 
 // terraformCLI implements the TerraformCLI interface.
@@ -221,7 +221,7 @@ terraform {
 	}
 
 	log.Printf("[INFO] [executor@%s] switch backend to local\n", c.Dir())
-	err := c.Init(ctx, "", "-input=false", "-no-color", "-reconfigure")
+	err := c.Init(ctx, "-input=false", "-no-color", "-reconfigure")
 	if err != nil {
 		// remove the override file before return an error.
 		os.Remove(path)
@@ -253,7 +253,7 @@ terraform {
 			log.Printf("[ERROR] [executor@%s] please remove the local workspace directory(%s) and re-run terraform init -reconfigure\n", c.Dir(), workspacePath)
 		}
 		log.Printf("[INFO] [executor@%s] switch back to remote\n", c.Dir())
-		err = c.Init(ctx, "", "-input=false", "-no-color", "-reconfigure")
+		err = c.Init(ctx, "-input=false", "-no-color", "-reconfigure")
 		if err != nil {
 			// we cannot return error here.
 			log.Printf("[ERROR] [executor@%s] failed to switch back to remote: %s\n", c.Dir(), err)
@@ -265,10 +265,10 @@ terraform {
 }
 
 // PlanHasChange is a helper method which runs plan and return true only if the plan has change.
-func (c *terraformCLI) PlanHasChange(ctx context.Context, state *State, dir string, opts ...string) (bool, error) {
+func (c *terraformCLI) PlanHasChange(ctx context.Context, state *State, opts ...string) (bool, error) {
 
 	merged := mergeOptions(opts, []string{"-input=false", "-no-color", "-detailed-exitcode"})
-	_, err := c.Plan(ctx, state, dir, merged...)
+	_, err := c.Plan(ctx, state, merged...)
 	if err != nil {
 		if exitErr, ok := err.(ExitError); ok && exitErr.ExitCode() == 2 {
 			return true, nil

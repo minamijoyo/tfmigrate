@@ -163,12 +163,12 @@ func TestAccTerraformCLIImport(t *testing.T) {
 	e := SetupTestAcc(t, source)
 	terraformCLI := NewTerraformCLI(e)
 
-	err := terraformCLI.Init(context.Background(), "", "-input=false", "-no-color")
+	err := terraformCLI.Init(context.Background(), "-input=false", "-no-color")
 	if err != nil {
 		t.Fatalf("failed to run terraform init: %s", err)
 	}
 
-	_, err = terraformCLI.Plan(context.Background(), nil, "", "-input=false", "-no-color", "-detailed-exitcode")
+	_, err = terraformCLI.Plan(context.Background(), nil, "-input=false", "-no-color", "-detailed-exitcode")
 	if err != nil {
 		if exitErr, ok := err.(*exitError); ok {
 			if exitErr.ExitCode() != 2 {
@@ -196,7 +196,7 @@ func TestAccTerraformCLIImport(t *testing.T) {
 		t.Errorf("got: %v, want: %v", got, want)
 	}
 
-	_, err = terraformCLI.Plan(context.Background(), state, "", "-input=false", "-no-color", "-detailed-exitcode")
+	_, err = terraformCLI.Plan(context.Background(), state, "-input=false", "-no-color", "-detailed-exitcode")
 	if err != nil {
 		t.Fatalf("failed to run terraform plan after import (expected no diff): %s", err)
 	}
