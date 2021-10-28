@@ -73,7 +73,7 @@ type TerraformCLI interface {
 	Apply(ctx context.Context, plan *Plan, opts ...string) error
 
 	// Destroy destroys resources.
-	Destroy(ctx context.Context, dir string, opts ...string) error
+	Destroy(ctx context.Context, opts ...string) error
 
 	// Import imports an existing resource to state.
 	// If a state is given, use it for the input state.
