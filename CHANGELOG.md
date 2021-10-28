@@ -1,10 +1,12 @@
 ## master (Unreleased)
 
+## 0.2.11 (2021/10/28)
+
 ENHANCEMENTS:
 
 * Remove a positional dir parameter from TerraformCLI ([#49](https://github.com/minamijoyo/tfmigrate/pull/49))
 
-Note: This changes contains a breaking change for tfexec package, but I doesn't affect tfmigrate CLI users.
+Note: This changes contains a breaking change for tfexec package, but it doesn't affect tfmigrate CLI users.
 
 ## 0.2.10 (2021/10/15)
 
