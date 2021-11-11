@@ -480,6 +480,17 @@ This is useful when generating a migration file from other tools.
 }
 ```
 
+If you want to move a resource using `for_each`, you need to escape as follows:
+
+```hcl
+migration "state" "test" {
+  dir = "dir1"
+  actions = [
+    "mv aws_security_group.foo[0] 'aws_security_group.foo[\"baz\"]'",
+  ]
+}
+```
+
 ### migration block
 
 - The file must contain exactly one `migration` block.
