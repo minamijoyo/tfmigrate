@@ -32,6 +32,7 @@ A Terraform state migration tool for GitOps.
          * [state import](#state-import)
       * [migration block (multi_state)](#migration-block-multi_state)
          * [multi_state mv](#multi_state-mv)
+   * [Integrations](#integrations)
    * [License](#license)
 <!--te-->
 
@@ -578,6 +579,12 @@ migration "multi_state" "mv_dir1_dir2" {
   ]
 }
 ```
+
+## Integrations
+
+You can integrate tfmigrate with your favorite CI/CD services. Examples are as follows:
+
+- Atlantis: [minamijoyo/tfmigrate-atlantis-example](https://github.com/minamijoyo/tfmigrate-atlantis-example)
 
 ## License
 
