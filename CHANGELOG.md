@@ -1,5 +1,11 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Log terraform command before run ([#55](https://github.com/minamijoyo/tfmigrate/pull/55))
+* Add an example for integrating tfmigrate with atlantis ([#54](https://github.com/minamijoyo/tfmigrate/pull/54))
+* Add a tip to README for using for_each ([#52](https://github.com/minamijoyo/tfmigrate/pull/52))
+
 ## 0.2.11 (2021/10/28)
 
 ENHANCEMENTS:
