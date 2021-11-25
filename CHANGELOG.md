@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.2.12 (2021/11/25)
+
 ENHANCEMENTS:
 
 * Log terraform command before run ([#55](https://github.com/minamijoyo/tfmigrate/pull/55))
