@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/minamijoyo/tfmigrate/config"
 	"github.com/minamijoyo/tfmigrate/history"
 	flag "github.com/spf13/pflag"
 )
@@ -46,56 +47,36 @@ func (c *ListCommand) Run(args []string) int {
 	}
 
 	// history mode
-	switch c.status {
-	case "all":
-		out, err := c.listMigrations()
-		if err != nil {
-			c.UI.Error(err.Error())
-			return 1
-		}
-		c.UI.Output(out)
-		return 0
-
-	case "unapplied":
-		out, err := c.listUnapplied()
-		if err != nil {
-			c.UI.Error(err.Error())
-			return 1
-		}
-		c.UI.Output(out)
-		return 0
-
-	default:
-		c.UI.Error(fmt.Sprintf("unknown filter for status: %s", c.status))
+	ctx := context.Background()
+	out, err := listMigrations(ctx, c.config, c.status)
+	if err != nil {
+		c.UI.Error(err.Error())
 		return 1
 	}
+	c.UI.Output(out)
+	return 0
 }
 
-// listMigrations lists all migrations.
-func (c *ListCommand) listMigrations() (string, error) {
-	ctx := context.Background()
-	hc, err := history.NewController(ctx, c.config.MigrationDir, c.config.History)
+// listMigrations lists migrations.
+func listMigrations(ctx context.Context, config *config.TfmigrateConfig, status string) (string, error) {
+	hc, err := history.NewController(ctx, config.MigrationDir, config.History)
 	if err != nil {
 		return "", err
 	}
 
-	migrations := hc.Migrations()
-	out := strings.Join(migrations, "\n")
+	var migrations []string
+	switch status {
+	case "all":
+		migrations = hc.Migrations()
 
-	return out, nil
-}
+	case "unapplied":
+		migrations = hc.UnappliedMigrations()
 
-// listUnapplied lists unapplied migrations.
-func (c *ListCommand) listUnapplied() (string, error) {
-	ctx := context.Background()
-	hc, err := history.NewController(ctx, c.config.MigrationDir, c.config.History)
-	if err != nil {
-		return "", err
+	default:
+		return "", fmt.Errorf("unknown filter for status: %s", status)
 	}
 
-	migrations := hc.UnappliedMigrations()
 	out := strings.Join(migrations, "\n")
-
 	return out, nil
 }
 
