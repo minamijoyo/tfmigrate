@@ -20,7 +20,7 @@ type ListCommand struct {
 func (c *ListCommand) Run(args []string) int {
 	cmdFlags := flag.NewFlagSet("list", flag.ContinueOnError)
 	cmdFlags.StringVar(&c.configFile, "config", defaultConfigFile, "A path to tfmigrate config file")
-	cmdFlags.StringVar(&c.status, "status", "unapplied", "A filter for migration status")
+	cmdFlags.StringVar(&c.status, "status", "all", "A filter for migration status")
 
 	if err := cmdFlags.Parse(args); err != nil {
 		c.UI.Error(fmt.Sprintf("failed to parse arguments: %s", err))
@@ -47,6 +47,15 @@ func (c *ListCommand) Run(args []string) int {
 
 	// history mode
 	switch c.status {
+	case "all":
+		out, err := c.listMigrations()
+		if err != nil {
+			c.UI.Error(err.Error())
+			return 1
+		}
+		c.UI.Output(out)
+		return 0
+
 	case "unapplied":
 		out, err := c.listUnapplied()
 		if err != nil {
@@ -60,6 +69,20 @@ func (c *ListCommand) Run(args []string) int {
 		c.UI.Error(fmt.Sprintf("unknown filter for status: %s", c.status))
 		return 1
 	}
+}
+
+// listMigrations lists all migrations.
+func (c *ListCommand) listMigrations() (string, error) {
+	ctx := context.Background()
+	hc, err := history.NewController(ctx, c.config.MigrationDir, c.config.History)
+	if err != nil {
+		return "", err
+	}
+
+	migrations := hc.Migrations()
+	out := strings.Join(migrations, "\n")
+
+	return out, nil
 }
 
 // listUnapplied lists unapplied migrations.
@@ -86,7 +109,9 @@ List migrations.
 Options:
   --config           A path to tfmigrate config file
   --status           A filter for migration status
-                     A valid value is only "unapplied" (default)
+                     Valid values are as follows:
+                       - all (default)
+                       - unapplied
 `
 	return strings.TrimSpace(helpText)
 }

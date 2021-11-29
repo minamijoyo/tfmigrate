@@ -127,6 +127,11 @@ func (c *Controller) Save(ctx context.Context) error {
 	return s.Write(ctx, b)
 }
 
+// Migrations returns a list of all migration file names.
+func (c *Controller) Migrations() []string {
+	return c.migrations
+}
+
 // UnappliedMigrations returns a list of migration file names which have not
 // been applied yet.
 func (c *Controller) UnappliedMigrations() []string {
