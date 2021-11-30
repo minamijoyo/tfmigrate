@@ -294,6 +294,7 @@ Usage: tfmigrate [--version] [--help] <command> [<args>]
 
 Available commands are:
     apply    Compute a new state and push it to remote state
+    list     List migrations
     plan     Compute a new state
 ```
 
@@ -325,6 +326,20 @@ Arguments
 
 Options:
   --config           A path to tfmigrate config file
+```
+
+```
+$ tfmigrate list --help
+Usage: tfmigrate list
+
+List migrations.
+
+Options:
+  --config           A path to tfmigrate config file
+  --status           A filter for migration status
+                     Valid values are as follows:
+                       - all (default)
+                       - unapplied
 ```
 
 ## Configurations
