@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.2.13 (2021/11/30)
+
 NEW FEATURES:
 
 * Add list command for listing unapplied migrations ([#56](https://github.com/minamijoyo/tfmigrate/pull/56))
