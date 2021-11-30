@@ -82,6 +82,11 @@ func initCommands(ui cli.Ui) map[string]cli.CommandFactory {
 				Meta: meta,
 			}, nil
 		},
+		"list": func() (cli.Command, error) {
+			return &command.ListCommand{
+				Meta: meta,
+			}, nil
+		},
 	}
 
 	return commands
