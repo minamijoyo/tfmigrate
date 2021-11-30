@@ -1,5 +1,14 @@
 ## master (Unreleased)
 
+NEW FEATURES:
+
+* Add list command for listing unapplied migrations ([#56](https://github.com/minamijoyo/tfmigrate/pull/56))
+
+ENHANCEMENTS:
+
+* Update Go to v1.17.3 and Alpine to 3.14 ([#59](https://github.com/minamijoyo/tfmigrate/pull/59))
+* Add Apple Silicon (ARM 64) build ([#57](https://github.com/minamijoyo/tfmigrate/pull/57))
+
 ## 0.2.12 (2021/11/25)
 
 ENHANCEMENTS:
