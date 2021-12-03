@@ -169,8 +169,8 @@ func TestExecutorDir(t *testing.T) {
 		{
 			desc: "test set dir",
 			args: []string{"pwd"},
-			dir:  "/bin",
-			want: "/bin\n",
+			dir:  "/usr/bin",
+			want: "/usr/bin\n",
 			ok:   true,
 		},
 	}
