@@ -27,6 +27,8 @@ type StateMigratorConfig struct {
 	// Force option controls behaviour in case of unexpected diff in plan.
 	// When set forces applying even if plan shows diff.
 	Force bool `hcl:"force,optional"`
+	// Workspace is the state workspace which the migration works with.
+	Workspace string `hcl:"workspace,optional"`
 }
 
 // StateMigratorConfig implements a MigratorConfig.
@@ -54,7 +56,12 @@ func (c *StateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, error) {
 		actions = append(actions, action)
 	}
 
-	return NewStateMigrator(dir, actions, o, c.Force), nil
+	//use default workspace if not specified by user
+	if len(c.Workspace) == 0 {
+		c.Workspace = "default"
+	}
+
+	return NewStateMigrator(dir, c.Workspace, actions, o, c.Force), nil
 }
 
 // StateMigrator implements the Migrator interface.
@@ -68,12 +75,14 @@ type StateMigrator struct {
 	o *MigratorOption
 	// force operation in case of unexpected diff
 	force bool
+	// workspace is the state workspace which the migration works with.
+	workspace string
 }
 
 var _ Migrator = (*StateMigrator)(nil)
 
 // NewStateMigrator returns a new StateMigrator instance.
-func NewStateMigrator(dir string, actions []StateAction, o *MigratorOption, force bool) *StateMigrator {
+func NewStateMigrator(dir string, workspace string, actions []StateAction, o *MigratorOption, force bool) *StateMigrator {
 	e := tfexec.NewExecutor(dir, os.Environ())
 	tf := tfexec.NewTerraformCLI(e)
 	if o != nil && len(o.ExecPath) > 0 {
@@ -81,10 +90,11 @@ func NewStateMigrator(dir string, actions []StateAction, o *MigratorOption, forc
 	}
 
 	return &StateMigrator{
-		tf:      tf,
-		actions: actions,
-		o:       o,
-		force:   force,
+		tf:        tf,
+		actions:   actions,
+		o:         o,
+		force:     force,
+		workspace: workspace,
 	}
 }
 
@@ -94,7 +104,7 @@ func NewStateMigrator(dir string, actions []StateAction, o *MigratorOption, forc
 // the Migrator interface between a single and multi state migrator.
 func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 	// setup work dir.
-	currentState, switchBackToRemotekFunc, err := setupWorkDir(ctx, m.tf, "default")
+	currentState, switchBackToRemotekFunc, err := setupWorkDir(ctx, m.tf, m.workspace)
 	if err != nil {
 		return nil, err
 	}
