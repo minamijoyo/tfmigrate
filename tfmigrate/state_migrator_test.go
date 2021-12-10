@@ -288,6 +288,18 @@ resource "aws_security_group" "baz" {}
 		t.Fatalf("expect to have changes")
 	}
 
+	// The tfmigrate plan --out=tfplan option was based on a bug prior to Terraform 1.1.
+	// Terraform v1.1 now rejects the plan as stale.
+	// The tfmigrate plan --out=tfplan option is deprecated without replacement.
+	// https://github.com/minamijoyo/tfmigrate/issues/62
+	tfVersionMatched, err := tfexec.MatchTerraformVersion(ctx, tf, ">= 1.1.0")
+	if err != nil {
+		t.Fatalf("failed to check terraform version constraints: %s", err)
+	}
+	if tfVersionMatched {
+		t.Skip("skip the following test because the saved plan can't apply in Terraform v1.1+")
+	}
+
 	// apply the saved plan files
 	plan, err := ioutil.ReadFile(filepath.Join(tf.Dir(), o.PlanOut))
 	if err != nil {
@@ -300,7 +312,7 @@ resource "aws_security_group" "baz" {}
 
 	// Terraform >= v0.12.25 and < v0.13 has a bug for state push -force
 	// https://github.com/hashicorp/terraform/issues/25761
-	tfVersionMatched, err := tfexec.MatchTerraformVersion(ctx, tf, ">= 0.12.25, < 0.13")
+	tfVersionMatched, err = tfexec.MatchTerraformVersion(ctx, tf, ">= 0.12.25, < 0.13")
 	if err != nil {
 		t.Fatalf("failed to check terraform version constraints: %s", err)
 	}
