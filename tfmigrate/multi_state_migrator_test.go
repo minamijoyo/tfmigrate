@@ -326,6 +326,23 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 			}
 
 			if tc.force {
+				// The tfmigrate plan --out=tfplan option is deprecated and doesn't work with Terraform 1.1+
+				// https://github.com/minamijoyo/tfmigrate/issues/62
+				fromTfVersionMatched, err := tfexec.MatchTerraformVersion(ctx, fromTf, ">= 1.1.0")
+				if err != nil {
+					t.Fatalf("failed to check terraform version constraints in fromDir: %s", err)
+				}
+				if fromTfVersionMatched {
+					t.Skip("skip the following test because the saved plan can't apply in Terraform v1.1+")
+				}
+				toTfVersionMatched, err := tfexec.MatchTerraformVersion(ctx, toTf, ">= 1.1.0")
+				if err != nil {
+					t.Fatalf("failed to check terraform version constraints in toDir: %s", err)
+				}
+				if toTfVersionMatched {
+					t.Skip("skip the following test because the saved plan can't apply in Terraform v1.1+")
+				}
+
 				// apply the saved plan files
 				fromPlan, err := ioutil.ReadFile(filepath.Join(fromTf.Dir(), o.PlanOut))
 				if err != nil {
@@ -346,14 +363,14 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 
 				// Terraform >= v0.12.25 and < v0.13 has a bug for state push -force
 				// https://github.com/hashicorp/terraform/issues/25761
-				fromTfVersionMatched, err := tfexec.MatchTerraformVersion(ctx, fromTf, ">= 0.12.25, < 0.13")
+				fromTfVersionMatched, err = tfexec.MatchTerraformVersion(ctx, fromTf, ">= 0.12.25, < 0.13")
 				if err != nil {
 					t.Fatalf("failed to check terraform version constraints in fromDir: %s", err)
 				}
 				if fromTfVersionMatched {
 					t.Skip("skip the following test due to a bug in Terraform v0.12")
 				}
-				toTfVersionMatched, err := tfexec.MatchTerraformVersion(ctx, toTf, ">= 0.12.25, < 0.13")
+				toTfVersionMatched, err = tfexec.MatchTerraformVersion(ctx, toTf, ">= 0.12.25, < 0.13")
 				if err != nil {
 					t.Fatalf("failed to check terraform version constraints in toDir: %s", err)
 				}
