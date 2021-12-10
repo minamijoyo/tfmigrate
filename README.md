@@ -520,6 +520,7 @@ The file must contain only one block, and multiple blocks are not allowed, becau
 The `state` migration updates the state in a single directory. It has the following attributes.
 
 - `dir` (optional): A working directory for executing terraform command. Default to `.` (current directory).
+- `workspace` (optional): A terraform workspace. Defaults to "default".
 - `actions` (required): Actions is a list of state action. An action is a plain text for state operation. Valid formats are the following.
   - `"mv <source> <destination>"`
   - `"rm <addresses>...`
