@@ -1,5 +1,22 @@
 ## master (Unreleased)
 
+BREAKING CHANGES:
+
+* Deprecate the tfmigrate plan --out=tfplan option ([#63](https://github.com/minamijoyo/tfmigrate/pull/63))
+
+Deprecate the tfmigrate plan --out=tfplan option without replacement and it will be removed in a future release.
+It was based on a bug prior to Terraform 1.1 and doesn't work with Terraform 1.1 or later.
+Fortunately, Terraform 1.1 added [a new moved block feature](https://www.hashicorp.com/blog/terraform-1-1-improves-refactoring-and-the-cloud-cli-experience), so some use-cases could be covered by the moved block.
+
+NEW FEATURES:
+
+* Support workspace for state migrator ([#61](https://github.com/minamijoyo/tfmigrate/pull/61))
+
+ENHANCEMENTS:
+
+* Add support for Terraform v1.1 ([#50](https://github.com/minamijoyo/tfmigrate/pull/50))
+* /usr/local/bin directory is not guaranteed to exist ([#60](https://github.com/minamijoyo/tfmigrate/pull/60))
+
 ## 0.2.13 (2021/11/30)
 
 NEW FEATURES:
