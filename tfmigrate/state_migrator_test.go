@@ -51,6 +51,23 @@ func TestStateMigratorConfigNewMigrator(t *testing.T) {
 			ok: true,
 		},
 		{
+			desc: "valid in non-default workspace",
+			config: &StateMigratorConfig{
+				Dir: "dir1",
+				Actions: []string{
+					"mv aws_security_group.foo aws_security_group.foo2",
+					"mv aws_security_group.bar aws_security_group.bar2",
+					"rm aws_security_group.baz",
+					"import aws_security_group.qux qux",
+				},
+				Workspace: "workspace1",
+			},
+			o: &MigratorOption{
+				ExecPath: "direnv exec . terraform",
+			},
+			ok: true,
+		},
+		{
 			desc: "invalid action",
 			config: &StateMigratorConfig{
 				Dir: "",
@@ -106,9 +123,25 @@ func TestStateMigratorConfigNewMigrator(t *testing.T) {
 func TestAccStateMigratorApply(t *testing.T) {
 	tfexec.SkipUnlessAcceptanceTestEnabled(t)
 
-	backend := tfexec.GetTestAccBackendS3Config(t.Name())
+	cases := []struct {
+		desc      string
+		workspace string
+	}{
+		{
+			desc:      "default workspace",
+			workspace: "default",
+		},
+		{
+			desc:      "non-default workspace",
+			workspace: "workspace1",
+		},
+	}
 
-	source := `
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			backend := tfexec.GetTestAccBackendS3Config(t.Name())
+
+			source := `
 resource "aws_security_group" "foo" {}
 resource "aws_security_group" "bar" {}
 resource "aws_security_group" "baz" {}
@@ -116,10 +149,10 @@ resource "aws_iam_user" "qux" {
 	name = "qux"
 }
 `
-	tf := tfexec.SetupTestAccWithApply(t, "default", backend+source)
-	ctx := context.Background()
+			tf := tfexec.SetupTestAccWithApply(t, tc.workspace, backend+source)
+			ctx := context.Background()
 
-	updatedSource := `
+			updatedSource := `
 resource "aws_security_group" "foo2" {}
 resource "aws_security_group" "baz" {}
 resource "aws_iam_user" "qux" {
@@ -127,60 +160,62 @@ resource "aws_iam_user" "qux" {
 }
 `
 
-	tfexec.UpdateTestAccSource(t, tf, backend+updatedSource)
+			tfexec.UpdateTestAccSource(t, tf, backend+updatedSource)
 
-	_, err := tf.StateRm(ctx, nil, []string{"aws_iam_user.qux"})
-	if err != nil {
-		t.Fatalf("failed to run terraform state rm: %s", err)
-	}
+			_, err := tf.StateRm(ctx, nil, []string{"aws_iam_user.qux"})
+			if err != nil {
+				t.Fatalf("failed to run terraform state rm: %s", err)
+			}
 
-	changed, err := tf.PlanHasChange(ctx, nil)
-	if err != nil {
-		t.Fatalf("failed to run PlanHasChange: %s", err)
-	}
-	if !changed {
-		t.Fatalf("expect to have changes")
-	}
+			changed, err := tf.PlanHasChange(ctx, nil)
+			if err != nil {
+				t.Fatalf("failed to run PlanHasChange: %s", err)
+			}
+			if !changed {
+				t.Fatalf("expect to have changes")
+			}
 
-	actions := []StateAction{
-		NewStateMvAction("aws_security_group.foo", "aws_security_group.foo2"),
-		NewStateRmAction([]string{"aws_security_group.bar"}),
-		NewStateImportAction("aws_iam_user.qux", "qux"),
-	}
+			actions := []StateAction{
+				NewStateMvAction("aws_security_group.foo", "aws_security_group.foo2"),
+				NewStateRmAction([]string{"aws_security_group.bar"}),
+				NewStateImportAction("aws_iam_user.qux", "qux"),
+			}
 
-	m := NewStateMigrator(tf.Dir(), actions, &MigratorOption{}, false)
-	err = m.Plan(ctx)
-	if err != nil {
-		t.Fatalf("failed to run migrator plan: %s", err)
-	}
+			m := NewStateMigrator(tf.Dir(), tc.workspace, actions, &MigratorOption{}, false)
+			err = m.Plan(ctx)
+			if err != nil {
+				t.Fatalf("failed to run migrator plan: %s", err)
+			}
 
-	err = m.Apply(ctx)
-	if err != nil {
-		t.Fatalf("failed to run migrator apply: %s", err)
-	}
+			err = m.Apply(ctx)
+			if err != nil {
+				t.Fatalf("failed to run migrator apply: %s", err)
+			}
 
-	got, err := tf.StateList(ctx, nil, nil)
-	if err != nil {
-		t.Fatalf("failed to run terraform state list: %s", err)
-	}
+			got, err := tf.StateList(ctx, nil, nil)
+			if err != nil {
+				t.Fatalf("failed to run terraform state list: %s", err)
+			}
 
-	want := []string{
-		"aws_security_group.foo2",
-		"aws_security_group.baz",
-		"aws_iam_user.qux",
-	}
-	sort.Strings(got)
-	sort.Strings(want)
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("got state: %v, want state: %v", got, want)
-	}
+			want := []string{
+				"aws_security_group.foo2",
+				"aws_security_group.baz",
+				"aws_iam_user.qux",
+			}
+			sort.Strings(got)
+			sort.Strings(want)
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("got state: %v, want state: %v", got, want)
+			}
 
-	changed, err = tf.PlanHasChange(ctx, nil)
-	if err != nil {
-		t.Fatalf("failed to run PlanHasChange: %s", err)
-	}
-	if changed {
-		t.Fatalf("expect not to have changes")
+			changed, err = tf.PlanHasChange(ctx, nil)
+			if err != nil {
+				t.Fatalf("failed to run PlanHasChange: %s", err)
+			}
+			if changed {
+				t.Fatalf("expect not to have changes")
+			}
+		})
 	}
 }
 
@@ -219,7 +254,7 @@ resource "aws_security_group" "baz" {}
 	o := &MigratorOption{}
 	o.PlanOut = "foo.tfplan"
 
-	m := NewStateMigrator(tf.Dir(), actions, o, true)
+	m := NewStateMigrator(tf.Dir(), "default", actions, o, true)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
