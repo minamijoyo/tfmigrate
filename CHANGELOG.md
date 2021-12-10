@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.3.0 (2021/12/10)
+
 BREAKING CHANGES:
 
 * Deprecate the tfmigrate plan --out=tfplan option ([#63](https://github.com/minamijoyo/tfmigrate/pull/63))
