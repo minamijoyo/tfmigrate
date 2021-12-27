@@ -17,7 +17,7 @@ func setupMigrationFile(t *testing.T, source string) string {
 	t.Cleanup(func() { os.RemoveAll(migrationDir) })
 
 	path := filepath.Join(migrationDir, "test.hcl")
-	err = ioutil.WriteFile(path, []byte(source), 0644)
+	err = ioutil.WriteFile(path, []byte(source), 0644) // nolint gosec
 	if err != nil {
 		t.Fatalf("failed to write migration file: %s", err)
 	}
@@ -37,7 +37,7 @@ func setupMigrationDir(t *testing.T, migrations map[string]string) string {
 
 	for filename, source := range migrations {
 		path := filepath.Join(migrationDir, filename)
-		err = ioutil.WriteFile(path, []byte(source), 0644)
+		err = ioutil.WriteFile(path, []byte(source), 0644) // nolint gosec
 		if err != nil {
 			t.Fatalf("failed to write migration file: %s", err)
 		}

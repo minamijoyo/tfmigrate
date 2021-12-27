@@ -20,7 +20,7 @@ func TestTerraformCLIStateRm(t *testing.T) {
 			// It updates the inpute state in-place.
 			if strings.HasPrefix(arg, "-state=") {
 				stateFile := arg[len("-state="):]
-				return ioutil.WriteFile(stateFile, stateOut.Bytes(), 0644)
+				return ioutil.WriteFile(stateFile, stateOut.Bytes(), 0644) // nolint gosec
 			}
 		}
 		// if the -state option is not set, nothing to do.

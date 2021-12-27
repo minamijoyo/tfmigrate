@@ -41,7 +41,7 @@ func NewLocalStorage(path string) *LocalStorage {
 
 // Write writes migration history data to storage.
 func (s *LocalStorage) Write(ctx context.Context, b []byte) error {
-	return ioutil.WriteFile(s.path, b, 0644)
+	return ioutil.WriteFile(s.path, b, 0644) // nolint gosec
 }
 
 // Read reads migration history data from storage.

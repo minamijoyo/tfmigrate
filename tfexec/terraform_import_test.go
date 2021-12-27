@@ -20,7 +20,7 @@ func TestTerraformCLIImport(t *testing.T) {
 		for _, arg := range args {
 			if strings.HasPrefix(arg, "-state-out=") {
 				stateOutFile := arg[len("-state-out="):]
-				return ioutil.WriteFile(stateOutFile, stateOut.Bytes(), 0644)
+				return ioutil.WriteFile(stateOutFile, stateOut.Bytes(), 0644) // nolint gosec
 			}
 		}
 		return fmt.Errorf("failed to find -state-out= option: %v", args)

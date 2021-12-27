@@ -46,6 +46,7 @@ func newFileV1(h History) *FileV1 {
 
 // newRecordV1 converts a Record to a RecordV1 instance.
 func newRecordV1(r Record) RecordV1 {
+	// nolint gosimple
 	return RecordV1{
 		Type:      r.Type,
 		Name:      r.Name,
@@ -86,6 +87,7 @@ func (f *FileV1) toHistory() History {
 
 // toRecord converts a RecordV1 to a Record instance.
 func (r RecordV1) toRecord() Record {
+	// nolint gosimple
 	return Record{
 		Type:      r.Type,
 		Name:      r.Name,
