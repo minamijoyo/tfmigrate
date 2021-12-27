@@ -41,7 +41,11 @@ func NewLocalStorage(path string) *LocalStorage {
 
 // Write writes migration history data to storage.
 func (s *LocalStorage) Write(ctx context.Context, b []byte) error {
-	return ioutil.WriteFile(s.path, b, 0644) // nolint gosec
+	// nolint gosec
+	// G306: Expect WriteFile permissions to be 0600 or less
+	// We ignore it because a history file doesn't contains sensitive data.
+	// Note that changing a permission to 0600 is breaking change.
+	return ioutil.WriteFile(s.path, b, 0644)
 }
 
 // Read reads migration history data from storage.

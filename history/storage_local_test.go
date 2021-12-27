@@ -120,7 +120,7 @@ func TestLocalStorageRead(t *testing.T) {
 			}
 			t.Cleanup(func() { os.RemoveAll(localDir) })
 
-			err = ioutil.WriteFile(filepath.Join(localDir, "history.json"), tc.contents, 0644) // nolint gosec
+			err = ioutil.WriteFile(filepath.Join(localDir, "history.json"), tc.contents, 0600)
 			if err != nil {
 				t.Fatalf("failed to write contents: %s", err)
 			}

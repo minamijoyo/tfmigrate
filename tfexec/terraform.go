@@ -208,8 +208,7 @@ terraform {
 }
 `
 	log.Printf("[INFO] [executor@%s] create an override file\n", c.Dir())
-	// nolint gosec
-	if err := ioutil.WriteFile(path, []byte(contents), 0644); err != nil {
+	if err := ioutil.WriteFile(path, []byte(contents), 0600); err != nil {
 		return nil, fmt.Errorf("failed to create override file: %s", err)
 	}
 
