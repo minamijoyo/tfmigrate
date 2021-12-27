@@ -1,0 +1,12 @@
+# https://golangci-lint.run/usage/configuration/
+linters:
+  disable-all: true
+  enable:
+    - errcheck
+    - goimports
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - revive
+    - staticcheck

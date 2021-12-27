@@ -204,6 +204,7 @@ func setupTestWorkDir(source string) (string, error) {
 		return "", fmt.Errorf("failed to create work dir: %s", err)
 	}
 
+	// nolint: gosec
 	if err := ioutil.WriteFile(filepath.Join(workDir, testAccSourceFileName), []byte(source), 0644); err != nil {
 		os.RemoveAll(workDir)
 		return "", fmt.Errorf("failed to create main.tf: %s", err)
@@ -323,6 +324,7 @@ func SetupTestAccWithApply(t *testing.T, workspace string, source string) Terraf
 // UpdateTestAccSource updates a terraform configuration file with a given contents.
 func UpdateTestAccSource(t *testing.T, tf TerraformCLI, source string) {
 	t.Helper()
+	// nolint gosec
 	if err := ioutil.WriteFile(filepath.Join(tf.Dir(), testAccSourceFileName), []byte(source), 0644); err != nil {
 		t.Fatalf("failed to update source: %s", err)
 	}
