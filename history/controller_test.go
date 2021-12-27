@@ -87,7 +87,7 @@ func TestLoadMigrationFileNames(t *testing.T) {
 			t.Cleanup(func() { os.RemoveAll(migrationDir) })
 
 			for _, filename := range tc.files {
-				err = ioutil.WriteFile(filepath.Join(migrationDir, filename), []byte{}, 0644) // nolint gosec
+				err = ioutil.WriteFile(filepath.Join(migrationDir, filename), []byte{}, 0600)
 				if err != nil {
 					t.Fatalf("failed to write dummy migration file: %s", err)
 				}

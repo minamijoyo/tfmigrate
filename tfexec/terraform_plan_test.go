@@ -21,7 +21,7 @@ func TestTerraformCLIPlan(t *testing.T) {
 		for _, arg := range args {
 			if strings.HasPrefix(arg, "-out=") {
 				planFile := arg[len("-out="):]
-				return ioutil.WriteFile(planFile, plan.Bytes(), 0644) // nolint gosec
+				return ioutil.WriteFile(planFile, plan.Bytes(), 0600)
 			}
 		}
 		return fmt.Errorf("failed to find -out= option: %v", args)

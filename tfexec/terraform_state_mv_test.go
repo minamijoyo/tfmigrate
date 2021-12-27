@@ -21,11 +21,17 @@ func TestTerraformCLIStateMv(t *testing.T) {
 		for _, arg := range args {
 			if strings.HasPrefix(arg, "-state=") {
 				stateFile := arg[len("-state="):]
-				ioutil.WriteFile(stateFile, updatedState.Bytes(), 0644) // nolint: errcheck, gosec
+				err := ioutil.WriteFile(stateFile, updatedState.Bytes(), 0600)
+				if err != nil {
+					return err
+				}
 			}
 			if strings.HasPrefix(arg, "-state-out=") {
 				stateOutFile := arg[len("-state-out="):]
-				ioutil.WriteFile(stateOutFile, updatedStateOut.Bytes(), 0644) // nolint: errcheck, gosec
+				err := ioutil.WriteFile(stateOutFile, updatedStateOut.Bytes(), 0600)
+				if err != nil {
+					return err
+				}
 			}
 		}
 		return nil
