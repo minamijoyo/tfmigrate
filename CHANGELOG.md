@@ -1,5 +1,11 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Use golangci-lint instead of golint ([#65](https://github.com/minamijoyo/tfmigrate/pull/65))
+* Fix lint errors ([#66](https://github.com/minamijoyo/tfmigrate/pull/66))
+* Set paths-ignore for test ([#67](https://github.com/minamijoyo/tfmigrate/pull/67))
+
 ## 0.3.0 (2021/12/10)
 
 BREAKING CHANGES:
