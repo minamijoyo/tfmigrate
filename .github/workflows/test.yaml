@@ -33,7 +33,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-go-
     - name: test
-      run: make check
+      run: make test
   testacc:
     runs-on: ubuntu-latest
     strategy:

@@ -4,10 +4,6 @@ ifndef GOBIN
 GOBIN := $(shell echo "$${GOPATH%%:*}/bin")
 endif
 
-GOLINT := $(GOBIN)/golint
-
-$(GOLINT): ; @go install golang.org/x/lint/golint
-
 .DEFAULT_GOAL := build
 
 .PHONY: deps
@@ -23,20 +19,16 @@ install: deps
 	go install
 
 .PHONY: lint
-lint: $(GOLINT)
-	golint $$(go list ./... | grep -v /vendor/)
-
-.PHONY: vet
-vet:
-	go vet ./...
+lint:
+	golangci-lint run ./...
 
 .PHONY: test
-test: deps
+test: build
 	go test ./...
 
 .PHONY: testacc
-testacc: deps
+testacc: build
 	TEST_ACC=1 go test -count=1 -failfast ./...
 
 .PHONY: check
-check: lint vet test build
+check: lint test

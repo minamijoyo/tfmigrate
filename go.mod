@@ -13,7 +13,6 @@ require (
 	github.com/mattn/go-shellwords v1.0.10
 	github.com/mitchellh/cli v1.1.1
 	github.com/spf13/pflag v1.0.2
-	golang.org/x/lint v0.0.0-20200302205851-738671d3881b
 )
 
 require (
@@ -35,6 +34,5 @@ require (
 	github.com/zclconf/go-cty v1.2.0 // indirect
 	golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f // indirect
 	golang.org/x/text v0.3.3 // indirect
-	golang.org/x/tools v0.0.0-20200130002326-2f3ba24bd6e7 // indirect
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 // indirect
 )
