@@ -1,9 +1,5 @@
 NAME := tfmigrate
 
-ifndef GOBIN
-GOBIN := $(shell echo "$${GOPATH%%:*}/bin")
-endif
-
 .DEFAULT_GOAL := build
 
 .PHONY: deps
