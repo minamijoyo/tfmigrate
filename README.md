@@ -433,6 +433,7 @@ The `s3` storage has the following attributes:
 - `secret_key` (optional): AWS secret key. This can also be sourced from the `AWS_SECRET_ACCESS_KEY` environment variable, AWS shared credentials file, or AWS shared configuration file.
 - `profile` (optional): Name of AWS profile in AWS shared credentials file or AWS shared configuration file to use for credentials and/or configuration. This can also be sourced from the `AWS_PROFILE` environment variable.
 - `role_arn` (optional): Amazon Resource Name (ARN) of the IAM Role to assume.
+- `kms_key_id` (optional): Amazon Server-Side Encryption (SSE) KMS Key Id. When specified, this encryption key will be used and server-side encryption will be enabled. See the [terraform s3 backend](https://www.terraform.io/language/settings/backends/s3#kms_key_id).
 
 The following attributes are also available, but they are intended to use with `localstack` for testing.
 

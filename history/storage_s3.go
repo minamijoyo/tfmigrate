@@ -44,6 +44,8 @@ type S3StorageConfig struct {
 	// Enable path-style S3 URLs (https://<HOST>/<BUCKET>
 	// instead of https://<BUCKET>.<HOST>).
 	ForcePathStyle bool `hcl:"force_path_style,optional"`
+	// SSE KMS Key Id for optional server-side encryption enablement
+	KmsKeyID string `hcl:"kms_key_id,optional"`
 }
 
 // S3StorageConfig implements a StorageConfig.
@@ -138,6 +140,10 @@ func (s *S3Storage) Write(ctx context.Context, b []byte) error {
 		Bucket: aws.String(s.config.Bucket),
 		Key:    aws.String(s.config.Key),
 		Body:   bytes.NewReader(b),
+	}
+	if s.config.KmsKeyID != "" {
+		input.SSEKMSKeyId = &s.config.KmsKeyID
+		input.ServerSideEncryption = aws.String("aws:kms")
 	}
 
 	_, err := s.client.PutObjectWithContext(ctx, input)
