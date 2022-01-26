@@ -5,6 +5,7 @@ ENHANCEMENTS:
 * Use golangci-lint instead of golint ([#65](https://github.com/minamijoyo/tfmigrate/pull/65))
 * Fix lint errors ([#66](https://github.com/minamijoyo/tfmigrate/pull/66))
 * Set paths-ignore for test ([#67](https://github.com/minamijoyo/tfmigrate/pull/67))
+* Add support for server side encryption with a KMS key id for S3 storage ([#70](https://github.com/minamijoyo/tfmigrate/pull/70))
 
 ## 0.3.0 (2021/12/10)
 
