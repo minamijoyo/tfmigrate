@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.3.1 (2022/01/26)
+
 ENHANCEMENTS:
 
 * Use golangci-lint instead of golint ([#65](https://github.com/minamijoyo/tfmigrate/pull/65))
