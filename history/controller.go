@@ -97,7 +97,7 @@ func loadHistory(ctx context.Context, c StorageConfig) (*History, error) {
 	// If a given history is not found, s.Read returns empty bytes with no error.
 	// In this case, we assume that it's the first use and create a new history.
 	if len(b) == 0 {
-		log.Print("[DEBUG] [history] new emptry history\n")
+		log.Print("[DEBUG] [history] new empty history\n")
 		return newEmptyHistory(), nil
 	}
 
