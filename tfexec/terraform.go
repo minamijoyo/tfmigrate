@@ -45,24 +45,23 @@ func NewPlan(b []byte) *Plan {
 }
 
 // TerraformCLI is an interface for executing the terraform command.
-// The main features of the terraform command are many of side effects, and the
-// most of stdout may not be useful. In addition, the interfaces of state
+// The main results of the terraform command are generally side effects, and the
+// stdout functionality may not be useful. In addition, the interfaces of state
 // subcommands are inconsistent, and if a state file is required for the
-// argument, we need a temporary file. However, It's hard to clean up the
+// argument, we need a temporary file. However, it's hard to clean up the
 // temporary file when an error occurs in the middle of a series of commands.
 // This means implementing the exactly same interface for the terraform command
 // doesn't make sense for us. So we wrap the terraform command and provider a
 // high-level and easy-to-use interface which can be used in memory as much as
 // possible.
-// The interface is an opinionated, if it doesn't match you need, you can use
-// Run(), which is a low-level generic method for running an arbitrary
-// terraform command.
+// As a result, the interface is opinionated and less flexible. For running arbitrary terraform commands
+// you can use Run(), which is a low-level generic method.
 type TerraformCLI interface {
-	// Verison returns a version number of Terraform.
+	// Version returns a version number of Terraform.
 	Version(ctx context.Context) (string, error)
 
 	// Init initializes the current work directory.
-	Init(ctx context.Context, opts ...string) error
+	Init(ctx context.Context, opts ...string) (string, error)
 
 	// Plan computes expected changes.
 	// If a state is given, use it for the input state.
@@ -95,25 +94,25 @@ type TerraformCLI interface {
 	// StateRm removes resources from state.
 	// If a state is given, use it for the input state and return a new state.
 	// Note that if the input state is not given, always return nil state,
-	// becasuse the terraform state rm command doesn't have -state-out option.
+	// because the terraform state rm command doesn't have -state-out option.
 	StateRm(ctx context.Context, state *State, addresses []string, opts ...string) (*State, error)
 
 	// StatePush pushs a given State to remote.
 	StatePush(ctx context.Context, state *State, opts ...string) error
 
-	// Create a new workspace with name "workspace".
+	// WorkspaceNew creates a new workspace with name "workspace".
 	WorkspaceNew(ctx context.Context, workspace string, opts ...string) error
 
-	// Returns the current selected workspace.
+	// WorkspaceShow returns the current selected workspace.
 	WorkspaceShow(ctx context.Context) (string, error)
 
-	// Switch to the workspace with name "workspace". This workspace should already exist
+	// WorkspaceSelect switches to the workspace with name "workspace". This workspace should already exist.
 	WorkspaceSelect(ctx context.Context, workspace string) error
 
 	// Run is a low-level generic method for running an arbitrary terraform command.
 	Run(ctx context.Context, args ...string) (string, string, error)
 
-	// dir returns a working directory where terraform command is executed.
+	// Dir returns a working directory where terraform command is executed.
 	Dir() string
 
 	// SetExecPath customizes how the terraform command is executed. Default to terraform.
@@ -121,7 +120,7 @@ type TerraformCLI interface {
 	SetExecPath(execPath string)
 
 	// OverrideBackendToLocal switches the backend to local and returns a function
-	// for swtich back it to remote with defer.
+	// to switch it back to remote with defer.
 	// The -state flag for terraform command is not valid for remote state,
 	// so we need to switch the backend to local for temporary state operations.
 	// The filename argument must meet constraints for override file.
@@ -193,10 +192,10 @@ func (c *terraformCLI) SetExecPath(execPath string) {
 }
 
 // OverrideBackendToLocal switches the backend to local and returns a function
-// for swtich back it to remote with defer.
+// that will switch back it to remote with defer.
 // The -state flag for terraform command is not valid for remote state,
 // so we need to switch the backend to local for temporary state operations.
-// The filename argument must meet constraints for override file.
+// The filename argument must meet constraints in order to override the file.
 // (e.g.) _tfexec_override.tf
 func (c *terraformCLI) OverrideBackendToLocal(ctx context.Context, filename string, workspace string) (func(), error) {
 	// create local backend override file.
@@ -221,7 +220,7 @@ terraform {
 	}
 
 	log.Printf("[INFO] [executor@%s] switch backend to local\n", c.Dir())
-	err := c.Init(ctx, "-input=false", "-no-color", "-reconfigure")
+	_, err := c.Init(ctx, "-input=false", "-no-color", "-reconfigure")
 	if err != nil {
 		// remove the override file before return an error.
 		os.Remove(path)
@@ -230,7 +229,7 @@ terraform {
 		return nil, fmt.Errorf("failed to switch backend to local: %s", err)
 	}
 
-	switchBackToRemotekFunc := func() {
+	switchBackToRemoteFunc := func() {
 		log.Printf("[INFO] [executor@%s] remove the override file\n", c.Dir())
 		err := os.Remove(path)
 		if err != nil {
@@ -253,7 +252,13 @@ terraform {
 			log.Printf("[ERROR] [executor@%s] please remove the local workspace directory(%s) and re-run terraform init -reconfigure\n", c.Dir(), workspacePath)
 		}
 		log.Printf("[INFO] [executor@%s] switch back to remote\n", c.Dir())
-		err = c.Init(ctx, "-input=false", "-no-color", "-reconfigure")
+		stdOut, err := c.Init(ctx, "-input=false", "-no-color", "-reconfigure")
+		// TODO: Debugging this new functionality here
+		fmt.Println(stdOut)
+
+		if (err != nil) && (stdOut != "Initializing Terraform Cloud...") {
+			_, err = c.Init(ctx, "-input=false", "-no-color")
+		}
 		if err != nil {
 			// we cannot return error here.
 			log.Printf("[ERROR] [executor@%s] failed to switch back to remote: %s\n", c.Dir(), err)
@@ -261,7 +266,7 @@ terraform {
 		}
 	}
 
-	return switchBackToRemotekFunc, nil
+	return switchBackToRemoteFunc, nil
 }
 
 // PlanHasChange is a helper method which runs plan and return true only if the plan has change.
