@@ -31,7 +31,7 @@ func NewFileRunner(filename string, config *config.TfmigrateConfig, option *tfmi
 		return nil, err
 	}
 
-	m, err := mc.Migrator.NewMigrator(option)
+	m, err := mc.Migrator.NewMigrator(option) // TODO: What does this NewMigrator file do?
 	if err != nil {
 		return nil, err
 	}
@@ -61,12 +61,14 @@ func loadMigrationFile(filename string) (*tfmigrate.MigrationConfig, error) {
 	return config, nil
 }
 
+// TODO: Here is where the action occurs for Plan
 // Plan plans a single migration.
 func (r *FileRunner) Plan(ctx context.Context) error {
 	return r.m.Plan(ctx)
 }
 
-// Apply applies a single migration..
+// TODO: Here is where the action occurs for Apply
+// Apply applies a single migration.
 func (r *FileRunner) Apply(ctx context.Context) error {
 	return r.m.Apply(ctx)
 }

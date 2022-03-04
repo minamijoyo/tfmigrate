@@ -15,7 +15,7 @@ type Migrator interface {
 
 	// Apply computes a new state and pushes it to remote state.
 	// It will fail if terraform plan detects any diffs with the new state.
-	// We are intended to this is used for state refactoring.
+	// This is intended for solely state refactoring.
 	// Any state migration operations should not break any real resources.
 	Apply(ctx context.Context) error
 }

@@ -253,12 +253,21 @@ terraform {
 		}
 		log.Printf("[INFO] [executor@%s] switch back to remote\n", c.Dir())
 
-		// TODO: First just see if removing the -reconfigure statement will work?
-		// TODO: Need to detect if the configuration uses Terraform cloud as the backend, instead of the
-		// TODO: hacky fix
+		// TODO: First just see if removing the -reconfigure statement will work? Yes it does, which is good.
+		// TODO: Possible solutions:
+		// TODO: 1) Pass in a command line argument into tfmigrate
+		// This option (might) be the cleanest, but not necessarily to implement. Will be helpful
+		// to figure out how command line arguments are used with this tool regardless.
+		// TODO: 2) New argument in configuration?
+		// This would be likely easier to reference within the code,
+		// but it would be not the best user experience to have to add the extra configuration. It feels
+		// like it is a step behind the optimal situation which would be just to infer it directly from
+		// the terraform itself.
+		// TODO: 3) Have tfmigrate read the terraform block's configuration for a cloud {} block.
+		// Likely will be tricky to implement, but this is a "public" tool and so should implement the
+		// smoothest/most automated solution.
+
 		stdOut, err := c.Init(ctx, "-input=false", "-no-color") //, "-reconfigure")
-		// TODO: Debugging this new functionality here
-		log.Printf(stdOut)
 
 		if (err != nil) && (stdOut == "\nInitializing Terraform Cloud...") {
 			_, err = c.Init(ctx, "-input=false", "-no-color")
