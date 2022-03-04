@@ -252,14 +252,17 @@ terraform {
 			log.Printf("[ERROR] [executor@%s] please remove the local workspace directory(%s) and re-run terraform init -reconfigure\n", c.Dir(), workspacePath)
 		}
 		log.Printf("[INFO] [executor@%s] switch back to remote\n", c.Dir())
-		stdOut, err := c.Init(ctx, "-input=false", "-no-color", "-reconfigure")
-		// TODO: Debugging this new functionality here
-		fmt.Println(stdOut)
 
-		if (err != nil) && (stdOut != "Initializing Terraform Cloud...") {
+		// TODO: First just see if removing the -reconfigure statement will work?
+		// TODO: Need to detect if the configuration uses Terraform cloud as the backend, instead of the
+		// TODO: hacky fix
+		stdOut, err := c.Init(ctx, "-input=false", "-no-color") //, "-reconfigure")
+		// TODO: Debugging this new functionality here
+		log.Printf(stdOut)
+
+		if (err != nil) && (stdOut == "\nInitializing Terraform Cloud...") {
 			_, err = c.Init(ctx, "-input=false", "-no-color")
-		}
-		if err != nil {
+		} else if err != nil {
 			// we cannot return error here.
 			log.Printf("[ERROR] [executor@%s] failed to switch back to remote: %s\n", c.Dir(), err)
 			log.Printf("[ERROR] [executor@%s] please re-run terraform init -reconfigure\n", c.Dir())

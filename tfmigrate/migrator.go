@@ -32,7 +32,7 @@ func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI, workspace string)
 
 	// init folder
 	log.Printf("[INFO] [migrator@%s] initialize work dir\n", tf.Dir())
-	err = tf.Init(ctx, "-input=false", "-no-color")
+	_, err = tf.Init(ctx, "-input=false", "-no-color")
 	if err != nil {
 		return nil, nil, err
 	}
