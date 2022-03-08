@@ -75,8 +75,6 @@ func (c *ApplyCommand) Run(args []string) int {
 	return 0
 }
 
-// TODO: The file runner and history runner is what actually runs the apply/plan functions
-// TODO: Elements of the config contain information on remote backend type
 // applyWithoutHistory is a helper function which applies a given migration file without history.
 func (c *ApplyCommand) applyWithoutHistory(filename string) error {
 	fr, err := NewFileRunner(filename, c.config, c.Option)
