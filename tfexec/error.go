@@ -9,25 +9,25 @@ import (
 // ExitError is an interface for wrapping os/exec.ExitError.
 // We want to add helper methods we need.
 type ExitError interface {
-	// String returns a string represention of the error.
+	// String returns a string representation of the error.
 	String() string
 	// Error returns a string useful for displaying error messages.
 	Error() string
-	// ExitCode returns a exit status code of the command.
+	// ExitCode returns an exit status code of the command.
 	ExitCode() int
 }
 
 // exitError implements the ExitError interface.
 type exitError struct {
-	// osExecErr is a underlying object.
+	// osExecErr is an underlying object.
 	osExecErr *exec.ExitError
-	// cmd is a executed command.
+	// cmd is an executed command.
 	cmd Command
 }
 
 var _ ExitError = (*exitError)(nil)
 
-// String returns a string represention of the error.
+// String returns a string representation of the error.
 func (e *exitError) String() string {
 	return e.osExecErr.String()
 }
@@ -44,7 +44,7 @@ func (e *exitError) Error() string {
 	)
 }
 
-// ExitCode returns a exit status code of the command.
+// ExitCode returns an exit status code of the command.
 func (e *exitError) ExitCode() int {
 	return e.osExecErr.ExitCode()
 }

@@ -10,7 +10,7 @@ import (
 // StateRm removes resources from state.
 // If a state is given, use it for the input state and return a new state.
 // Note that if the input state is not given, always return nil state,
-// becasuse the terraform state rm command doesn't have -state-out option.
+// because the terraform state rm command doesn't have -state-out option.
 func (c *terraformCLI) StateRm(ctx context.Context, state *State, addresses []string, opts ...string) (*State, error) {
 	args := []string{"state", "rm"}
 
@@ -52,6 +52,6 @@ func (c *terraformCLI) StateRm(ctx context.Context, state *State, addresses []st
 	}
 	// If state == nil, it updates the current default state,
 	// we can read it with calling the state pull command,
-	// but we avoid to invoke implicitly it and just return nil.
+	// but we avoid invoking it implicitly and just return nil.
 	return nil, nil
 }

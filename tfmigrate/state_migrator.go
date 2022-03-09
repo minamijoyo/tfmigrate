@@ -100,16 +100,16 @@ func NewStateMigrator(dir string, workspace string, actions []StateAction, o *Mi
 
 // plan computes a new state by applying state migration operations to a temporary state.
 // It will fail if terraform plan detects any diffs with the new state.
-// We intentional private this method not to expose internal states and unify
+// We intentionally keep this method private as to not expose internal states and unify
 // the Migrator interface between a single and multi state migrator.
 func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 	// setup work dir.
-	currentState, switchBackToRemotekFunc, err := setupWorkDir(ctx, m.tf, m.workspace)
+	currentState, switchBackToRemoteFunc, err := setupWorkDir(ctx, m.tf, m.workspace)
 	if err != nil {
 		return nil, err
 	}
 	// switch back it to remote on exit.
-	defer switchBackToRemotekFunc()
+	defer switchBackToRemoteFunc()
 
 	// computes a new state by applying state migration operations to a temporary state.
 	log.Printf("[INFO] [migrator@%s] compute a new state\n", m.tf.Dir())

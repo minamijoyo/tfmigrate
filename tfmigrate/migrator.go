@@ -20,7 +20,7 @@ type Migrator interface {
 	Apply(ctx context.Context) error
 }
 
-// setupWorkDir is a common helper function to setup work dir and returns the
+// setupWorkDir is a common helper function to set up work dir and returns the
 // current state and a switch back function.
 func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI, workspace string) (*tfexec.State, func(), error) {
 	// check if terraform command is available.
@@ -58,11 +58,13 @@ func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI, workspace string)
 	if err != nil {
 		return nil, nil, err
 	}
-	//override backend to local
+	// override backend to local
 	log.Printf("[INFO] [migrator@%s] override backend to local\n", tf.Dir())
-	switchBackToRemotekFunc, err := tf.OverrideBackendToLocal(ctx, "_tfmigrate_override.tf", workspace)
+	// TODO: The switchBackToRemoteFunc is generated here. Some kind of extra information needs to be passed
+	// TODO: into the function at this point, I suspect.
+	switchBackToRemoteFunc, err := tf.OverrideBackendToLocal(ctx, "_tfmigrate_override.tf", workspace)
 	if err != nil {
 		return nil, nil, err
 	}
-	return currentState, switchBackToRemotekFunc, nil
+	return currentState, switchBackToRemoteFunc, nil
 }

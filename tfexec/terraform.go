@@ -33,7 +33,7 @@ func NewState(b []byte) *State {
 // but we define it as a named type to clarify interface.
 type Plan []byte
 
-// Bytes returns raw contents of tfstate as []byte.
+// Bytes returns raw contents of tfplan as []byte.
 func (p *Plan) Bytes() []byte {
 	return []byte(*p)
 }
@@ -97,7 +97,7 @@ type TerraformCLI interface {
 	// because the terraform state rm command doesn't have -state-out option.
 	StateRm(ctx context.Context, state *State, addresses []string, opts ...string) (*State, error)
 
-	// StatePush pushs a given State to remote.
+	// StatePush pushes a given State to remote.
 	StatePush(ctx context.Context, state *State, opts ...string) error
 
 	// WorkspaceNew creates a new workspace with name "workspace".
@@ -150,7 +150,7 @@ func NewTerraformCLI(e Executor) TerraformCLI {
 	}
 }
 
-// Run is a low-level generic method for running an arbitrary terraform comamnd.
+// Run is a low-level generic method for running an arbitrary terraform command.
 func (c *terraformCLI) Run(ctx context.Context, args ...string) (string, string, error) {
 	// The default binary path is `terraform`.
 	name := "terraform"
@@ -180,7 +180,7 @@ func (c *terraformCLI) Run(ctx context.Context, args ...string) (string, string,
 	return cmd.Stdout(), cmd.Stderr(), err
 }
 
-// dir returns a working directory where terraform command is executed.
+// Dir returns a working directory where terraform command is executed.
 func (c *terraformCLI) Dir() string {
 	return c.Executor.Dir()
 }
@@ -192,7 +192,7 @@ func (c *terraformCLI) SetExecPath(execPath string) {
 }
 
 // OverrideBackendToLocal switches the backend to local and returns a function
-// that will switch back it to remote with defer.
+// that will switch it back to remote with defer.
 // The -state flag for terraform command is not valid for remote state,
 // so we need to switch the backend to local for temporary state operations.
 // The filename argument must meet constraints in order to override the file.
@@ -267,11 +267,12 @@ terraform {
 		// Likely will be tricky to implement, but this is a "public" tool and so should implement the
 		// smoothest/most automated solution.
 
-		stdOut, err := c.Init(ctx, "-input=false", "-no-color") //, "-reconfigure")
+		_, err = c.Init(ctx, "-input=false", "-no-color", "-reconfigure")
 
-		if (err != nil) && (stdOut == "\nInitializing Terraform Cloud...") {
-			_, err = c.Init(ctx, "-input=false", "-no-color")
-		} else if err != nil {
+		//if (err != nil) && (stdOut == "\nInitializing Terraform Cloud...") {
+		//	_, err = c.Init(ctx, "-input=false", "-no-color")
+		//} else
+		if err != nil {
 			// we cannot return error here.
 			log.Printf("[ERROR] [executor@%s] failed to switch back to remote: %s\n", c.Dir(), err)
 			log.Printf("[ERROR] [executor@%s] please re-run terraform init -reconfigure\n", c.Dir())

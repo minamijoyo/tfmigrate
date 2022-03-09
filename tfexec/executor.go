@@ -24,7 +24,7 @@ type Executor interface {
 	AppendEnv(key string, value string)
 }
 
-// executor impolements the Executor interface.
+// executor implements the Executor interface.
 type executor struct {
 	// outStream is the stdout stream.
 	outStream io.Writer

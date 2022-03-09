@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-// StatePush pushs a given State to remote.
+// StatePush pushes a given State to remote.
 func (c *terraformCLI) StatePush(ctx context.Context, state *State, opts ...string) error {
 	args := []string{"state", "push"}
 	args = append(args, opts...)

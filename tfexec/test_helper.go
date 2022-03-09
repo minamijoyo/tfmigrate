@@ -15,9 +15,9 @@ import (
 	"github.com/hashicorp/go-version"
 )
 
-// mockExecutor impolements the Executor interface for testing.
+// mockExecutor implements the Executor interface for testing.
 type mockExecutor struct {
-	// mockCommands is a sequece of mocked commands.
+	// mockCommands is a sequence of mocked commands.
 	mockCommands []*mockCommand
 	// newCommnadContextCalls counts the NewCommandContext method calls.
 	newCommnadContextCalls int
@@ -85,7 +85,7 @@ type mockCommand struct {
 	args []string
 	// argsRe is an expected regex pattern for a string of args (including
 	// command name). It is intended to test args with a regex pattern match
-	// insted of an exact match if the args contain a variable such as a path of
+	// instead of an exact match if the args contain a variable such as a path of
 	// temporary file.
 	argsRe *regexp.Regexp
 	// calledArgs stores arguments actually called to pass runFunc.
@@ -164,7 +164,7 @@ func (e *mockExitError) Error() string {
 	)
 }
 
-// ExitCode returns a exit status code of the command.
+// ExitCode returns an exit status code of the command.
 func (e *mockExitError) ExitCode() int {
 	return e.exitCode
 }
