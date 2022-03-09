@@ -22,6 +22,7 @@ type Migrator interface {
 
 // setupWorkDir is a common helper function to set up work dir and returns the
 // current state and a switch back function.
+// TODO: Needs to except a string
 func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI, workspace string) (*tfexec.State, func(), error) {
 	// check if terraform command is available.
 	version, err := tf.Version(ctx)

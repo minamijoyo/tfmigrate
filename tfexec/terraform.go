@@ -61,7 +61,7 @@ type TerraformCLI interface {
 	Version(ctx context.Context) (string, error)
 
 	// Init initializes the current work directory.
-	Init(ctx context.Context, opts ...string) (string, error)
+	Init(ctx context.Context, opts ...string) error
 
 	// Plan computes expected changes.
 	// If a state is given, use it for the input state.
@@ -220,7 +220,7 @@ terraform {
 	}
 
 	log.Printf("[INFO] [executor@%s] switch backend to local\n", c.Dir())
-	_, err := c.Init(ctx, "-input=false", "-no-color", "-reconfigure")
+	err := c.Init(ctx, "-input=false", "-no-color", "-reconfigure")
 	if err != nil {
 		// remove the override file before return an error.
 		os.Remove(path)
@@ -267,7 +267,7 @@ terraform {
 		// Likely will be tricky to implement, but this is a "public" tool and so should implement the
 		// smoothest/most automated solution.
 
-		_, err = c.Init(ctx, "-input=false", "-no-color", "-reconfigure")
+		err = c.Init(ctx, "-input=false", "-no-color", "-reconfigure")
 
 		//if (err != nil) && (stdOut == "\nInitializing Terraform Cloud...") {
 		//	_, err = c.Init(ctx, "-input=false", "-no-color")

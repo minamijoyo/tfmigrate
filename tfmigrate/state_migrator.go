@@ -3,10 +3,9 @@ package tfmigrate
 import (
 	"context"
 	"fmt"
+	"github.com/minamijoyo/tfmigrate/tfexec"
 	"log"
 	"os"
-
-	"github.com/minamijoyo/tfmigrate/tfexec"
 )
 
 // StateMigratorConfig is a config for StateMigrator.
@@ -35,6 +34,8 @@ type StateMigratorConfig struct {
 var _ MigratorConfig = (*StateMigratorConfig)(nil)
 
 // NewMigrator returns a new instance of StateMigrator.
+// TODO: Get this done
+// TODO
 func (c *StateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, error) {
 	// default working directory
 	dir := "."
@@ -102,9 +103,11 @@ func NewStateMigrator(dir string, workspace string, actions []StateAction, o *Mi
 // It will fail if terraform plan detects any diffs with the new state.
 // We intentionally keep this method private as to not expose internal states and unify
 // the Migrator interface between a single and multi state migrator.
+// TODO: What is available within the StateMigrator object? Within the "ctx" etc?
+// TODO: Update to except and use configuration file
 func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 	// setup work dir.
-	currentState, switchBackToRemoteFunc, err := setupWorkDir(ctx, m.tf, m.workspace)
+	currentState, switchBackToRemoteFunc, err := setupWorkDir(ctx, m.tf, m.workspace) // TODO
 	if err != nil {
 		return nil, err
 	}
@@ -145,11 +148,13 @@ func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 	return currentState, nil
 }
 
+// TODO: How will these updates affect multi-state migration? TBD.
+// TODO: Needs to be updated
 // Plan computes a new state by applying state migration operations to a temporary state.
 // It will fail if terraform plan detects any diffs with the new state.
 func (m *StateMigrator) Plan(ctx context.Context) error {
 	log.Printf("[INFO] [migrator] start state migrator plan\n")
-	_, err := m.plan(ctx)
+	_, err := m.plan(ctx) // TODO
 	if err != nil {
 		return err
 	}
@@ -157,6 +162,7 @@ func (m *StateMigrator) Plan(ctx context.Context) error {
 	return nil
 }
 
+// TODO: Needs to be updated
 // Apply computes a new state and pushes it to remote state.
 // It will fail if terraform plan detects any diffs with the new state.
 // We are intended to this is used for state refactoring.
@@ -165,7 +171,7 @@ func (m *StateMigrator) Apply(ctx context.Context) error {
 	// Check if a new state does not have any diffs compared to real resources
 	// before push a new state to remote.
 	log.Printf("[INFO] [migrator] start state migrator plan phase for apply\n")
-	state, err := m.plan(ctx)
+	state, err := m.plan(ctx) // TODO
 	if err != nil {
 		return err
 	}

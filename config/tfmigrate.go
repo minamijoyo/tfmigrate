@@ -27,6 +27,7 @@ type TfmigrateBlock struct {
 // TfmigrateConfig is a config for top-level CLI settings.
 // TfmigrateBlock is just used for parsing HCL and
 // TfmigrateConfig is used for building application logic.
+// TODO: Here is where config is defined/used
 type TfmigrateConfig struct {
 	// MigrationDir is a path to directory where migration files are stored.
 	// Default to `.` (current directory).
@@ -49,6 +50,7 @@ func LoadConfigurationFile(filename string) (*TfmigrateConfig, error) {
 // returns a TfmigrateConfig.
 // Note that this method does not read a file and you should pass source of config in bytes.
 // The filename is used for error message and selecting HCL syntax (.hcl and .json).
+// TODO: Here is where the actual configuration is loaded.
 func ParseConfigurationFile(filename string, source []byte) (*TfmigrateConfig, error) {
 	// Decode tfmigrate block.
 	var f ConfigurationFile
