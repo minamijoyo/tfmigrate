@@ -65,7 +65,7 @@ type S3Client interface {
 	GetObjectWithContext(ctx aws.Context, input *s3.GetObjectInput, opts ...request.Option) (*s3.GetObjectOutput, error)
 }
 
-// s3Client is a real implemention of S3Client.
+// s3Client is a real implementation of the S3Client.
 type s3Client struct {
 	s3api s3iface.S3API
 }

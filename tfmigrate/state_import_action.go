@@ -13,9 +13,9 @@ import (
 // Terraform will not only import state, but also generate configuration.
 // We intentionally use term "StateImportAction" to clarify it imports state only.
 type StateImportAction struct {
-	// address is a address to import resource to.
+	// address is an address to import resource to.
 	address string
-	// id is an resource identifier to be imported.
+	// id is a resource identifier to be imported.
 	id string
 }
 

@@ -3,10 +3,9 @@ package tfmigrate
 import (
 	"context"
 	"fmt"
+	"github.com/minamijoyo/tfmigrate/tfexec"
 	"log"
 	"os"
-
-	"github.com/minamijoyo/tfmigrate/tfexec"
 )
 
 // StateMigratorConfig is a config for StateMigrator.
@@ -35,7 +34,7 @@ type StateMigratorConfig struct {
 var _ MigratorConfig = (*StateMigratorConfig)(nil)
 
 // NewMigrator returns a new instance of StateMigrator.
-func (c *StateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, error) {
+func (c *StateMigratorConfig) NewMigrator(o *MigratorOption, isBackendTerraformCloud bool) (Migrator, error) {
 	// default working directory
 	dir := "."
 	if len(c.Dir) > 0 {
@@ -61,7 +60,7 @@ func (c *StateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, error) {
 		c.Workspace = "default"
 	}
 
-	return NewStateMigrator(dir, c.Workspace, actions, o, c.Force), nil
+	return NewStateMigrator(dir, c.Workspace, actions, o, c.Force, isBackendTerraformCloud), nil
 }
 
 // StateMigrator implements the Migrator interface.
@@ -77,12 +76,15 @@ type StateMigrator struct {
 	force bool
 	// workspace is the state workspace which the migration works with.
 	workspace string
+	// IsBackendTerraformCloud is whether the remote backed is TerraformCloud
+	isBackendTerraformCloud bool
 }
 
 var _ Migrator = (*StateMigrator)(nil)
 
 // NewStateMigrator returns a new StateMigrator instance.
-func NewStateMigrator(dir string, workspace string, actions []StateAction, o *MigratorOption, force bool) *StateMigrator {
+func NewStateMigrator(dir string, workspace string, actions []StateAction,
+	o *MigratorOption, force bool, isBackendTerraformCloud bool) *StateMigrator {
 	e := tfexec.NewExecutor(dir, os.Environ())
 	tf := tfexec.NewTerraformCLI(e)
 	if o != nil && len(o.ExecPath) > 0 {
@@ -90,26 +92,27 @@ func NewStateMigrator(dir string, workspace string, actions []StateAction, o *Mi
 	}
 
 	return &StateMigrator{
-		tf:        tf,
-		actions:   actions,
-		o:         o,
-		force:     force,
-		workspace: workspace,
+		tf:                      tf,
+		actions:                 actions,
+		o:                       o,
+		force:                   force,
+		workspace:               workspace,
+		isBackendTerraformCloud: isBackendTerraformCloud,
 	}
 }
 
 // plan computes a new state by applying state migration operations to a temporary state.
 // It will fail if terraform plan detects any diffs with the new state.
-// We intentional private this method not to expose internal states and unify
+// We intentionally keep this method private as to not expose internal states and unify
 // the Migrator interface between a single and multi state migrator.
 func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 	// setup work dir.
-	currentState, switchBackToRemotekFunc, err := setupWorkDir(ctx, m.tf, m.workspace)
+	currentState, switchBackToRemoteFunc, err := setupWorkDir(ctx, m.tf, m.workspace, m.isBackendTerraformCloud)
 	if err != nil {
 		return nil, err
 	}
 	// switch back it to remote on exit.
-	defer switchBackToRemotekFunc()
+	defer switchBackToRemoteFunc()
 
 	// computes a new state by applying state migration operations to a temporary state.
 	log.Printf("[INFO] [migrator@%s] compute a new state\n", m.tf.Dir())

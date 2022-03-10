@@ -27,7 +27,7 @@ func TestMockMigratorConfigNewMigrator(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			got, err := tc.config.NewMigrator(tc.o)
+			got, err := tc.config.NewMigrator(tc.o, false)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}

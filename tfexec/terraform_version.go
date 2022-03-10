@@ -9,7 +9,7 @@ import (
 // tfVersionRe is a pattern to parse outputs from terraform version.
 var tfVersionRe = regexp.MustCompile(`^Terraform v(.+)\s*\n`)
 
-// Verison returns a version number of Terraform.
+// Version returns a version number of Terraform.
 func (c *terraformCLI) Version(ctx context.Context) (string, error) {
 	stdout, _, err := c.Run(ctx, "version")
 	if err != nil {

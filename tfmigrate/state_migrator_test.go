@@ -106,7 +106,7 @@ func TestStateMigratorConfigNewMigrator(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			got, err := tc.config.NewMigrator(tc.o)
+			got, err := tc.config.NewMigrator(tc.o, false)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}
@@ -181,7 +181,7 @@ resource "aws_iam_user" "qux" {
 				NewStateImportAction("aws_iam_user.qux", "qux"),
 			}
 
-			m := NewStateMigrator(tf.Dir(), tc.workspace, actions, &MigratorOption{}, false)
+			m := NewStateMigrator(tf.Dir(), tc.workspace, actions, &MigratorOption{}, false, false)
 			err = m.Plan(ctx)
 			if err != nil {
 				t.Fatalf("failed to run migrator plan: %s", err)
@@ -254,7 +254,7 @@ resource "aws_security_group" "baz" {}
 	o := &MigratorOption{}
 	o.PlanOut = "foo.tfplan"
 
-	m := NewStateMigrator(tf.Dir(), "default", actions, o, true)
+	m := NewStateMigrator(tf.Dir(), "default", actions, o, true, false)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)

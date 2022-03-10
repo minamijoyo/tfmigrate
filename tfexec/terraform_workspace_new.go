@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-//WorkspaceNew creates a new workspace
+// WorkspaceNew creates a new workspace
 func (c *terraformCLI) WorkspaceNew(ctx context.Context, workspace string, opts ...string) error {
 	args := []string{"workspace", "new"}
 	args = append(args, opts...)

@@ -90,7 +90,7 @@ func (r *HistoryRunner) planDir(ctx context.Context) error {
 	return nil
 }
 
-// Apply applis migrations and save them to history.
+// Apply applies migrations and save them to history.
 // If a filename is set, run a single migration.
 // If not set, run all unapplied migrations.
 func (r *HistoryRunner) Apply(ctx context.Context) (err error) {
@@ -157,7 +157,7 @@ func (r *HistoryRunner) applyFile(ctx context.Context, filename string) error {
 	return nil
 }
 
-// applyDir appies all unapplied migrations.
+// applyDir applies all unapplied migrations.
 func (r *HistoryRunner) applyDir(ctx context.Context) (err error) {
 	unapplied := r.hc.UnappliedMigrations()
 

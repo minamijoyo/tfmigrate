@@ -369,6 +369,7 @@ An example of configuration file is as follows.
 ```hcl
 tfmigrate {
   migration_dir = "./tfmigrate"
+  is_backend_terraform_cloud = true
   history {
     storage "s3" {
       bucket = "tfmigrate-test"
@@ -377,6 +378,13 @@ tfmigrate {
   }
 }
 ```
+
+#### is_backend_terraform_cloud
+Whether the remote backend specified in Terraform files references a 
+[terraform cloud remote backend](https://www.terraform.io/language/settings/terraform-cloud),
+in particular specified as a `cloud` block within the `terraform` config block. This backend
+type was introduced in Terraform 1.1.+ and is the recommended way to specify a Terraform backend.
+Attribute defaults to `false`.
 
 #### tfmigrate block
 

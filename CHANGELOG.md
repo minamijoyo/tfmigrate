@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+Support Terraform Cloud as a remote backend in Terraform 1.1.+ with the `cloud` block.
+
 ## 0.3.1 (2022/01/26)
 
 ENHANCEMENTS:
