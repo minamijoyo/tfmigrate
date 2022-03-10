@@ -125,7 +125,7 @@ type TerraformCLI interface {
 	// so we need to switch the backend to local for temporary state operations.
 	// The filename argument must meet constraints for override file.
 	// (e.g.) _tfexec_override.tf
-	OverrideBackendToLocal(ctx context.Context, filename string, workspace string) (func(), error)
+	OverrideBackendToLocal(ctx context.Context, filename string, workspace string, isBackendTerraformCloud bool) (func(), error)
 
 	// PlanHasChange is a helper method which runs plan and return true if the plan has change.
 	PlanHasChange(ctx context.Context, state *State, opts ...string) (bool, error)
@@ -197,7 +197,8 @@ func (c *terraformCLI) SetExecPath(execPath string) {
 // so we need to switch the backend to local for temporary state operations.
 // The filename argument must meet constraints in order to override the file.
 // (e.g.) _tfexec_override.tf
-func (c *terraformCLI) OverrideBackendToLocal(ctx context.Context, filename string, workspace string) (func(), error) {
+func (c *terraformCLI) OverrideBackendToLocal(ctx context.Context, filename string,
+	workspace string, isBackendTerraformCloud bool) (func(), error) {
 	// create local backend override file.
 	path := filepath.Join(c.Dir(), filename)
 	contents := `
@@ -229,6 +230,7 @@ terraform {
 		return nil, fmt.Errorf("failed to switch backend to local: %s", err)
 	}
 
+	// TODO
 	switchBackToRemoteFunc := func() {
 		log.Printf("[INFO] [executor@%s] remove the override file\n", c.Dir())
 		err := os.Remove(path)
@@ -253,25 +255,13 @@ terraform {
 		}
 		log.Printf("[INFO] [executor@%s] switch back to remote\n", c.Dir())
 
-		// TODO: First just see if removing the -reconfigure statement will work? Yes it does, which is good.
-		// TODO: Possible solutions:
-		// TODO: 1) Pass in a command line argument into tfmigrate
-		// This option (might) be the cleanest, but not necessarily to implement. Will be helpful
-		// to figure out how command line arguments are used with this tool regardless.
-		// TODO: 2) New argument in configuration?
-		// This would be likely easier to reference within the code,
-		// but it would be not the best user experience to have to add the extra configuration. It feels
-		// like it is a step behind the optimal situation which would be just to infer it directly from
-		// the terraform itself.
-		// TODO: 3) Have tfmigrate read the terraform block's configuration for a cloud {} block.
-		// Likely will be tricky to implement, but this is a "public" tool and so should implement the
-		// smoothest/most automated solution.
+		// Run the correct init command depending on whether the remote backend is Terraform Cloud
+		if !isBackendTerraformCloud {
+			err = c.Init(ctx, "-input=false", "-no-color", "-reconfigure")
+		} else {
+			err = c.Init(ctx, "-input=false", "-no-color")
+		}
 
-		err = c.Init(ctx, "-input=false", "-no-color", "-reconfigure")
-
-		//if (err != nil) && (stdOut == "\nInitializing Terraform Cloud...") {
-		//	_, err = c.Init(ctx, "-input=false", "-no-color")
-		//} else
 		if err != nil {
 			// we cannot return error here.
 			log.Printf("[ERROR] [executor@%s] failed to switch back to remote: %s\n", c.Dir(), err)

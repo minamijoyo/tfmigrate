@@ -9,6 +9,7 @@ import (
 	"github.com/minamijoyo/tfmigrate/tfexec"
 )
 
+// TODO: Changes needed here that match the state_migrator.go changes
 // MultiStateMigratorConfig is a config for MultiStateMigrator.
 type MultiStateMigratorConfig struct {
 	// FromDir is a working directory where states of resources move from.
@@ -33,7 +34,7 @@ type MultiStateMigratorConfig struct {
 var _ MigratorConfig = (*MultiStateMigratorConfig)(nil)
 
 // NewMigrator returns a new instance of MultiStateMigrator.
-func (c *MultiStateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, error) {
+func (c *MultiStateMigratorConfig) NewMigrator(o *MigratorOption, isBackendTerraformCloud bool) (Migrator, error) {
 	if len(c.Actions) == 0 {
 		return nil, fmt.Errorf("faild to NewMigrator with no actions")
 	}
@@ -56,7 +57,7 @@ func (c *MultiStateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, err
 		c.ToWorkspace = "default"
 	}
 
-	return NewMultiStateMigrator(c.FromDir, c.ToDir, c.FromWorkspace, c.ToWorkspace, actions, o, c.Force), nil
+	return NewMultiStateMigrator(c.FromDir, c.ToDir, c.FromWorkspace, c.ToWorkspace, actions, o, c.Force, isBackendTerraformCloud), nil
 }
 
 // MultiStateMigrator implements the Migrator interface.
@@ -76,12 +77,16 @@ type MultiStateMigrator struct {
 	o *MigratorOption
 	// force operation in case of unexpected diff
 	force bool
+	// isBackendTerraformCloud is a boolean representing whether they remote backend
+	// is Terraform Cloud
+	isBackendTerraformCloud bool
 }
 
 var _ Migrator = (*MultiStateMigrator)(nil)
 
 // NewMultiStateMigrator returns a new MultiStateMigrator instance.
-func NewMultiStateMigrator(fromDir string, toDir string, fromWorkspace string, toWorkspace string, actions []MultiStateAction, o *MigratorOption, force bool) *MultiStateMigrator {
+func NewMultiStateMigrator(fromDir string, toDir string, fromWorkspace string, toWorkspace string,
+	actions []MultiStateAction, o *MigratorOption, force bool, isBackendTerraformCloud bool) *MultiStateMigrator {
 	fromTf := tfexec.NewTerraformCLI(tfexec.NewExecutor(fromDir, os.Environ()))
 	toTf := tfexec.NewTerraformCLI(tfexec.NewExecutor(toDir, os.Environ()))
 	if o != nil && len(o.ExecPath) > 0 {
@@ -90,13 +95,14 @@ func NewMultiStateMigrator(fromDir string, toDir string, fromWorkspace string, t
 	}
 
 	return &MultiStateMigrator{
-		fromTf:        fromTf,
-		toTf:          toTf,
-		fromWorkspace: fromWorkspace,
-		toWorkspace:   toWorkspace,
-		actions:       actions,
-		o:             o,
-		force:         force,
+		fromTf:                  fromTf,
+		toTf:                    toTf,
+		fromWorkspace:           fromWorkspace,
+		toWorkspace:             toWorkspace,
+		actions:                 actions,
+		o:                       o,
+		force:                   force,
+		isBackendTerraformCloud: isBackendTerraformCloud,
 	}
 }
 
@@ -106,14 +112,14 @@ func NewMultiStateMigrator(fromDir string, toDir string, fromWorkspace string, t
 // the Migrator interface between a single and multi state migrator.
 func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.State, error) {
 	// setup fromDir.
-	fromCurrentState, fromSwitchBackToRemoteFunc, err := setupWorkDir(ctx, m.fromTf, m.fromWorkspace)
+	fromCurrentState, fromSwitchBackToRemoteFunc, err := setupWorkDir(ctx, m.fromTf, m.fromWorkspace, m.isBackendTerraformCloud)
 	if err != nil {
 		return nil, nil, err
 	}
 	// switch back it to remote on exit.
 	defer fromSwitchBackToRemoteFunc()
 	// setup toDir.
-	toCurrentState, toSwitchBackToRemoteFunc, err := setupWorkDir(ctx, m.toTf, m.toWorkspace)
+	toCurrentState, toSwitchBackToRemoteFunc, err := setupWorkDir(ctx, m.toTf, m.toWorkspace, m.isBackendTerraformCloud)
 	if err != nil {
 		return nil, nil, err
 	}

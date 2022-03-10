@@ -14,7 +14,7 @@ type MigrationConfig struct {
 // MigratorConfig is an interface of factory method for Migrator.
 type MigratorConfig interface {
 	// NewMigrator returns a new instance of Migrator.
-	NewMigrator(o *MigratorOption) (Migrator, error)
+	NewMigrator(o *MigratorOption, isBackendTerraformCloud bool) (Migrator, error)
 }
 
 // MigratorOption customizes a behavior of Migrator.

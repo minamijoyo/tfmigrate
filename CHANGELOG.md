@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+Support Terraform Cloud as a remote backend ([#72](https://github.com/minamijoyo/tfmigrate/pull/72)).
+
 ## 0.3.1 (2022/01/26)
 
 ENHANCEMENTS:

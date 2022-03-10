@@ -20,6 +20,9 @@ type TfmigrateBlock struct {
 	// MigrationDir is a path to directory where migration files are stored.
 	// Default to `.` (current directory).
 	MigrationDir string `hcl:"migration_dir,optional"`
+	// IsBackendTerraformCloud is a boolean indicating whether a backend is
+	// stored remotely in Terraform Cloud. Defaults to false.
+	IsBackendTerraformCloud bool `hcl:"is_backend_terraform_cloud,optional"`
 	// History is a block for migration history management.
 	History *HistoryBlock `hcl:"history,block"`
 }
@@ -27,11 +30,13 @@ type TfmigrateBlock struct {
 // TfmigrateConfig is a config for top-level CLI settings.
 // TfmigrateBlock is just used for parsing HCL and
 // TfmigrateConfig is used for building application logic.
-// TODO: Here is where config is defined/used
 type TfmigrateConfig struct {
 	// MigrationDir is a path to directory where migration files are stored.
 	// Default to `.` (current directory).
 	MigrationDir string
+	// IsBackendTerraformCloud is a boolean representing whether the remote
+	// backend is TerraformCloud. Defaults to a value of false.
+	IsBackendTerraformCloud bool
 	// History is a config for migration history management.
 	History *history.Config
 }
@@ -50,7 +55,6 @@ func LoadConfigurationFile(filename string) (*TfmigrateConfig, error) {
 // returns a TfmigrateConfig.
 // Note that this method does not read a file and you should pass source of config in bytes.
 // The filename is used for error message and selecting HCL syntax (.hcl and .json).
-// TODO: Here is where the actual configuration is loaded.
 func ParseConfigurationFile(filename string, source []byte) (*TfmigrateConfig, error) {
 	// Decode tfmigrate block.
 	var f ConfigurationFile
@@ -62,6 +66,9 @@ func ParseConfigurationFile(filename string, source []byte) (*TfmigrateConfig, e
 	config := NewDefaultConfig()
 	if len(f.Tfmigrate.MigrationDir) > 0 {
 		config.MigrationDir = f.Tfmigrate.MigrationDir
+	}
+	if f.Tfmigrate.IsBackendTerraformCloud {
+		config.IsBackendTerraformCloud = f.Tfmigrate.IsBackendTerraformCloud
 	}
 
 	if f.Tfmigrate.History != nil {
@@ -78,6 +85,7 @@ func ParseConfigurationFile(filename string, source []byte) (*TfmigrateConfig, e
 // NewDefaultConfig returns a new instance of TfmigrateConfig.
 func NewDefaultConfig() *TfmigrateConfig {
 	return &TfmigrateConfig{
-		MigrationDir: ".",
+		MigrationDir:            ".",
+		IsBackendTerraformCloud: false,
 	}
 }

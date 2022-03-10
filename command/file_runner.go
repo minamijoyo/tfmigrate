@@ -31,9 +31,8 @@ func NewFileRunner(filename string, config *config.TfmigrateConfig, option *tfmi
 		return nil, err
 	}
 
-	// TODO: New state migrator object is created here, need to pass in config here
-	// TODO: (config will contain details on whether or not the backend is terraform cloud
-	m, err := mc.Migrator.NewMigrator(option)
+	m, err := mc.Migrator.NewMigrator(option, config.IsBackendTerraformCloud)
+
 	if err != nil {
 		return nil, err
 	}

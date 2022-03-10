@@ -34,9 +34,7 @@ type StateMigratorConfig struct {
 var _ MigratorConfig = (*StateMigratorConfig)(nil)
 
 // NewMigrator returns a new instance of StateMigrator.
-// TODO: Get this done
-// TODO
-func (c *StateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, error) {
+func (c *StateMigratorConfig) NewMigrator(o *MigratorOption, isBackendTerraformCloud bool) (Migrator, error) {
 	// default working directory
 	dir := "."
 	if len(c.Dir) > 0 {
@@ -62,7 +60,7 @@ func (c *StateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, error) {
 		c.Workspace = "default"
 	}
 
-	return NewStateMigrator(dir, c.Workspace, actions, o, c.Force), nil
+	return NewStateMigrator(dir, c.Workspace, actions, o, c.Force, isBackendTerraformCloud), nil
 }
 
 // StateMigrator implements the Migrator interface.
@@ -78,12 +76,15 @@ type StateMigrator struct {
 	force bool
 	// workspace is the state workspace which the migration works with.
 	workspace string
+	// IsBackendTerraformCloud is whether the remote backed is TerraformCloud
+	isBackendTerraformCloud bool
 }
 
 var _ Migrator = (*StateMigrator)(nil)
 
 // NewStateMigrator returns a new StateMigrator instance.
-func NewStateMigrator(dir string, workspace string, actions []StateAction, o *MigratorOption, force bool) *StateMigrator {
+func NewStateMigrator(dir string, workspace string, actions []StateAction,
+	o *MigratorOption, force bool, isBackendTerraformCloud bool) *StateMigrator {
 	e := tfexec.NewExecutor(dir, os.Environ())
 	tf := tfexec.NewTerraformCLI(e)
 	if o != nil && len(o.ExecPath) > 0 {
@@ -91,11 +92,12 @@ func NewStateMigrator(dir string, workspace string, actions []StateAction, o *Mi
 	}
 
 	return &StateMigrator{
-		tf:        tf,
-		actions:   actions,
-		o:         o,
-		force:     force,
-		workspace: workspace,
+		tf:                      tf,
+		actions:                 actions,
+		o:                       o,
+		force:                   force,
+		workspace:               workspace,
+		isBackendTerraformCloud: isBackendTerraformCloud,
 	}
 }
 
@@ -103,11 +105,9 @@ func NewStateMigrator(dir string, workspace string, actions []StateAction, o *Mi
 // It will fail if terraform plan detects any diffs with the new state.
 // We intentionally keep this method private as to not expose internal states and unify
 // the Migrator interface between a single and multi state migrator.
-// TODO: What is available within the StateMigrator object? Within the "ctx" etc?
-// TODO: Update to except and use configuration file
 func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 	// setup work dir.
-	currentState, switchBackToRemoteFunc, err := setupWorkDir(ctx, m.tf, m.workspace) // TODO
+	currentState, switchBackToRemoteFunc, err := setupWorkDir(ctx, m.tf, m.workspace, m.isBackendTerraformCloud)
 	if err != nil {
 		return nil, err
 	}
@@ -148,13 +148,11 @@ func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 	return currentState, nil
 }
 
-// TODO: How will these updates affect multi-state migration? TBD.
-// TODO: Needs to be updated
 // Plan computes a new state by applying state migration operations to a temporary state.
 // It will fail if terraform plan detects any diffs with the new state.
 func (m *StateMigrator) Plan(ctx context.Context) error {
 	log.Printf("[INFO] [migrator] start state migrator plan\n")
-	_, err := m.plan(ctx) // TODO
+	_, err := m.plan(ctx)
 	if err != nil {
 		return err
 	}
@@ -162,7 +160,6 @@ func (m *StateMigrator) Plan(ctx context.Context) error {
 	return nil
 }
 
-// TODO: Needs to be updated
 // Apply computes a new state and pushes it to remote state.
 // It will fail if terraform plan detects any diffs with the new state.
 // We are intended to this is used for state refactoring.
@@ -171,7 +168,7 @@ func (m *StateMigrator) Apply(ctx context.Context) error {
 	// Check if a new state does not have any diffs compared to real resources
 	// before push a new state to remote.
 	log.Printf("[INFO] [migrator] start state migrator plan phase for apply\n")
-	state, err := m.plan(ctx) // TODO
+	state, err := m.plan(ctx)
 	if err != nil {
 		return err
 	}

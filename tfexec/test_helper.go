@@ -291,7 +291,7 @@ func SetupTestAccWithApply(t *testing.T, workspace string, source string) Terraf
 	tf := NewTerraformCLI(e)
 	ctx := context.Background()
 
-	_, err := tf.Init(ctx, "-input=false", "-no-color")
+	err := tf.Init(ctx, "-input=false", "-no-color")
 	if err != nil {
 		t.Fatalf("failed to run terraform init: %s", err)
 	}
