@@ -9,7 +9,6 @@ import (
 	"github.com/minamijoyo/tfmigrate/tfexec"
 )
 
-// TODO: Changes needed here that match the state_migrator.go changes
 // MultiStateMigratorConfig is a config for MultiStateMigrator.
 type MultiStateMigratorConfig struct {
 	// FromDir is a working directory where states of resources move from.

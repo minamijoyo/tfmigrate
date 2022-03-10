@@ -230,7 +230,6 @@ terraform {
 		return nil, fmt.Errorf("failed to switch backend to local: %s", err)
 	}
 
-	// TODO
 	switchBackToRemoteFunc := func() {
 		log.Printf("[INFO] [executor@%s] remove the override file\n", c.Dir())
 		err := os.Remove(path)

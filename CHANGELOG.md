@@ -2,7 +2,7 @@
 
 ENHANCEMENTS:
 
-Support Terraform Cloud as a remote backend ([#72](https://github.com/minamijoyo/tfmigrate/pull/72)).
+Support Terraform Cloud as a remote backend in Terraform 1.1.+ with the `cloud` block.
 
 ## 0.3.1 (2022/01/26)
 
