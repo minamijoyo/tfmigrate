@@ -96,7 +96,7 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			got, err := tc.config.NewMigrator(tc.o, false)
+			got, err := tc.config.NewMigrator(tc.o)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}
@@ -280,7 +280,7 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 				o.PlanOut = "foo.tfplan"
 			}
 
-			m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), tc.fromWorkspace, tc.toWorkspace, actions, o, tc.force, false)
+			m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), tc.fromWorkspace, tc.toWorkspace, actions, o, tc.force)
 			err = m.Plan(ctx)
 			if err != nil {
 				t.Fatalf("failed to run migrator plan: %s", err)

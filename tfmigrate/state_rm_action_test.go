@@ -40,7 +40,7 @@ resource "aws_security_group" "baz" {}
 		NewStateRmAction([]string{"aws_security_group.qux"}),
 	}
 
-	m := NewStateMigrator(tf.Dir(), "default", actions, &MigratorOption{}, false, false)
+	m := NewStateMigrator(tf.Dir(), "default", actions, &MigratorOption{}, false)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)

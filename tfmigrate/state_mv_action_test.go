@@ -41,7 +41,7 @@ resource "aws_security_group" "baz" {}
 		NewStateMvAction("aws_security_group.bar", "aws_security_group.bar2"),
 	}
 
-	m := NewStateMigrator(tf.Dir(), "default", actions, &MigratorOption{}, false, false)
+	m := NewStateMigrator(tf.Dir(), "default", actions, &MigratorOption{}, false)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
