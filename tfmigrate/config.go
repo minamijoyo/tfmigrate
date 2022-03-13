@@ -14,7 +14,7 @@ type MigrationConfig struct {
 // MigratorConfig is an interface of factory method for Migrator.
 type MigratorConfig interface {
 	// NewMigrator returns a new instance of Migrator.
-	NewMigrator(o *MigratorOption, isBackendTerraformCloud bool) (Migrator, error)
+	NewMigrator(o *MigratorOption) (Migrator, error)
 }
 
 // MigratorOption customizes a behavior of Migrator.
@@ -27,4 +27,7 @@ type MigratorOption struct {
 
 	// PlanOut is a path to plan file to be saved.
 	PlanOut string
+
+	// IsBackendTerraformCloud is a boolean indicating if the remote backend is Terraform Cloud
+	IsBackendTerraformCloud bool
 }

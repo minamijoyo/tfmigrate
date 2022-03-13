@@ -20,7 +20,7 @@ type MockMigratorConfig struct {
 var _ MigratorConfig = (*MockMigratorConfig)(nil)
 
 // NewMigrator returns a new instance of MockMigrator.
-func (c *MockMigratorConfig) NewMigrator(o *MigratorOption, isBackendTerraformCloud bool) (Migrator, error) {
+func (c *MockMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, error) {
 	return NewMockMigrator(c.PlanError, c.ApplyError), nil
 }
 

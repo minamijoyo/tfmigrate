@@ -3,9 +3,10 @@ package tfmigrate
 import (
 	"context"
 	"fmt"
-	"github.com/minamijoyo/tfmigrate/tfexec"
 	"log"
 	"os"
+
+	"github.com/minamijoyo/tfmigrate/tfexec"
 )
 
 // StateMigratorConfig is a config for StateMigrator.
@@ -34,7 +35,7 @@ type StateMigratorConfig struct {
 var _ MigratorConfig = (*StateMigratorConfig)(nil)
 
 // NewMigrator returns a new instance of StateMigrator.
-func (c *StateMigratorConfig) NewMigrator(o *MigratorOption, isBackendTerraformCloud bool) (Migrator, error) {
+func (c *StateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, error) {
 	// default working directory
 	dir := "."
 	if len(c.Dir) > 0 {
@@ -60,7 +61,7 @@ func (c *StateMigratorConfig) NewMigrator(o *MigratorOption, isBackendTerraformC
 		c.Workspace = "default"
 	}
 
-	return NewStateMigrator(dir, c.Workspace, actions, o, c.Force, isBackendTerraformCloud), nil
+	return NewStateMigrator(dir, c.Workspace, actions, o, c.Force), nil
 }
 
 // StateMigrator implements the Migrator interface.
@@ -76,15 +77,13 @@ type StateMigrator struct {
 	force bool
 	// workspace is the state workspace which the migration works with.
 	workspace string
-	// IsBackendTerraformCloud is whether the remote backed is TerraformCloud
-	isBackendTerraformCloud bool
 }
 
 var _ Migrator = (*StateMigrator)(nil)
 
 // NewStateMigrator returns a new StateMigrator instance.
 func NewStateMigrator(dir string, workspace string, actions []StateAction,
-	o *MigratorOption, force bool, isBackendTerraformCloud bool) *StateMigrator {
+	o *MigratorOption, force bool) *StateMigrator {
 	e := tfexec.NewExecutor(dir, os.Environ())
 	tf := tfexec.NewTerraformCLI(e)
 	if o != nil && len(o.ExecPath) > 0 {
@@ -92,12 +91,11 @@ func NewStateMigrator(dir string, workspace string, actions []StateAction,
 	}
 
 	return &StateMigrator{
-		tf:                      tf,
-		actions:                 actions,
-		o:                       o,
-		force:                   force,
-		workspace:               workspace,
-		isBackendTerraformCloud: isBackendTerraformCloud,
+		tf:        tf,
+		actions:   actions,
+		o:         o,
+		force:     force,
+		workspace: workspace,
 	}
 }
 
@@ -107,7 +105,7 @@ func NewStateMigrator(dir string, workspace string, actions []StateAction,
 // the Migrator interface between a single and multi state migrator.
 func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 	// setup work dir.
-	currentState, switchBackToRemoteFunc, err := setupWorkDir(ctx, m.tf, m.workspace, m.isBackendTerraformCloud)
+	currentState, switchBackToRemoteFunc, err := setupWorkDir(ctx, m.tf, m.workspace, m.o.IsBackendTerraformCloud)
 	if err != nil {
 		return nil, err
 	}
