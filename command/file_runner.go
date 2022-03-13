@@ -31,7 +31,9 @@ func NewFileRunner(filename string, config *config.TfmigrateConfig, option *tfmi
 		return nil, err
 	}
 
-	m, err := mc.Migrator.NewMigrator(option, config.IsBackendTerraformCloud)
+	option.IsBackendTerraformCloud = config.IsBackendTerraformCloud
+
+	m, err := mc.Migrator.NewMigrator(option)
 
 	if err != nil {
 		return nil, err
