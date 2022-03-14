@@ -31,7 +31,13 @@ func NewFileRunner(filename string, config *config.TfmigrateConfig, option *tfmi
 		return nil, err
 	}
 
-	option.IsBackendTerraformCloud = config.IsBackendTerraformCloud
+	if option != nil {
+		option.IsBackendTerraformCloud = config.IsBackendTerraformCloud
+	} else {
+		option = &tfmigrate.MigratorOption{
+			IsBackendTerraformCloud: false,
+		}
+	}
 
 	m, err := mc.Migrator.NewMigrator(option)
 
