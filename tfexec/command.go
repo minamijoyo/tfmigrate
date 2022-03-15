@@ -22,7 +22,7 @@ type Command interface {
 
 // command implements the Command interface.
 type command struct {
-	// osExecCmd is a underlying object.
+	// osExecCmd is an underlying object.
 	osExecCmd *exec.Cmd
 	// stdout is a buffer for stdout.
 	stdout *bytes.Buffer

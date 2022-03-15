@@ -2,7 +2,7 @@ package history
 
 import "context"
 
-// Storage is an abstruction layer for migration history data store.
+// Storage is an abstraction layer for migration history data store.
 // As you know, this is the equivalent of Terraform's backend, but we have
 // implemented it by ourselves not to depend on Terraform internals directly.
 // To support multiple cloud storages, write and read operations are limited to

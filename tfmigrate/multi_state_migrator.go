@@ -20,7 +20,7 @@ type MultiStateMigratorConfig struct {
 	// ToWorkspace is a workspace within ToDir
 	ToWorkspace string `hcl:"to_workspace,optional"`
 	// Actions is a list of multi state action.
-	// action is a plain text for state operation.
+	// Each action is a plain text for state operation.
 	// Valid formats are the following.
 	// "mv <source> <destination>"
 	Actions []string `hcl:"actions"`
@@ -48,7 +48,7 @@ func (c *MultiStateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, err
 		actions = append(actions, action)
 	}
 
-	//use default workspace if not specified by user
+	// use default workspace if not specified by user
 	if len(c.FromWorkspace) == 0 {
 		c.FromWorkspace = "default"
 	}
@@ -81,7 +81,8 @@ type MultiStateMigrator struct {
 var _ Migrator = (*MultiStateMigrator)(nil)
 
 // NewMultiStateMigrator returns a new MultiStateMigrator instance.
-func NewMultiStateMigrator(fromDir string, toDir string, fromWorkspace string, toWorkspace string, actions []MultiStateAction, o *MigratorOption, force bool) *MultiStateMigrator {
+func NewMultiStateMigrator(fromDir string, toDir string, fromWorkspace string, toWorkspace string,
+	actions []MultiStateAction, o *MigratorOption, force bool) *MultiStateMigrator {
 	fromTf := tfexec.NewTerraformCLI(tfexec.NewExecutor(fromDir, os.Environ()))
 	toTf := tfexec.NewTerraformCLI(tfexec.NewExecutor(toDir, os.Environ()))
 	if o != nil && len(o.ExecPath) > 0 {
@@ -102,23 +103,23 @@ func NewMultiStateMigrator(fromDir string, toDir string, fromWorkspace string, t
 
 // plan computes new states by applying multi state migration operations to temporary states.
 // It will fail if terraform plan detects any diffs with at least one new state.
-// We intentional private this method not to expose internal states and unify
+// We intentionally make this method private to avoid exposing internal states and unify
 // the Migrator interface between a single and multi state migrator.
 func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.State, error) {
 	// setup fromDir.
-	fromCurrentState, fromSwitchBackToRemotekFunc, err := setupWorkDir(ctx, m.fromTf, m.fromWorkspace)
+	fromCurrentState, fromSwitchBackToRemoteFunc, err := setupWorkDir(ctx, m.fromTf, m.fromWorkspace, m.o.IsBackendTerraformCloud)
 	if err != nil {
 		return nil, nil, err
 	}
 	// switch back it to remote on exit.
-	defer fromSwitchBackToRemotekFunc()
+	defer fromSwitchBackToRemoteFunc()
 	// setup toDir.
-	toCurrentState, toSwitchBackToRemotekFunc, err := setupWorkDir(ctx, m.toTf, m.toWorkspace)
+	toCurrentState, toSwitchBackToRemoteFunc, err := setupWorkDir(ctx, m.toTf, m.toWorkspace, m.o.IsBackendTerraformCloud)
 	if err != nil {
 		return nil, nil, err
 	}
 	// switch back it to remote on exit.
-	defer toSwitchBackToRemotekFunc()
+	defer toSwitchBackToRemoteFunc()
 
 	// computes new states by applying state migration operations to temporary states.
 	log.Printf("[INFO] [migrator] compute new states (%s => %s)\n", m.fromTf.Dir(), m.toTf.Dir())

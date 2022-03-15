@@ -31,7 +31,16 @@ func NewFileRunner(filename string, config *config.TfmigrateConfig, option *tfmi
 		return nil, err
 	}
 
+	if option != nil {
+		option.IsBackendTerraformCloud = config.IsBackendTerraformCloud
+	} else {
+		option = &tfmigrate.MigratorOption{
+			IsBackendTerraformCloud: false,
+		}
+	}
+
 	m, err := mc.Migrator.NewMigrator(option)
+
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +75,7 @@ func (r *FileRunner) Plan(ctx context.Context) error {
 	return r.m.Plan(ctx)
 }
 
-// Apply applies a single migration..
+// Apply applies a single migration.
 func (r *FileRunner) Apply(ctx context.Context) error {
 	return r.m.Apply(ctx)
 }

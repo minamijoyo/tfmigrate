@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-//WorkspaceShow returns the currently selected workspace
+// WorkspaceShow returns the currently selected workspace
 func (c *terraformCLI) WorkspaceShow(ctx context.Context) (string, error) {
 	args := []string{"workspace", "show"}
 	stdout, _, err := c.Run(ctx, args...)

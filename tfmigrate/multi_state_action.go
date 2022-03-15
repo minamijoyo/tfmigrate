@@ -8,7 +8,7 @@ import (
 )
 
 // MultiStateAction abstracts multi state migration operations.
-// It's used for moving resources from a state to another.
+// It's used for moving resources from one state to another.
 type MultiStateAction interface {
 	// MultiStateUpdate updates given two states and returns new two states.
 	MultiStateUpdate(ctx context.Context, fromTf tfexec.TerraformCLI, toTf tfexec.TerraformCLI, fromState *tfexec.State, toState *tfexec.State) (*tfexec.State, *tfexec.State, error)

@@ -20,6 +20,9 @@ type TfmigrateBlock struct {
 	// MigrationDir is a path to directory where migration files are stored.
 	// Default to `.` (current directory).
 	MigrationDir string `hcl:"migration_dir,optional"`
+	// IsBackendTerraformCloud is a boolean indicating whether a backend is
+	// stored remotely in Terraform Cloud. Defaults to false.
+	IsBackendTerraformCloud bool `hcl:"is_backend_terraform_cloud,optional"`
 	// History is a block for migration history management.
 	History *HistoryBlock `hcl:"history,block"`
 }
@@ -31,6 +34,9 @@ type TfmigrateConfig struct {
 	// MigrationDir is a path to directory where migration files are stored.
 	// Default to `.` (current directory).
 	MigrationDir string
+	// IsBackendTerraformCloud is a boolean representing whether the remote
+	// backend is TerraformCloud. Defaults to a value of false.
+	IsBackendTerraformCloud bool
 	// History is a config for migration history management.
 	History *history.Config
 }
@@ -61,6 +67,9 @@ func ParseConfigurationFile(filename string, source []byte) (*TfmigrateConfig, e
 	if len(f.Tfmigrate.MigrationDir) > 0 {
 		config.MigrationDir = f.Tfmigrate.MigrationDir
 	}
+	if f.Tfmigrate.IsBackendTerraformCloud {
+		config.IsBackendTerraformCloud = f.Tfmigrate.IsBackendTerraformCloud
+	}
 
 	if f.Tfmigrate.History != nil {
 		history, err := parseHistoryBlock(*f.Tfmigrate.History)
@@ -76,6 +85,7 @@ func ParseConfigurationFile(filename string, source []byte) (*TfmigrateConfig, e
 // NewDefaultConfig returns a new instance of TfmigrateConfig.
 func NewDefaultConfig() *TfmigrateConfig {
 	return &TfmigrateConfig{
-		MigrationDir: ".",
+		MigrationDir:            ".",
+		IsBackendTerraformCloud: false,
 	}
 }

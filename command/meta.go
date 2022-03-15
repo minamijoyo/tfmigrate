@@ -23,9 +23,8 @@ type Meta struct {
 	// a global configuration for tfmigrate.
 	config *config.TfmigrateConfig
 
-	// Option customizes a behaviror of Migrator.
+	// Option customizes a behavior of Migrator.
 	// It is used for shared settings across Migrator instances.
-	// TODO: Merge option into config
 	Option *tfmigrate.MigratorOption
 }
 

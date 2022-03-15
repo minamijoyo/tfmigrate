@@ -9,7 +9,7 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-// ApplyCommand is a command which computes a new state and pushes it to remote state.
+// ApplyCommand is a command which computes a new state and pushes it to the remote state.
 type ApplyCommand struct {
 	Meta
 }
@@ -32,7 +32,7 @@ func (c *ApplyCommand) Run(args []string) int {
 	log.Printf("[DEBUG] [command] config: %#v\n", c.config)
 
 	c.Option = newOption()
-	// The option may contains sensitive values such as environment variables.
+	// The option may contain sensitive values such as environment variables.
 	// So logging the option set log level to DEBUG instead of INFO.
 	log.Printf("[DEBUG] [command] option: %#v\n", c.Option)
 
@@ -85,7 +85,7 @@ func (c *ApplyCommand) applyWithoutHistory(filename string) error {
 	return fr.Apply(context.Background())
 }
 
-// applyWithHistory is a helper function which applies all unapplied pending migrations and save them to history.
+// applyWithHistory is a helper function which applies all unapplied pending migrations and saves them to history.
 func (c *ApplyCommand) applyWithHistory(filename string) error {
 	ctx := context.Background()
 	hr, err := NewHistoryRunner(ctx, filename, c.config, c.Option)

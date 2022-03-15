@@ -10,7 +10,7 @@ import (
 // MultiStateMvAction moves a resource from a dir to another.
 // It also can rename an address of resource.
 type MultiStateMvAction struct {
-	// source is a address of resource or module to be moved.
+	// source is an address of resource or module to be moved.
 	source string
 	// // destination is a new address of resource or module to move.
 	destination string

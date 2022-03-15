@@ -17,7 +17,7 @@ type MigratorConfig interface {
 	NewMigrator(o *MigratorOption) (Migrator, error)
 }
 
-// MigratorOption customizes a behaviror of Migrator.
+// MigratorOption customizes a behavior of Migrator.
 // It is used for shared settings across Migrator instances.
 type MigratorOption struct {
 	// ExecPath is a string how terraform command is executed. Default to terraform.
@@ -27,4 +27,7 @@ type MigratorOption struct {
 
 	// PlanOut is a path to plan file to be saved.
 	PlanOut string
+
+	// IsBackendTerraformCloud is a boolean indicating if the remote backend is Terraform Cloud
+	IsBackendTerraformCloud bool
 }
