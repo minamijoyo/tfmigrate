@@ -1,8 +1,10 @@
 ## master (Unreleased)
 
+## 0.3.2 (2022/03/15)
+
 ENHANCEMENTS:
 
-Support Terraform Cloud as a remote backend in Terraform 1.1.+ with the `cloud` block.
+* Support Terraform Cloud as a remote backend in Terraform 1.1.+ with the `cloud` block ([#76](https://github.com/minamijoyo/tfmigrate/pull/76))
 
 ## 0.3.1 (2022/01/26)
 
