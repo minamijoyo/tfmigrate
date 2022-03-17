@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Update Go to v1.17.8 and Alpine to 3.15 ([#78](https://github.com/minamijoyo/tfmigrate/pull/78))
+
 ## 0.3.2 (2022/03/15)
 
 ENHANCEMENTS:
