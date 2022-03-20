@@ -4,14 +4,15 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/minamijoyo/tfmigrate/history"
+	"github.com/minamijoyo/tfmigrate/storage"
+	"github.com/minamijoyo/tfmigrate/storage/s3"
 )
 
 func TestParseS3StorageBlock(t *testing.T) {
 	cases := []struct {
 		desc   string
 		source string
-		want   history.StorageConfig
+		want   storage.Config
 		ok     bool
 	}{
 		{
@@ -26,7 +27,7 @@ tfmigrate {
   }
 }
 `,
-			want: &history.S3StorageConfig{
+			want: &s3.Config{
 				Bucket: "tfmigrate-test",
 				Key:    "tfmigrate/history.json",
 			},
@@ -53,7 +54,7 @@ tfmigrate {
   }
 }
 `,
-			want: &history.S3StorageConfig{
+			want: &s3.Config{
 				Bucket:                    "tfmigrate-test",
 				Key:                       "tfmigrate/history.json",
 				Region:                    "ap-northeast-1",

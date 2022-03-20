@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/minamijoyo/tfmigrate/history"
+	"github.com/minamijoyo/tfmigrate/storage/local"
 )
 
 func TestParseConfigurationFile(t *testing.T) {
@@ -29,7 +30,7 @@ tfmigrate {
 			want: &TfmigrateConfig{
 				MigrationDir: "tfmigrate",
 				History: &history.Config{
-					Storage: &history.LocalStorageConfig{
+					Storage: &local.Config{
 						Path: "tmp/history.json",
 					},
 				},
@@ -50,7 +51,7 @@ tfmigrate {
 			want: &TfmigrateConfig{
 				MigrationDir: ".",
 				History: &history.Config{
-					Storage: &history.LocalStorageConfig{
+					Storage: &local.Config{
 						Path: "tmp/history.json",
 					},
 				},

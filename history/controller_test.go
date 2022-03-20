@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/minamijoyo/tfmigrate/storage"
+	"github.com/minamijoyo/tfmigrate/storage/mock"
 )
 
 func TestLoadMigrationFileNames(t *testing.T) {
@@ -114,13 +116,13 @@ func TestLoadMigrationFileNames(t *testing.T) {
 func TestLoadHistory(t *testing.T) {
 	cases := []struct {
 		desc   string
-		config StorageConfig
+		config storage.Config
 		want   *History
 		ok     bool
 	}{
 		{
 			desc: "simple",
-			config: &MockStorageConfig{
+			config: &mock.Config{
 				Data: `{
     "version": 1,
     "records": {
@@ -157,7 +159,7 @@ func TestLoadHistory(t *testing.T) {
 		},
 		{
 			desc: "empty",
-			config: &MockStorageConfig{
+			config: &mock.Config{
 				Data:       "",
 				WriteError: false,
 				ReadError:  false,
@@ -167,7 +169,7 @@ func TestLoadHistory(t *testing.T) {
 		},
 		{
 			desc: "read error",
-			config: &MockStorageConfig{
+			config: &mock.Config{
 				Data:       "",
 				WriteError: false,
 				ReadError:  true,
@@ -177,7 +179,7 @@ func TestLoadHistory(t *testing.T) {
 		},
 		{
 			desc: "invalid format",
-			config: &MockStorageConfig{
+			config: &mock.Config{
 				Data:       "foo",
 				WriteError: false,
 				ReadError:  false,
@@ -209,14 +211,14 @@ func TestLoadHistory(t *testing.T) {
 func TestControllerSave(t *testing.T) {
 	cases := []struct {
 		desc   string
-		config *MockStorageConfig
+		config *mock.Config
 		h      *History
 		want   []byte
 		ok     bool
 	}{
 		{
 			desc: "simple",
-			config: &MockStorageConfig{
+			config: &mock.Config{
 				Data:       "",
 				WriteError: false,
 				ReadError:  false,
@@ -230,7 +232,7 @@ func TestControllerSave(t *testing.T) {
 		},
 		{
 			desc: "write error",
-			config: &MockStorageConfig{
+			config: &mock.Config{
 				Data:       "",
 				WriteError: true,
 				ReadError:  false,
@@ -261,7 +263,7 @@ func TestControllerSave(t *testing.T) {
 			}
 
 			if tc.ok {
-				got := []byte(tc.config.s.data)
+				got := []byte(tc.config.StorageData())
 				if string(got) != string(tc.want) {
 					t.Errorf("got: %s, want: %s", string(got), string(tc.want))
 				}

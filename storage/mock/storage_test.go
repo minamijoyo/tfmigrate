@@ -1,19 +1,19 @@
-package history
+package mock
 
 import (
 	"context"
 	"testing"
 )
 
-func TestMockStorageConfigNewStorage(t *testing.T) {
+func TestConfigNewStorage(t *testing.T) {
 	cases := []struct {
 		desc   string
-		config *MockStorageConfig
+		config *Config
 		ok     bool
 	}{
 		{
 			desc: "valid",
-			config: &MockStorageConfig{
+			config: &Config{
 				Data:       "foo",
 				WriteError: true,
 				ReadError:  false,
@@ -32,13 +32,13 @@ func TestMockStorageConfigNewStorage(t *testing.T) {
 				t.Fatalf("expected to return an error, but no error, got: %#v", got)
 			}
 			if tc.ok {
-				_ = got.(*MockStorage)
+				_ = got.(*Storage)
 			}
 		})
 	}
 }
 
-func TestMockStorageWrite(t *testing.T) {
+func TestStorageWrite(t *testing.T) {
 	cases := []struct {
 		desc       string
 		data       string
@@ -67,7 +67,7 @@ func TestMockStorageWrite(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			s := NewMockStorage(tc.data, tc.writeError, tc.readError)
+			s := NewStorage(tc.data, tc.writeError, tc.readError)
 			err := s.Write(context.Background(), tc.contents)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
@@ -89,7 +89,7 @@ func TestMockStorageWrite(t *testing.T) {
 	}
 }
 
-func TestMockStorageRead(t *testing.T) {
+func TestStorageRead(t *testing.T) {
 	cases := []struct {
 		desc       string
 		data       string
@@ -118,7 +118,7 @@ func TestMockStorageRead(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			s := NewMockStorage(tc.data, tc.writeError, tc.readError)
+			s := NewStorage(tc.data, tc.writeError, tc.readError)
 			got, err := s.Read(context.Background())
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %#v", err)

@@ -1,12 +1,14 @@
-package history
+package mock
 
 import (
 	"context"
 	"fmt"
+
+	"github.com/minamijoyo/tfmigrate/storage"
 )
 
-// MockStorageConfig is a config for mock storage.
-type MockStorageConfig struct {
+// Config is a config for mock storage.
+type Config struct {
 	// Data stores a serialized data for history.
 	Data string `hcl:"data"`
 	// WriteError is a flag to return an error on Write().
@@ -15,15 +17,15 @@ type MockStorageConfig struct {
 	ReadError bool `hcl:"read_error"`
 
 	// A reference to an instance of mock storage for testing.
-	s *MockStorage
+	s *Storage
 }
 
-// MockStorageConfig implements a StorageConfig.
-var _ StorageConfig = (*MockStorageConfig)(nil)
+// Config implements a storage.Config.
+var _ storage.Config = (*Config)(nil)
 
-// NewStorage returns a new instance of MockStorage.
-func (c *MockStorageConfig) NewStorage() (Storage, error) {
-	s := NewMockStorage(c.Data, c.WriteError, c.ReadError)
+// NewStorage returns a new instance of storage.Storage.
+func (c *Config) NewStorage() (storage.Storage, error) {
+	s := NewStorage(c.Data, c.WriteError, c.ReadError)
 
 	// store a reference for test assertion.
 	c.s = s
@@ -31,13 +33,13 @@ func (c *MockStorageConfig) NewStorage() (Storage, error) {
 }
 
 // StorageData returns a raw data in mock storage for testing.
-func (c *MockStorageConfig) StorageData() string {
+func (c *Config) StorageData() string {
 	return c.s.data
 }
 
-// MockStorage is an implementation of Storage for testing.
+// Storage is a storage.Storage implementation for testing.
 // It writes and reads data from memory.
-type MockStorage struct {
+type Storage struct {
 	// data stores a serialized data for history.
 	data string
 	// writeError is a flag to return an error on Write().
@@ -46,11 +48,11 @@ type MockStorage struct {
 	readError bool
 }
 
-var _ Storage = (*MockStorage)(nil)
+var _ storage.Storage = (*Storage)(nil)
 
-// NewMockStorage returns a new instance of MockStorage.
-func NewMockStorage(data string, writeError bool, readError bool) *MockStorage {
-	return &MockStorage{
+// NewStorage returns a new instance of Storage.
+func NewStorage(data string, writeError bool, readError bool) *Storage {
+	return &Storage{
 		data:       data,
 		writeError: writeError,
 		readError:  readError,
@@ -58,7 +60,7 @@ func NewMockStorage(data string, writeError bool, readError bool) *MockStorage {
 }
 
 // Write writes migration history data to storage.
-func (s *MockStorage) Write(ctx context.Context, b []byte) error {
+func (s *Storage) Write(ctx context.Context, b []byte) error {
 	if s.writeError {
 		return fmt.Errorf("failed to write mock storage: writeError = %t", s.writeError)
 	}
@@ -67,7 +69,7 @@ func (s *MockStorage) Write(ctx context.Context, b []byte) error {
 }
 
 // Read reads migration history data from storage.
-func (s *MockStorage) Read(ctx context.Context) ([]byte, error) {
+func (s *Storage) Read(ctx context.Context) ([]byte, error) {
 	if s.readError {
 		return nil, fmt.Errorf("failed to read mock storage: readError = %t", s.readError)
 	}

@@ -4,14 +4,15 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/minamijoyo/tfmigrate/history"
+	"github.com/minamijoyo/tfmigrate/storage"
+	"github.com/minamijoyo/tfmigrate/storage/local"
 )
 
 func TestParseLocalStorageBlock(t *testing.T) {
 	cases := []struct {
 		desc   string
 		source string
-		want   history.StorageConfig
+		want   storage.Config
 		ok     bool
 	}{
 		{
@@ -25,7 +26,7 @@ tfmigrate {
   }
 }
 `,
-			want: &history.LocalStorageConfig{
+			want: &local.Config{
 				Path: "tmp/history.json",
 			},
 			ok: true,

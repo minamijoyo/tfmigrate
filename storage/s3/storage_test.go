@@ -1,4 +1,4 @@
-package history
+package s3
 
 import (
 	"context"
@@ -12,15 +12,15 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-func TestS3StorageConfigNewStorage(t *testing.T) {
+func TestConfigNewStorage(t *testing.T) {
 	cases := []struct {
 		desc   string
-		config *S3StorageConfig
+		config *Config
 		ok     bool
 	}{
 		{
 			desc: "valid",
-			config: &S3StorageConfig{
+			config: &Config{
 				Bucket:                    "tfmigrate-test",
 				Key:                       "tfmigrate/history.json",
 				Region:                    "ap-northeast-1",
@@ -46,44 +46,44 @@ func TestS3StorageConfigNewStorage(t *testing.T) {
 				t.Fatalf("expected to return an error, but no error, got: %#v", got)
 			}
 			if tc.ok {
-				_ = got.(*S3Storage)
+				_ = got.(*Storage)
 			}
 		})
 	}
 }
 
-// mockS3Client is a mock implementation for testing.
-type mockS3Client struct {
+// mockClient is a mock implementation for testing.
+type mockClient struct {
 	putOutput *s3.PutObjectOutput
 	getOutput *s3.GetObjectOutput
 	err       error
 }
 
 // PutObjectWithContext returns a mocked response.
-func (c *mockS3Client) PutObjectWithContext(ctx aws.Context, input *s3.PutObjectInput, opts ...request.Option) (*s3.PutObjectOutput, error) {
+func (c *mockClient) PutObjectWithContext(ctx aws.Context, input *s3.PutObjectInput, opts ...request.Option) (*s3.PutObjectOutput, error) {
 	return c.putOutput, c.err
 }
 
 // GetObjectWithContext returns a mocked response.
-func (c *mockS3Client) GetObjectWithContext(ctx aws.Context, input *s3.GetObjectInput, opts ...request.Option) (*s3.GetObjectOutput, error) {
+func (c *mockClient) GetObjectWithContext(ctx aws.Context, input *s3.GetObjectInput, opts ...request.Option) (*s3.GetObjectOutput, error) {
 	return c.getOutput, c.err
 }
 
-func TestS3StorageWrite(t *testing.T) {
+func TestStorageWrite(t *testing.T) {
 	cases := []struct {
 		desc     string
-		config   *S3StorageConfig
-		client   S3Client
+		config   *Config
+		client   Client
 		contents []byte
 		ok       bool
 	}{
 		{
 			desc: "simple",
-			config: &S3StorageConfig{
+			config: &Config{
 				Bucket: "tfmigrate-test",
 				Key:    "tfmigrate/history.json",
 			},
-			client: &mockS3Client{
+			client: &mockClient{
 				putOutput: &s3.PutObjectOutput{},
 				err:       nil,
 			},
@@ -92,11 +92,11 @@ func TestS3StorageWrite(t *testing.T) {
 		},
 		{
 			desc: "bucket does not exist",
-			config: &S3StorageConfig{
+			config: &Config{
 				Bucket: "not-exist-bucket",
 				Key:    "tfmigrate/history.json",
 			},
-			client: &mockS3Client{
+			client: &mockClient{
 				putOutput: nil,
 				err:       awserr.New("NoSuchBucket", "The specified bucket does not exist.", nil),
 			},
@@ -107,7 +107,7 @@ func TestS3StorageWrite(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			s, err := NewS3Storage(tc.config, tc.client)
+			s, err := NewStorage(tc.config, tc.client)
 			if err != nil {
 				t.Fatalf("failed to NewS3Storage: %s", err)
 			}
@@ -122,21 +122,21 @@ func TestS3StorageWrite(t *testing.T) {
 	}
 }
 
-func TestS3StorageRead(t *testing.T) {
+func TestStorageRead(t *testing.T) {
 	cases := []struct {
 		desc     string
-		config   *S3StorageConfig
-		client   S3Client
+		config   *Config
+		client   Client
 		contents []byte
 		ok       bool
 	}{
 		{
 			desc: "simple",
-			config: &S3StorageConfig{
+			config: &Config{
 				Bucket: "tfmigrate-test",
 				Key:    "tfmigrate/history.json",
 			},
-			client: &mockS3Client{
+			client: &mockClient{
 				getOutput: &s3.GetObjectOutput{
 					Body: ioutil.NopCloser(strings.NewReader("foo")),
 				},
@@ -147,11 +147,11 @@ func TestS3StorageRead(t *testing.T) {
 		},
 		{
 			desc: "bucket does not exist",
-			config: &S3StorageConfig{
+			config: &Config{
 				Bucket: "not-exist-bucket",
 				Key:    "tfmigrate/history.json",
 			},
-			client: &mockS3Client{
+			client: &mockClient{
 				getOutput: nil,
 				err:       awserr.New("NoSuchBucket", "The specified bucket does not exist.", nil),
 			},
@@ -160,11 +160,11 @@ func TestS3StorageRead(t *testing.T) {
 		},
 		{
 			desc: "key does not exist",
-			config: &S3StorageConfig{
+			config: &Config{
 				Bucket: "tfmigrate-test",
 				Key:    "not_exist.json",
 			},
-			client: &mockS3Client{
+			client: &mockClient{
 				getOutput: nil,
 				err:       awserr.New("NoSuchKey", "The specified key does not exist.", nil),
 			},
@@ -175,7 +175,7 @@ func TestS3StorageRead(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			s, err := NewS3Storage(tc.config, tc.client)
+			s, err := NewStorage(tc.config, tc.client)
 			if err != nil {
 				t.Fatalf("failed to NewS3Storage: %s", err)
 			}

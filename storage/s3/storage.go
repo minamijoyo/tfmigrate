@@ -1,4 +1,4 @@
-package history
+package s3
 
 import (
 	"bytes"
@@ -10,16 +10,17 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
+	"github.com/minamijoyo/tfmigrate/storage"
 
 	awsbase "github.com/hashicorp/aws-sdk-go-base"
 )
 
-// S3StorageConfig is a config for s3 storage.
+// Config is a config for s3 storage.
 // This is expected to have almost the same options as Terraform s3 backend.
 // https://www.terraform.io/docs/backends/types/s3.html
 // However, it has many minor options and it's a pain to test all options from
 // first, so we added only options we need for now.
-type S3StorageConfig struct {
+type Config struct {
 	// Name of the bucket.
 	Bucket string `hcl:"bucket"`
 	// Path to the migration history file.
@@ -48,60 +49,60 @@ type S3StorageConfig struct {
 	KmsKeyID string `hcl:"kms_key_id,optional"`
 }
 
-// S3StorageConfig implements a StorageConfig.
-var _ StorageConfig = (*S3StorageConfig)(nil)
+// Config implements a storage.Config.
+var _ storage.Config = (*Config)(nil)
 
-// NewStorage returns a new instance of S3Storage.
-func (c *S3StorageConfig) NewStorage() (Storage, error) {
-	return NewS3Storage(c, nil)
+// NewStorage returns a new instance of storage.Storage.
+func (c *Config) NewStorage() (storage.Storage, error) {
+	return NewStorage(c, nil)
 }
 
-// S3Client is an abstraction layer for AWS S3 API.
+// Client is an abstraction layer for AWS S3 API.
 // It is intended to be replaced with a mock for testing.
-type S3Client interface {
+type Client interface {
 	// PutObjectWithContext puts a file to S3.
 	PutObjectWithContext(ctx aws.Context, input *s3.PutObjectInput, opts ...request.Option) (*s3.PutObjectOutput, error)
 	// GetObjectWithContext gets a file from S3.
 	GetObjectWithContext(ctx aws.Context, input *s3.GetObjectInput, opts ...request.Option) (*s3.GetObjectOutput, error)
 }
 
-// s3Client is a real implementation of the S3Client.
-type s3Client struct {
+// client is a real implementation of the Client.
+type client struct {
 	s3api s3iface.S3API
 }
 
 // PutObjectWithContext puts a file to S3.
-func (c *s3Client) PutObjectWithContext(ctx aws.Context, input *s3.PutObjectInput, opts ...request.Option) (*s3.PutObjectOutput, error) {
+func (c *client) PutObjectWithContext(ctx aws.Context, input *s3.PutObjectInput, opts ...request.Option) (*s3.PutObjectOutput, error) {
 	return c.s3api.PutObjectWithContext(ctx, input, opts...)
 }
 
 // GetObjectWithContext gets a file from S3.
-func (c *s3Client) GetObjectWithContext(ctx aws.Context, input *s3.GetObjectInput, opts ...request.Option) (*s3.GetObjectOutput, error) {
+func (c *client) GetObjectWithContext(ctx aws.Context, input *s3.GetObjectInput, opts ...request.Option) (*s3.GetObjectOutput, error) {
 	return c.s3api.GetObjectWithContext(ctx, input, opts...)
 }
 
-// S3Storage is an implementation of Storage for AWS S3.
-type S3Storage struct {
+// Storage is a storage.Storage implementation for AWS S3.
+type Storage struct {
 	// config is a storage config for s3.
-	config *S3StorageConfig
+	config *Config
 	// client is an instance of S3Client interface to call API.
 	// It is intended to be replaced with a mock for testing.
-	client S3Client
+	client Client
 }
 
-var _ Storage = (*S3Storage)(nil)
+var _ storage.Storage = (*Storage)(nil)
 
-// NewS3Storage returns a new instance of S3Storage.
-func NewS3Storage(config *S3StorageConfig, client S3Client) (*S3Storage, error) {
+// NewStorage returns a new instance of Storage.
+func NewStorage(config *Config, client Client) (*Storage, error) {
 	if client == nil {
 		var err error
-		client, err = newS3Client(config)
+		client, err = newClient(config)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	s := &S3Storage{
+	s := &Storage{
 		config: config,
 		client: client,
 	}
@@ -109,8 +110,8 @@ func NewS3Storage(config *S3StorageConfig, client S3Client) (*S3Storage, error) 
 	return s, nil
 }
 
-// newS3Client returns a new instance of S3Client.
-func newS3Client(config *S3StorageConfig) (S3Client, error) {
+// newClient returns a new instance of Client.
+func newClient(config *Config) (Client, error) {
 	cfg := &awsbase.Config{
 		AccessKey:            config.AccessKey,
 		AssumeRoleARN:        config.RoleARN,
@@ -135,7 +136,7 @@ func newS3Client(config *S3StorageConfig) (S3Client, error) {
 }
 
 // Write writes migration history data to storage.
-func (s *S3Storage) Write(ctx context.Context, b []byte) error {
+func (s *Storage) Write(ctx context.Context, b []byte) error {
 	input := &s3.PutObjectInput{
 		Bucket: aws.String(s.config.Bucket),
 		Key:    aws.String(s.config.Key),
@@ -154,7 +155,7 @@ func (s *S3Storage) Write(ctx context.Context, b []byte) error {
 // Read reads migration history data from storage.
 // If the key does not exist, it is assumed to be uninitialized and returns
 // an empty array instead of an error.
-func (s *S3Storage) Read(ctx context.Context) ([]byte, error) {
+func (s *Storage) Read(ctx context.Context) ([]byte, error) {
 	input := &s3.GetObjectInput{
 		Bucket: aws.String(s.config.Bucket),
 		Key:    aws.String(s.config.Key),

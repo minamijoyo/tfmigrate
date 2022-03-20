@@ -5,7 +5,10 @@ import (
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/gohcl"
-	"github.com/minamijoyo/tfmigrate/history"
+	"github.com/minamijoyo/tfmigrate/storage"
+	"github.com/minamijoyo/tfmigrate/storage/local"
+	"github.com/minamijoyo/tfmigrate/storage/mock"
+	"github.com/minamijoyo/tfmigrate/storage/s3"
 )
 
 // StorageBlock represents a block for migration history data store in HCL.
@@ -22,8 +25,8 @@ type StorageBlock struct {
 	Remain hcl.Body `hcl:",remain"`
 }
 
-// parseStorageBlock parses a storage block and returns a history.StorageConfig.
-func parseStorageBlock(b StorageBlock) (history.StorageConfig, error) {
+// parseStorageBlock parses a storage block and returns a storage.Config.
+func parseStorageBlock(b StorageBlock) (storage.Config, error) {
 	switch b.Type {
 	case "mock": // only for testing
 		return parseMockStorageBlock(b)
@@ -39,9 +42,9 @@ func parseStorageBlock(b StorageBlock) (history.StorageConfig, error) {
 	}
 }
 
-// parseMockStorageBlock parses a storage block for mock and returns a history.StorageConfig.
-func parseMockStorageBlock(b StorageBlock) (history.StorageConfig, error) {
-	var config history.MockStorageConfig
+// parseMockStorageBlock parses a storage block for mock and returns a storage.Config.
+func parseMockStorageBlock(b StorageBlock) (storage.Config, error) {
+	var config mock.Config
 	diags := gohcl.DecodeBody(b.Remain, nil, &config)
 	if diags.HasErrors() {
 		return nil, diags
@@ -50,9 +53,9 @@ func parseMockStorageBlock(b StorageBlock) (history.StorageConfig, error) {
 	return &config, nil
 }
 
-// parseLocalStorageBlock parses a storage block for local and returns a history.StorageConfig.
-func parseLocalStorageBlock(b StorageBlock) (history.StorageConfig, error) {
-	var config history.LocalStorageConfig
+// parseLocalStorageBlock parses a storage block for local and returns a storage.Config.
+func parseLocalStorageBlock(b StorageBlock) (storage.Config, error) {
+	var config local.Config
 	diags := gohcl.DecodeBody(b.Remain, nil, &config)
 	if diags.HasErrors() {
 		return nil, diags
@@ -61,9 +64,9 @@ func parseLocalStorageBlock(b StorageBlock) (history.StorageConfig, error) {
 	return &config, nil
 }
 
-// parseS3StorageBlock parses a storage block for s3 and returns a history.StorageConfig.
-func parseS3StorageBlock(b StorageBlock) (history.StorageConfig, error) {
-	var config history.S3StorageConfig
+// parseS3StorageBlock parses a storage block for s3 and returns a storage.Config.
+func parseS3StorageBlock(b StorageBlock) (storage.Config, error) {
+	var config s3.Config
 	diags := gohcl.DecodeBody(b.Remain, nil, &config)
 	if diags.HasErrors() {
 		return nil, diags

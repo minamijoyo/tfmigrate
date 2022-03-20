@@ -1,4 +1,4 @@
-package history
+package local
 
 import (
 	"context"
@@ -8,15 +8,15 @@ import (
 	"testing"
 )
 
-func TestLocalStorageConfigNewStorage(t *testing.T) {
+func TestConfigNewStorage(t *testing.T) {
 	cases := []struct {
 		desc   string
-		config *LocalStorageConfig
+		config *Config
 		ok     bool
 	}{
 		{
 			desc: "valid",
-			config: &LocalStorageConfig{
+			config: &Config{
 				Path: "tmp/history.json",
 			},
 			ok: true,
@@ -33,13 +33,13 @@ func TestLocalStorageConfigNewStorage(t *testing.T) {
 				t.Fatalf("expected to return an error, but no error, got: %#v", got)
 			}
 			if tc.ok {
-				_ = got.(*LocalStorage)
+				_ = got.(*Storage)
 			}
 		})
 	}
 }
 
-func TestLocalStorageWrite(t *testing.T) {
+func TestStorageWrite(t *testing.T) {
 	cases := []struct {
 		desc     string
 		path     string
@@ -69,7 +69,7 @@ func TestLocalStorageWrite(t *testing.T) {
 			t.Cleanup(func() { os.RemoveAll(localDir) })
 
 			path := filepath.Join(localDir, tc.path)
-			s := NewLocalStorage(path)
+			s := NewStorage(path)
 			err = s.Write(context.Background(), tc.contents)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
@@ -91,7 +91,7 @@ func TestLocalStorageWrite(t *testing.T) {
 	}
 }
 
-func TestLocalStorageRead(t *testing.T) {
+func TestStorageRead(t *testing.T) {
 	cases := []struct {
 		desc     string
 		path     string
@@ -126,7 +126,7 @@ func TestLocalStorageRead(t *testing.T) {
 			}
 
 			path := filepath.Join(localDir, tc.path)
-			s := NewLocalStorage(path)
+			s := NewStorage(path)
 			got, err := s.Read(context.Background())
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %#v", err)

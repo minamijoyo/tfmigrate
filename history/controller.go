@@ -8,6 +8,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/minamijoyo/tfmigrate/storage"
 )
 
 // Controller manages a migration history.
@@ -81,7 +83,7 @@ func loadMigrationFileNames(dir string) ([]string, error) {
 
 // loadHistory loads a history file from a storage.
 // If a given history is not found, create a new one.
-func loadHistory(ctx context.Context, c StorageConfig) (*History, error) {
+func loadHistory(ctx context.Context, c storage.Config) (*History, error) {
 	s, err := c.NewStorage()
 	if err != nil {
 		return nil, err
