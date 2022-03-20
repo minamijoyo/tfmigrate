@@ -6,6 +6,7 @@ import (
 
 	"github.com/minamijoyo/tfmigrate/config"
 	"github.com/minamijoyo/tfmigrate/history"
+	"github.com/minamijoyo/tfmigrate/storage/mock"
 )
 
 func TestListMigrations(t *testing.T) {
@@ -92,7 +93,7 @@ migration "mock" "test4" {
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			migrationDir := setupMigrationDir(t, tc.migrations)
-			storage := &history.MockStorageConfig{
+			storage := &mock.Config{
 				Data:       tc.historyFile,
 				WriteError: false,
 				ReadError:  false,

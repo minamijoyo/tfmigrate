@@ -1,4 +1,4 @@
-package history
+package storage
 
 import "context"
 
@@ -14,10 +14,4 @@ type Storage interface {
 	// If the key does not exist, it is assumed to be uninitialized and returns
 	// an empty array instead of an error.
 	Read(ctx context.Context) ([]byte, error)
-}
-
-// StorageConfig is an interface of factory method for Storage
-type StorageConfig interface {
-	// NewStorage returns a new instance of Storage.
-	NewStorage() (Storage, error)
 }

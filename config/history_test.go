@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/minamijoyo/tfmigrate/history"
+	"github.com/minamijoyo/tfmigrate/storage/local"
 )
 
 func TestParseHistoryBlock(t *testing.T) {
@@ -27,7 +28,7 @@ tfmigrate {
 }
 `,
 			want: &history.Config{
-				Storage: &history.LocalStorageConfig{
+				Storage: &local.Config{
 					Path: "tmp/history.json",
 				},
 			},

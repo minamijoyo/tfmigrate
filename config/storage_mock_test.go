@@ -4,14 +4,15 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/minamijoyo/tfmigrate/history"
+	"github.com/minamijoyo/tfmigrate/storage"
+	"github.com/minamijoyo/tfmigrate/storage/mock"
 )
 
 func TestParseMockStorageBlock(t *testing.T) {
 	cases := []struct {
 		desc   string
 		source string
-		want   history.StorageConfig
+		want   storage.Config
 		ok     bool
 	}{
 		{
@@ -27,7 +28,7 @@ tfmigrate {
   }
 }
 `,
-			want: &history.MockStorageConfig{
+			want: &mock.Config{
 				Data:       "foo",
 				WriteError: true,
 				ReadError:  false,
