@@ -69,7 +69,7 @@ func TestStorageWrite(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			s, err := NewStorage(tc.config, tc.client)
 			if err != nil {
-				t.Fatalf("failed to NewS3Storage: %s", err)
+				t.Fatalf("failed to NewStorage: %s", err)
 			}
 			err = s.Write(context.Background(), tc.contents)
 			if tc.ok && err != nil {
@@ -137,7 +137,7 @@ func TestStorageRead(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			s, err := NewStorage(tc.config, tc.client)
 			if err != nil {
-				t.Fatalf("failed to NewS3Storage: %s", err)
+				t.Fatalf("failed to NewStorage: %s", err)
 			}
 			got, err := s.Read(context.Background())
 			if tc.ok && err != nil {

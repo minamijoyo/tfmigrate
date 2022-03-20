@@ -208,7 +208,7 @@ migration "mock" "test4" {
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			migrationDir := setupMigrationDir(t, tc.migrations)
-			storage := &mock.Config{
+			mockConfig := &mock.Config{
 				Data:       tc.historyFile,
 				WriteError: false,
 				ReadError:  false,
@@ -216,7 +216,7 @@ migration "mock" "test4" {
 			config := &config.TfmigrateConfig{
 				MigrationDir: migrationDir,
 				History: &history.Config{
-					Storage: storage,
+					Storage: mockConfig,
 				},
 			}
 			r, err := NewHistoryRunner(context.Background(), tc.filename, config, nil)
@@ -235,7 +235,7 @@ migration "mock" "test4" {
 			if err != nil {
 				t.Fatalf("failed to parse history file (want): %s", err)
 			}
-			data := storage.StorageData()
+			data := mockConfig.Storage().Data()
 			got, err := history.ParseHistoryFile([]byte(data))
 			if err != nil {
 				t.Fatalf("failed to parse history file (got): %s", err)
@@ -713,7 +713,7 @@ migration "mock" "test4" {
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			migrationDir := setupMigrationDir(t, tc.migrations)
-			storage := &mock.Config{
+			mockConfig := &mock.Config{
 				Data:       tc.historyFile,
 				WriteError: tc.writeError,
 				ReadError:  tc.readError,
@@ -721,7 +721,7 @@ migration "mock" "test4" {
 			config := &config.TfmigrateConfig{
 				MigrationDir: migrationDir,
 				History: &history.Config{
-					Storage: storage,
+					Storage: mockConfig,
 				},
 			}
 			r, err := NewHistoryRunner(context.Background(), tc.filename, config, nil)
@@ -740,7 +740,7 @@ migration "mock" "test4" {
 			if err != nil {
 				t.Fatalf("failed to parse history file (want): %s", err)
 			}
-			data := storage.StorageData()
+			data := mockConfig.Storage().Data()
 			got, err := history.ParseHistoryFile([]byte(data))
 			if err != nil {
 				t.Fatalf("failed to parse history file (got): %s", err)

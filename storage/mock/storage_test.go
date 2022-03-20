@@ -7,35 +7,40 @@ import (
 
 func TestStorageWrite(t *testing.T) {
 	cases := []struct {
-		desc       string
-		data       string
-		writeError bool
-		readError  bool
-		contents   []byte
-		ok         bool
+		desc     string
+		config   *Config
+		contents []byte
+		ok       bool
 	}{
 		{
-			desc:       "simple",
-			data:       "",
-			writeError: false,
-			readError:  false,
-			contents:   []byte("foo"),
-			ok:         true,
+			desc: "simple",
+			config: &Config{
+				Data:       "",
+				WriteError: false,
+				ReadError:  false,
+			},
+			contents: []byte("foo"),
+			ok:       true,
 		},
 		{
-			desc:       "write error",
-			data:       "",
-			writeError: true,
-			readError:  false,
-			contents:   []byte("foo"),
-			ok:         false,
+			desc: "write error",
+			config: &Config{
+				Data:       "",
+				WriteError: true,
+				ReadError:  false,
+			},
+			contents: []byte("foo"),
+			ok:       false,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			s := NewStorage(tc.data, tc.writeError, tc.readError)
-			err := s.Write(context.Background(), tc.contents)
+			s, err := NewStorage(tc.config)
+			if err != nil {
+				t.Fatalf("failed to NewStorage: %s", err)
+			}
+			err = s.Write(context.Background(), tc.contents)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}
@@ -58,34 +63,39 @@ func TestStorageWrite(t *testing.T) {
 
 func TestStorageRead(t *testing.T) {
 	cases := []struct {
-		desc       string
-		data       string
-		writeError bool
-		readError  bool
-		contents   []byte
-		ok         bool
+		desc     string
+		config   *Config
+		contents []byte
+		ok       bool
 	}{
 		{
-			desc:       "simple",
-			data:       "foo",
-			writeError: false,
-			readError:  false,
-			contents:   []byte("foo"),
-			ok:         true,
+			desc: "simple",
+			config: &Config{
+				Data:       "foo",
+				WriteError: false,
+				ReadError:  false,
+			},
+			contents: []byte("foo"),
+			ok:       true,
 		},
 		{
-			desc:       "read error",
-			data:       "foo",
-			writeError: false,
-			readError:  true,
-			contents:   nil,
-			ok:         false,
+			desc: "read error",
+			config: &Config{
+				Data:       "foo",
+				WriteError: false,
+				ReadError:  true,
+			},
+			contents: nil,
+			ok:       false,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			s := NewStorage(tc.data, tc.writeError, tc.readError)
+			s, err := NewStorage(tc.config)
+			if err != nil {
+				t.Fatalf("failed to NewStorage: %s", err)
+			}
 			got, err := s.Read(context.Background())
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %#v", err)

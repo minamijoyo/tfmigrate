@@ -263,7 +263,7 @@ func TestControllerSave(t *testing.T) {
 			}
 
 			if tc.ok {
-				got := []byte(tc.config.StorageData())
+				got := []byte(tc.config.Storage().Data())
 				if string(got) != string(tc.want) {
 					t.Errorf("got: %s, want: %s", string(got), string(tc.want))
 				}

@@ -7,32 +7,35 @@ import (
 	"github.com/minamijoyo/tfmigrate/storage"
 )
 
-// Storage is a storage.Storage implementation for testing.
+// Storage is a storage.Storage implementation for mock.
 // It writes and reads data from memory.
 type Storage struct {
+	// config is a storage config for mock
+	config *Config
 	// data stores a serialized data for history.
 	data string
-	// writeError is a flag to return an error on Write().
-	writeError bool
-	// readError is a flag to return an error on Read().
-	readError bool
 }
 
 var _ storage.Storage = (*Storage)(nil)
 
 // NewStorage returns a new instance of Storage.
-func NewStorage(data string, writeError bool, readError bool) *Storage {
-	return &Storage{
-		data:       data,
-		writeError: writeError,
-		readError:  readError,
+func NewStorage(config *Config) (*Storage, error) {
+	s := &Storage{
+		config: config,
+		data:   config.Data,
 	}
+	return s, nil
+}
+
+// Data returns a raw data in mock storage for testing.
+func (s *Storage) Data() string {
+	return s.data
 }
 
 // Write writes migration history data to storage.
 func (s *Storage) Write(ctx context.Context, b []byte) error {
-	if s.writeError {
-		return fmt.Errorf("failed to write mock storage: writeError = %t", s.writeError)
+	if s.config.WriteError {
+		return fmt.Errorf("failed to write mock storage: writeError = %t", s.config.WriteError)
 	}
 	s.data = string(b)
 	return nil
@@ -40,8 +43,8 @@ func (s *Storage) Write(ctx context.Context, b []byte) error {
 
 // Read reads migration history data from storage.
 func (s *Storage) Read(ctx context.Context) ([]byte, error) {
-	if s.readError {
-		return nil, fmt.Errorf("failed to read mock storage: readError = %t", s.readError)
+	if s.config.ReadError {
+		return nil, fmt.Errorf("failed to read mock storage: readError = %t", s.config.ReadError)
 	}
 	return []byte(s.data), nil
 }

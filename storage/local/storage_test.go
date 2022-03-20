@@ -11,19 +11,23 @@ import (
 func TestStorageWrite(t *testing.T) {
 	cases := []struct {
 		desc     string
-		path     string
+		config   *Config
 		contents []byte
 		ok       bool
 	}{
 		{
-			desc:     "simple",
-			path:     "history.json",
+			desc: "simple",
+			config: &Config{
+				Path: "history.json",
+			},
 			contents: []byte("foo"),
 			ok:       true,
 		},
 		{
-			desc:     "dir does not exist",
-			path:     "not_exist/history.json",
+			desc: "dir does not exist",
+			config: &Config{
+				Path: "not_exist/history.json",
+			},
 			contents: []byte("foo"),
 			ok:       false,
 		},
@@ -37,8 +41,11 @@ func TestStorageWrite(t *testing.T) {
 			}
 			t.Cleanup(func() { os.RemoveAll(localDir) })
 
-			path := filepath.Join(localDir, tc.path)
-			s := NewStorage(path)
+			tc.config.Path = filepath.Join(localDir, tc.config.Path)
+			s, err := NewStorage(tc.config)
+			if err != nil {
+				t.Fatalf("failed to NewStorage: %s", err)
+			}
 			err = s.Write(context.Background(), tc.contents)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
@@ -48,7 +55,7 @@ func TestStorageWrite(t *testing.T) {
 			}
 
 			if tc.ok {
-				got, err := ioutil.ReadFile(path)
+				got, err := ioutil.ReadFile(tc.config.Path)
 				if err != nil {
 					t.Fatalf("failed to read contents: %s", err)
 				}
@@ -63,19 +70,23 @@ func TestStorageWrite(t *testing.T) {
 func TestStorageRead(t *testing.T) {
 	cases := []struct {
 		desc     string
-		path     string
+		config   *Config
 		contents []byte
 		ok       bool
 	}{
 		{
-			desc:     "simple",
-			path:     "history.json",
+			desc: "simple",
+			config: &Config{
+				Path: "history.json",
+			},
 			contents: []byte("foo"),
 			ok:       true,
 		},
 		{
-			desc:     "file does not exist",
-			path:     "not_exist.json",
+			desc: "file does not exist",
+			config: &Config{
+				Path: "not_exist.json",
+			},
 			contents: []byte{},
 			ok:       true,
 		},
@@ -94,8 +105,11 @@ func TestStorageRead(t *testing.T) {
 				t.Fatalf("failed to write contents: %s", err)
 			}
 
-			path := filepath.Join(localDir, tc.path)
-			s := NewStorage(path)
+			tc.config.Path = filepath.Join(localDir, tc.config.Path)
+			s, err := NewStorage(tc.config)
+			if err != nil {
+				t.Fatalf("failed to NewStorage: %s", err)
+			}
 			got, err := s.Read(context.Background())
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %#v", err)

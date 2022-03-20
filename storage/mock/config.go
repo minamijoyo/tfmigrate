@@ -20,14 +20,14 @@ var _ storage.Config = (*Config)(nil)
 
 // NewStorage returns a new instance of storage.Storage.
 func (c *Config) NewStorage() (storage.Storage, error) {
-	s := NewStorage(c.Data, c.WriteError, c.ReadError)
+	s, err := NewStorage(c)
 
 	// store a reference for test assertion.
 	c.s = s
-	return s, nil
+	return s, err
 }
 
-// StorageData returns a raw data in mock storage for testing.
-func (c *Config) StorageData() string {
-	return c.s.data
+// Storage returns a reference to mock storage for testing.
+func (c *Config) Storage() *Storage {
+	return c.s
 }

@@ -13,6 +13,5 @@ var _ storage.Config = (*Config)(nil)
 
 // NewStorage returns a new instance of storage.Storage.
 func (c *Config) NewStorage() (storage.Storage, error) {
-	s := NewStorage(c.Path)
-	return s, nil
+	return NewStorage(c)
 }
