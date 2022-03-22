@@ -1,6 +1,6 @@
 package local
 
-import "github.com/minamijoyo/tfmigrate/storage"
+import storage "github.com/minamijoyo/tfmigrate-storage"
 
 // Config is a config for local storage.
 type Config struct {

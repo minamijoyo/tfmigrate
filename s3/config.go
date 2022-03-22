@@ -1,6 +1,6 @@
 package s3
 
-import "github.com/minamijoyo/tfmigrate/storage"
+import storage "github.com/minamijoyo/tfmigrate-storage"
 
 // Config is a config for s3 storage.
 // This is expected to have almost the same options as Terraform s3 backend.
