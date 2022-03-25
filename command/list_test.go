@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/minamijoyo/tfmigrate-storage/mock"
 	"github.com/minamijoyo/tfmigrate/config"
 	"github.com/minamijoyo/tfmigrate/history"
-	"github.com/minamijoyo/tfmigrate/storage/mock"
 )
 
 func TestListMigrations(t *testing.T) {

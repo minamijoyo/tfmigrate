@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/minamijoyo/tfmigrate/storage"
+	storage "github.com/minamijoyo/tfmigrate-storage"
 )
 
 // Controller manages a migration history.

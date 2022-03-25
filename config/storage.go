@@ -5,10 +5,10 @@ import (
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/gohcl"
-	"github.com/minamijoyo/tfmigrate/storage"
-	"github.com/minamijoyo/tfmigrate/storage/local"
-	"github.com/minamijoyo/tfmigrate/storage/mock"
-	"github.com/minamijoyo/tfmigrate/storage/s3"
+	storage "github.com/minamijoyo/tfmigrate-storage"
+	"github.com/minamijoyo/tfmigrate-storage/local"
+	"github.com/minamijoyo/tfmigrate-storage/mock"
+	"github.com/minamijoyo/tfmigrate-storage/s3"
 )
 
 // StorageBlock represents a block for migration history data store in HCL.

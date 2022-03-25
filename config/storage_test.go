@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/minamijoyo/tfmigrate/storage"
-	"github.com/minamijoyo/tfmigrate/storage/local"
+	storage "github.com/minamijoyo/tfmigrate-storage"
+	"github.com/minamijoyo/tfmigrate-storage/local"
 )
 
 func TestParseStorageBlock(t *testing.T) {

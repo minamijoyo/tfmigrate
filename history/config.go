@@ -1,6 +1,8 @@
 package history
 
-import "github.com/minamijoyo/tfmigrate/storage"
+import (
+	storage "github.com/minamijoyo/tfmigrate-storage"
+)
 
 // Config is a set of configurations for migration history management.
 type Config struct {
