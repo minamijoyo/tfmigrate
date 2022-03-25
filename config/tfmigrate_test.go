@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/minamijoyo/tfmigrate-storage/local"
 	"github.com/minamijoyo/tfmigrate/history"
-	"github.com/minamijoyo/tfmigrate/storage/local"
 )
 
 func TestParseConfigurationFile(t *testing.T) {
