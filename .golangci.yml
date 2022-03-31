@@ -10,3 +10,4 @@ linters:
     - ineffassign
     - revive
     - staticcheck
+    - misspell

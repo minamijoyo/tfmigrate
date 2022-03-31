@@ -145,7 +145,7 @@ type mockExitError struct {
 
 var _ ExitError = (*exitError)(nil)
 
-// String returns a string represention of the error.
+// String returns a string representation of the error.
 func (e *mockExitError) String() string {
 	code := e.ExitCode()
 	args := strings.Join(e.cmd.Args(), " ")
