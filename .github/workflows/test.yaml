@@ -52,7 +52,7 @@ jobs:
     env:
       TERRAFORM_VERSION: ${{ matrix.terraform }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: docker build
       run: docker-compose build
     - name: start localstack
