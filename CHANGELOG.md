@@ -7,6 +7,7 @@ ENHANCEMENTS:
 * Split the storage package into a new separate repository ([#80](https://github.com/minamijoyo/tfmigrate/pull/80))
 * Add a linter for misspell ([#81](https://github.com/minamijoyo/tfmigrate/pull/81))
 * Update golangci-lint to v1.45.2 and actions to latest ([#82](https://github.com/minamijoyo/tfmigrate/pull/82))
+* Update actions/checkout to v3 ([#83](https://github.com/minamijoyo/tfmigrate/pull/83))
 
 ## 0.3.2 (2022/03/15)
 
