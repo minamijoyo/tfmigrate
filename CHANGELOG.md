@@ -8,6 +8,7 @@ ENHANCEMENTS:
 * Add a linter for misspell ([#81](https://github.com/minamijoyo/tfmigrate/pull/81))
 * Update golangci-lint to v1.45.2 and actions to latest ([#82](https://github.com/minamijoyo/tfmigrate/pull/82))
 * Update actions/checkout to v3 ([#83](https://github.com/minamijoyo/tfmigrate/pull/83))
+* Set timeout for acceptance tests ([#84](https://github.com/minamijoyo/tfmigrate/pull/84))
 
 ## 0.3.2 (2022/03/15)
 
