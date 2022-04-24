@@ -1,0 +1,22 @@
+inputs:
+  version:
+    description: "Specify tfmigrate version"
+    default: latest
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      working-directory: /tmp
+      run: |
+        set -e
+        VERSION="${{ inputs.version }}"
+        if [ "${VERSION}" = "latest" ]; then
+          DOWNLOAD_URL=$(curl -sS https://api.github.com/repos/minamijoyo/tfmigrate/releases/latest|jq -r '.assets[].browser_download_url|select(match("linux.amd64."))')
+        else
+          DOWNLOAD_URL=$(curl -sS https://api.github.com/repos/minamijoyo/tfmigrate/releases/tags/${VERSION}|jq -r '.assets[].browser_download_url|select(match("linux.amd64."))')
+        fi
+        curl -sfLO ${DOWNLOAD_URL}
+        FILENAME=$(basename $DOWNLOAD_URL .tar.gz)
+        tar xzvf ${FILENAME}.tar.gz
+        sudo mv ./tfmigrate /usr/local/bin/
