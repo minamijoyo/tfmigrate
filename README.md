@@ -288,7 +288,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Install tfmigrate
-      uses: minamijoyo/tfmigrate@main
+      uses: minamijoyo/tfmigrate@master
       with:
         version: v0.3.3 # optional, default is the latest version.
 ```
