@@ -14,6 +14,7 @@ A Terraform state migration tool for GitOps.
    * [Install](#install)
       * [Homebrew](#homebrew)
       * [Download](#download)
+      * [GitHub Actions](#github-actions)
       * [Source](#source)
    * [Usage](#usage)
    * [Configurations](#configurations)
@@ -275,6 +276,22 @@ $ brew install minamijoyo/tfmigrate/tfmigrate
 Download the latest compiled binaries and put it anywhere in your executable path.
 
 https://github.com/minamijoyo/tfmigrate/releases
+
+### GitHub Actions
+`minamijoyo/tfmigrate` can be used installation.
+```yaml
+jobs:
+  tfmigrate:
+    runs-on: ubuntu-latest
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Install tfmigrate
+      uses: minamijoyo/tfmigrate@main
+      with:
+        version: v0.3.3 # optional, default is the latest version.
+```
 
 ### Source
 
