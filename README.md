@@ -79,6 +79,7 @@ This brings us to a new paradigm, that is to say, Terraform state operation as C
 
 The tfmigrate invokes `terraform` command under the hood. This is because we want to support multiple terraform versions in a stable way. Currently supported terraform versions are as follows:
 
+- Terraform v1.2.x
 - Terraform v1.1.x
 - Terraform v1.0.x
 - Terraform v0.15.x
