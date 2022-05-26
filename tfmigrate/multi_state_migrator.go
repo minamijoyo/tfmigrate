@@ -35,7 +35,7 @@ var _ MigratorConfig = (*MultiStateMigratorConfig)(nil)
 // NewMigrator returns a new instance of MultiStateMigrator.
 func (c *MultiStateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, error) {
 	if len(c.Actions) == 0 {
-		return nil, fmt.Errorf("faild to NewMigrator with no actions")
+		return nil, fmt.Errorf("failed to NewMigrator with no actions")
 	}
 
 	// build actions from config.
