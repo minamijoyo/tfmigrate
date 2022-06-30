@@ -268,7 +268,7 @@ aws_security_group.baz2
 If you are macOS user:
 
 ```
-$ brew install minamijoyo/tfmigrate/tfmigrate
+$ brew install tfmigrate
 ```
 
 ### Download
