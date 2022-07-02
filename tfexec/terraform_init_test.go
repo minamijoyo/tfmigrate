@@ -51,7 +51,7 @@ func TestTerraformCLIInit(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			e := NewMockExecutor(tc.mockCommands)
 			terraformCLI := NewTerraformCLI(e)
-			err := terraformCLI.Init(context.Background(), tc.opts...)
+			err := terraformCLI.Init(context.Background(), nil, tc.opts...)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
 			}
@@ -69,7 +69,7 @@ func TestAccTerraformCLIInit(t *testing.T) {
 	e := SetupTestAcc(t, source)
 	terraformCLI := NewTerraformCLI(e)
 
-	err := terraformCLI.Init(context.Background(), "-input=false", "-no-color")
+	err := terraformCLI.Init(context.Background(), nil, "-input=false", "-no-color")
 	if err != nil {
 		t.Fatalf("failed to run terraform init: %s", err)
 	}

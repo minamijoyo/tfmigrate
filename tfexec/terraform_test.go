@@ -125,7 +125,7 @@ resource "aws_security_group" "bar" {}
 		t.Fatalf("an override file already exists: %s", err)
 	}
 
-	switchBackToRemotekFunc, err := terraformCLI.OverrideBackendToLocal(context.Background(), filename, workspace, false)
+	switchBackToRemotekFunc, err := terraformCLI.OverrideBackendToLocal(context.Background(), filename, workspace, false, nil)
 	if err != nil {
 		t.Fatalf("failed to run OverrideBackendToLocal: %s", err)
 	}
@@ -169,7 +169,7 @@ func TestAccTerraformCLIPlanHasChange(t *testing.T) {
 	e := SetupTestAcc(t, source)
 	terraformCLI := NewTerraformCLI(e)
 
-	err := terraformCLI.Init(context.Background(), "-input=false", "-no-color")
+	err := terraformCLI.Init(context.Background(), nil, "-input=false", "-no-color")
 	if err != nil {
 		t.Fatalf("failed to run terraform init: %s", err)
 	}
