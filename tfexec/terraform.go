@@ -61,7 +61,7 @@ type TerraformCLI interface {
 	Version(ctx context.Context) (string, error)
 
 	// Init initializes the current work directory.
-	Init(ctx context.Context, opts ...string) error
+	Init(ctx context.Context, backendConfig []string, opts ...string) error
 
 	// Plan computes expected changes.
 	// If a state is given, use it for the input state.
@@ -125,7 +125,7 @@ type TerraformCLI interface {
 	// so we need to switch the backend to local for temporary state operations.
 	// The filename argument must meet constraints for override file.
 	// (e.g.) _tfexec_override.tf
-	OverrideBackendToLocal(ctx context.Context, filename string, workspace string, isBackendTerraformCloud bool) (func(), error)
+	OverrideBackendToLocal(ctx context.Context, filename string, workspace string, isBackendTerraformCloud bool, backendConfig []string) (func(), error)
 
 	// PlanHasChange is a helper method which runs plan and return true if the plan has change.
 	PlanHasChange(ctx context.Context, state *State, opts ...string) (bool, error)
@@ -198,7 +198,7 @@ func (c *terraformCLI) SetExecPath(execPath string) {
 // The filename argument must meet constraints in order to override the file.
 // (e.g.) _tfexec_override.tf
 func (c *terraformCLI) OverrideBackendToLocal(ctx context.Context, filename string,
-	workspace string, isBackendTerraformCloud bool) (func(), error) {
+	workspace string, isBackendTerraformCloud bool, backendConfig []string) (func(), error) {
 	// create local backend override file.
 	path := filepath.Join(c.Dir(), filename)
 	contents := `
@@ -221,7 +221,7 @@ terraform {
 	}
 
 	log.Printf("[INFO] [executor@%s] switch backend to local\n", c.Dir())
-	err := c.Init(ctx, "-input=false", "-no-color", "-reconfigure")
+	err := c.Init(ctx, nil, "-input=false", "-no-color", "-reconfigure")
 	if err != nil {
 		// remove the override file before return an error.
 		os.Remove(path)
@@ -256,9 +256,9 @@ terraform {
 
 		// Run the correct init command depending on whether the remote backend is Terraform Cloud
 		if !isBackendTerraformCloud {
-			err = c.Init(ctx, "-input=false", "-no-color", "-reconfigure")
+			err = c.Init(ctx, backendConfig, "-input=false", "-no-color", "-reconfigure")
 		} else {
-			err = c.Init(ctx, "-input=false", "-no-color")
+			err = c.Init(ctx, backendConfig, "-input=false", "-no-color")
 		}
 
 		if err != nil {

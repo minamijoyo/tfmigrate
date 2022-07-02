@@ -30,4 +30,7 @@ type MigratorOption struct {
 
 	// IsBackendTerraformCloud is a boolean indicating if the remote backend is Terraform Cloud
 	IsBackendTerraformCloud bool
+
+	// BackendConfig is a -backend-config option for remote state
+	BackendConfig []string
 }

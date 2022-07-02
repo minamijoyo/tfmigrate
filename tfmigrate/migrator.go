@@ -22,7 +22,7 @@ type Migrator interface {
 
 // setupWorkDir is a common helper function to set up work dir and returns the
 // current state and a switch back function.
-func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI, workspace string, isBackendTerraformCloud bool) (*tfexec.State, func(), error) {
+func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI, workspace string, isBackendTerraformCloud bool, backendConfig []string) (*tfexec.State, func(), error) {
 	// check if terraform command is available.
 	version, err := tf.Version(ctx)
 	if err != nil {
@@ -32,7 +32,7 @@ func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI, workspace string,
 
 	// init folder
 	log.Printf("[INFO] [migrator@%s] initialize work dir\n", tf.Dir())
-	err = tf.Init(ctx, "-input=false", "-no-color")
+	err = tf.Init(ctx, nil, "-input=false", "-no-color")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -60,7 +60,7 @@ func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI, workspace string,
 	}
 	// override backend to local
 	log.Printf("[INFO] [migrator@%s] override backend to local\n", tf.Dir())
-	switchBackToRemoteFunc, err := tf.OverrideBackendToLocal(ctx, "_tfmigrate_override.tf", workspace, isBackendTerraformCloud)
+	switchBackToRemoteFunc, err := tf.OverrideBackendToLocal(ctx, "_tfmigrate_override.tf", workspace, isBackendTerraformCloud, backendConfig)
 	if err != nil {
 		return nil, nil, err
 	}
