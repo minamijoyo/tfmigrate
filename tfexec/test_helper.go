@@ -233,14 +233,34 @@ func setupTestPluginCacheDir(e Executor) error {
 // GetTestAccBackendS3Config returns mocked backend s3 config for testing.
 // Its endpoint can be set via LOCALSTACK_ENDPOINT environment variable.
 // default to "http://localhost:4566"
-func GetTestAccBackendS3Config(dir string) string {
+func GetTestAccBackendS3Config(dir string, skipS3Bucket bool) string {
 	endpoint := "http://localhost:4566"
 	localstackEndpoint := os.Getenv("LOCALSTACK_ENDPOINT")
 	if len(localstackEndpoint) > 0 {
 		endpoint = localstackEndpoint
 	}
 
-	backendConfig := fmt.Sprintf(`
+	var backendConfig string
+	if skipS3Bucket {
+		backendConfig = fmt.Sprintf(`
+terraform {
+  # https://www.terraform.io/docs/backends/types/s3.html
+  backend "s3" {
+    region = "ap-northeast-1"
+    key    = "%s/terraform.tfstate"
+
+    // mock s3 endpoint with localstack
+    endpoint                    = "%s"
+    access_key                  = "dummy"
+    secret_key                  = "dummy"
+    skip_credentials_validation = true
+    skip_metadata_api_check     = true
+    force_path_style            = true
+  }
+}
+`, dir, endpoint)
+	} else {
+		backendConfig = fmt.Sprintf(`
 terraform {
   # https://www.terraform.io/docs/backends/types/s3.html
   backend "s3" {
@@ -257,7 +277,9 @@ terraform {
     force_path_style            = true
   }
 }
-
+`, dir, endpoint)
+	}
+	backendConfig += fmt.Sprintf(`
 # https://www.terraform.io/docs/providers/aws/index.html
 # https://www.terraform.io/docs/providers/aws/guides/custom-service-endpoints.html#localstack
 provider "aws" {
@@ -278,20 +300,20 @@ provider "aws" {
     iam = "%s"
   }
 }
-`, dir, endpoint, endpoint, endpoint, endpoint)
+`, endpoint, endpoint, endpoint)
 	return backendConfig
 }
 
 // SetupTestAccWithApply is an acceptance test helper for initializing a
 // temporary work directory and applying a given source.
-func SetupTestAccWithApply(t *testing.T, workspace string, source string) TerraformCLI {
+func SetupTestAccWithApply(t *testing.T, workspace string, source string, backendConfig []string) TerraformCLI {
 	t.Helper()
 
 	e := SetupTestAcc(t, source)
 	tf := NewTerraformCLI(e)
 	ctx := context.Background()
 
-	err := tf.Init(ctx, nil, "-input=false", "-no-color")
+	err := tf.Init(ctx, backendConfig, "-input=false", "-no-color")
 	if err != nil {
 		t.Fatalf("failed to run terraform init: %s", err)
 	}
