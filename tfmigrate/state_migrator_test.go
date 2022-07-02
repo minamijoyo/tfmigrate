@@ -139,7 +139,7 @@ func TestAccStateMigratorApply(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			backend := tfexec.GetTestAccBackendS3Config(t.Name())
+			backend := tfexec.GetTestAccBackendS3Config(t.Name(), false)
 
 			source := `
 resource "aws_security_group" "foo" {}
@@ -149,7 +149,7 @@ resource "aws_iam_user" "qux" {
 	name = "qux"
 }
 `
-			tf := tfexec.SetupTestAccWithApply(t, tc.workspace, backend+source)
+			tf := tfexec.SetupTestAccWithApply(t, tc.workspace, backend+source, nil)
 			ctx := context.Background()
 
 			updatedSource := `
@@ -222,13 +222,13 @@ resource "aws_iam_user" "qux" {
 func TestAccStateMigratorApplyForce(t *testing.T) {
 	tfexec.SkipUnlessAcceptanceTestEnabled(t)
 
-	backend := tfexec.GetTestAccBackendS3Config(t.Name())
+	backend := tfexec.GetTestAccBackendS3Config(t.Name(), false)
 
 	source := `
 resource "aws_security_group" "foo" {}
 resource "aws_security_group" "bar" {}
 `
-	tf := tfexec.SetupTestAccWithApply(t, "default", backend+source)
+	tf := tfexec.SetupTestAccWithApply(t, "default", backend+source, nil)
 	ctx := context.Background()
 
 	updatedSource := `

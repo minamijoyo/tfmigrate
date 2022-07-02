@@ -10,7 +10,7 @@ import (
 func TestAccStateImportAction(t *testing.T) {
 	tfexec.SkipUnlessAcceptanceTestEnabled(t)
 
-	backend := tfexec.GetTestAccBackendS3Config(t.Name())
+	backend := tfexec.GetTestAccBackendS3Config(t.Name(), false)
 
 	source := `
 resource "aws_iam_user" "foo" {
@@ -23,7 +23,7 @@ resource "aws_iam_user" "baz" {
 	name = "baz"
 }
 `
-	tf := tfexec.SetupTestAccWithApply(t, "default", backend+source)
+	tf := tfexec.SetupTestAccWithApply(t, "default", backend+source, nil)
 	ctx := context.Background()
 
 	_, err := tf.StateRm(ctx, nil, []string{"aws_iam_user.foo", "aws_iam_user.baz"})
