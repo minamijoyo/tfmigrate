@@ -233,34 +233,14 @@ func setupTestPluginCacheDir(e Executor) error {
 // GetTestAccBackendS3Config returns mocked backend s3 config for testing.
 // Its endpoint can be set via LOCALSTACK_ENDPOINT environment variable.
 // default to "http://localhost:4566"
-func GetTestAccBackendS3Config(dir string, skipS3Bucket bool) string {
+func GetTestAccBackendS3Config(dir string) string {
 	endpoint := "http://localhost:4566"
 	localstackEndpoint := os.Getenv("LOCALSTACK_ENDPOINT")
 	if len(localstackEndpoint) > 0 {
 		endpoint = localstackEndpoint
 	}
 
-	var backendConfig string
-	if skipS3Bucket {
-		backendConfig = fmt.Sprintf(`
-terraform {
-  # https://www.terraform.io/docs/backends/types/s3.html
-  backend "s3" {
-    region = "ap-northeast-1"
-    key    = "%s/terraform.tfstate"
-
-    // mock s3 endpoint with localstack
-    endpoint                    = "%s"
-    access_key                  = "dummy"
-    secret_key                  = "dummy"
-    skip_credentials_validation = true
-    skip_metadata_api_check     = true
-    force_path_style            = true
-  }
-}
-`, dir, endpoint)
-	} else {
-		backendConfig = fmt.Sprintf(`
+	backendConfig := fmt.Sprintf(`
 terraform {
   # https://www.terraform.io/docs/backends/types/s3.html
   backend "s3" {
@@ -277,9 +257,6 @@ terraform {
     force_path_style            = true
   }
 }
-`, dir, endpoint)
-	}
-	backendConfig += fmt.Sprintf(`
 # https://www.terraform.io/docs/providers/aws/index.html
 # https://www.terraform.io/docs/providers/aws/guides/custom-service-endpoints.html#localstack
 provider "aws" {
@@ -300,7 +277,7 @@ provider "aws" {
     iam = "%s"
   }
 }
-`, endpoint, endpoint, endpoint)
+`, dir, endpoint, endpoint, endpoint, endpoint)
 	return backendConfig
 }
 

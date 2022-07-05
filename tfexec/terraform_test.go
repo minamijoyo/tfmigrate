@@ -2,6 +2,7 @@ package tfexec
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -93,7 +94,7 @@ func TestTerraformCLIRun(t *testing.T) {
 func TestAccTerraformCLIOverrideBackendToLocal(t *testing.T) {
 	SkipUnlessAcceptanceTestEnabled(t)
 
-	backend := GetTestAccBackendS3Config(t.Name(), false)
+	backend := GetTestAccBackendS3Config(t.Name())
 	source := `
 resource "aws_security_group" "foo" {}
 resource "aws_security_group" "bar" {}
@@ -165,7 +166,50 @@ resource "aws_security_group" "bar" {}
 func TestAccTerraformCLIOverrideBackendToLocalWithBackendConfig(t *testing.T) {
 	SkipUnlessAcceptanceTestEnabled(t)
 
-	backend := GetTestAccBackendS3Config(t.Name(), true)
+	endpoint := "http://localhost:4566"
+	localstackEndpoint := os.Getenv("LOCALSTACK_ENDPOINT")
+	if len(localstackEndpoint) > 0 {
+		endpoint = localstackEndpoint
+	}
+
+	backend := fmt.Sprintf(`
+terraform {
+  # https://www.terraform.io/docs/backends/types/s3.html
+  backend "s3" {
+    region = "ap-northeast-1"
+    // bucket = "tfstate-test"
+    key    = "%s/terraform.tfstate"
+
+    // mock s3 endpoint with localstack
+    endpoint                    = "%s"
+    access_key                  = "dummy"
+    secret_key                  = "dummy"
+    skip_credentials_validation = true
+    skip_metadata_api_check     = true
+    force_path_style            = true
+  }
+}
+# https://www.terraform.io/docs/providers/aws/index.html
+# https://www.terraform.io/docs/providers/aws/guides/custom-service-endpoints.html#localstack
+provider "aws" {
+  region = "ap-northeast-1"
+
+  access_key                  = "dummy"
+  secret_key                  = "dummy"
+  skip_credentials_validation = true
+  skip_metadata_api_check     = true
+  skip_region_validation      = true
+  skip_requesting_account_id  = true
+  s3_force_path_style         = true
+
+  // mock endpoints with localstack
+  endpoints {
+    s3  = "%s"
+    ec2 = "%s"
+    iam = "%s"
+  }
+}
+`, t.Name(), endpoint, endpoint, endpoint, endpoint)
 	source := `
 resource "aws_security_group" "foo" {}
 resource "aws_security_group" "bar" {}
