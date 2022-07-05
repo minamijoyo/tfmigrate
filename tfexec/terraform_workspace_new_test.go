@@ -69,7 +69,7 @@ func TestAccTerraformCLIWorkspaceNew(t *testing.T) {
 	e := SetupTestAcc(t, source)
 	terraformCLI := NewTerraformCLI(e)
 
-	err := terraformCLI.Init(context.Background(), nil, "-input=false", "-no-color")
+	err := terraformCLI.Init(context.Background(), "-input=false", "-no-color")
 	if err != nil {
 		t.Fatalf("failed to run terraform init: %s", err)
 	}

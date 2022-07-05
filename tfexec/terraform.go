@@ -61,7 +61,7 @@ type TerraformCLI interface {
 	Version(ctx context.Context) (string, error)
 
 	// Init initializes the current work directory.
-	Init(ctx context.Context, backendConfig []string, opts ...string) error
+	Init(ctx context.Context, opts ...string) error
 
 	// Plan computes expected changes.
 	// If a state is given, use it for the input state.
@@ -221,7 +221,7 @@ terraform {
 	}
 
 	log.Printf("[INFO] [executor@%s] switch backend to local\n", c.Dir())
-	err := c.Init(ctx, nil, "-input=false", "-no-color", "-reconfigure")
+	err := c.Init(ctx, "-input=false", "-no-color", "-reconfigure")
 	if err != nil {
 		// remove the override file before return an error.
 		os.Remove(path)
@@ -254,12 +254,15 @@ terraform {
 		}
 		log.Printf("[INFO] [executor@%s] switch back to remote\n", c.Dir())
 
+		var args = []string{"-input=false", "-no-color", "-reconfigure"}
+		for _, b := range backendConfig {
+			args = append(args, fmt.Sprintf("-backend-config=%s", b))
+		}
 		// Run the correct init command depending on whether the remote backend is Terraform Cloud
 		if !isBackendTerraformCloud {
-			err = c.Init(ctx, backendConfig, "-input=false", "-no-color", "-reconfigure")
-		} else {
-			err = c.Init(ctx, backendConfig, "-input=false", "-no-color")
+			args = append(args, "-reconfigure")
 		}
+		err = c.Init(ctx, args...)
 
 		if err != nil {
 			// we cannot return error here.
