@@ -149,7 +149,7 @@ resource "aws_iam_user" "qux" {
 	name = "qux"
 }
 `
-			tf := tfexec.SetupTestAccWithApply(t, tc.workspace, backend+source, nil)
+			tf := tfexec.SetupTestAccWithApply(t, tc.workspace, backend+source)
 			ctx := context.Background()
 
 			updatedSource := `
@@ -228,7 +228,7 @@ func TestAccStateMigratorApplyForce(t *testing.T) {
 resource "aws_security_group" "foo" {}
 resource "aws_security_group" "bar" {}
 `
-	tf := tfexec.SetupTestAccWithApply(t, "default", backend+source, nil)
+	tf := tfexec.SetupTestAccWithApply(t, "default", backend+source)
 	ctx := context.Background()
 
 	updatedSource := `

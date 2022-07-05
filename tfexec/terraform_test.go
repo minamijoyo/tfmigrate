@@ -100,7 +100,7 @@ resource "aws_security_group" "foo" {}
 resource "aws_security_group" "bar" {}
 `
 	workspace := "work1"
-	terraformCLI := SetupTestAccWithApply(t, workspace, backend+source, nil)
+	terraformCLI := SetupTestAccWithApply(t, workspace, backend+source)
 
 	updatedSource := `
 resource "aws_security_group" "foo2" {}
@@ -216,7 +216,39 @@ resource "aws_security_group" "bar" {}
 `
 	workspace := "work1"
 	backendConfig := []string{"bucket=tfstate-test"}
-	terraformCLI := SetupTestAccWithApply(t, workspace, backend+source, backendConfig)
+	e := SetupTestAcc(t, source)
+	terraformCLI := NewTerraformCLI(e)
+	ctx := context.Background()
+
+	var args = []string{"-input=false", "-no-color"}
+	for _, b := range backendConfig {
+		args = append(args, fmt.Sprintf("-backend-config=%s", b))
+	}
+	err := terraformCLI.Init(ctx, args...)
+	if err != nil {
+		t.Fatalf("failed to run terraform init: %s", err)
+	}
+
+	//default workspace always exists so don't try to create it
+	if workspace != "default" {
+		err = terraformCLI.WorkspaceNew(ctx, workspace)
+		if err != nil {
+			t.Fatalf("failed to run terraform workspace new %s : %s", workspace, err)
+		}
+	}
+
+	err = terraformCLI.Apply(ctx, nil, "-input=false", "-no-color", "-auto-approve")
+	if err != nil {
+		t.Fatalf("failed to run terraform apply: %s", err)
+	}
+
+	// destroy resources after each test not to have any state.
+	t.Cleanup(func() {
+		err := terraformCLI.Destroy(ctx, "-input=false", "-no-color", "-auto-approve")
+		if err != nil {
+			t.Fatalf("failed to run terraform destroy: %s", err)
+		}
+	})
 
 	updatedSource := `
 resource "aws_security_group" "foo2" {}

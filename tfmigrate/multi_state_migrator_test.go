@@ -243,9 +243,9 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 
 			//setup the initial files and states
 			fromBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/fromDir")
-			fromTf := tfexec.SetupTestAccWithApply(t, tc.fromWorkspace, fromBackend+tc.fromSource, nil)
+			fromTf := tfexec.SetupTestAccWithApply(t, tc.fromWorkspace, fromBackend+tc.fromSource)
 			toBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/toDir")
-			toTf := tfexec.SetupTestAccWithApply(t, tc.toWorkspace, toBackend+tc.toSource, nil)
+			toTf := tfexec.SetupTestAccWithApply(t, tc.toWorkspace, toBackend+tc.toSource)
 
 			//update terraform resource files for migration
 			tfexec.UpdateTestAccSource(t, fromTf, fromBackend+tc.fromUpdatedSource)
