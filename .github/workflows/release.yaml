@@ -20,6 +20,7 @@ jobs:
       uses: actions/setup-go@v3
       with:
         go-version-file: '.go-version'
+        cache: true
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v2
       with:
