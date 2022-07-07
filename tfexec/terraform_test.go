@@ -216,7 +216,7 @@ resource "aws_security_group" "bar" {}
 `
 	workspace := "work1"
 	backendConfig := []string{"bucket=tfstate-test"}
-	e := SetupTestAcc(t, source)
+	e := SetupTestAcc(t, source+backend)
 	terraformCLI := NewTerraformCLI(e)
 	ctx := context.Background()
 
