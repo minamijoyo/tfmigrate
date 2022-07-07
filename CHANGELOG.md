@@ -4,6 +4,14 @@ NEW FEATURES:
 
 * Add --backend-config cli option to tfmigrate plan/apply ([#94](https://github.com/minamijoyo/tfmigrate/pull/94))
 
+ENHANCEMENTS:
+
+* Add support for Terraform v1.2 ([#86](https://github.com/minamijoyo/tfmigrate/pull/86))
+* Read Go version from .go-version on GitHub Actions ([#87](https://github.com/minamijoyo/tfmigrate/pull/87))
+* docs: update to use the core tap ([#93](https://github.com/minamijoyo/tfmigrate/pull/93))
+* Update Go to v1.17.11 ([#95](https://github.com/minamijoyo/tfmigrate/pull/95))
+* Use a native cache feature in actions/setup-go ([#96](https://github.com/minamijoyo/tfmigrate/pull/96))
+
 ## 0.3.3 (2022/04/18)
 
 ENHANCEMENTS:
