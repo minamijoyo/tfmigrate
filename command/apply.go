@@ -113,7 +113,8 @@ Arguments
 
 Options:
   --config                 A path to tfmigrate config file
-  --backend-config=path    A backend configuration, a path to backend configuration file or key=value format backend configuraion.
+  --backend-config=path    A backend configuration, a path to backend configuration file or
+                           key=value format backend configuraion.
                            This option is passed to terraform init when switching backend to remote.
 `
 	return strings.TrimSpace(helpText)

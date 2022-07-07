@@ -308,11 +308,20 @@ Plan computes a new state by applying state migration operations to a temporary 
 It will fail if terraform plan detects any diffs with the new state.
 
 Arguments:
-  PATH               A path of migration file
-                     Required in non-history mode. Optional in history-mode.
+  PATH                     A path of migration file
+                           Required in non-history mode. Optional in history-mode.
 
 Options:
-  --config           A path to tfmigrate config file
+  --config                 A path to tfmigrate config file
+  --backend-config=path    A backend configuration, a path to backend configuration file or
+                           key=value format backend configuraion.
+                           This option is passed to terraform init when switching backend to remote.
+
+  [Deprecated]
+  --out=path               Save a plan file after dry-run migration to the given path.
+                           Note that applying the plan file only affects a local state,
+                           make sure to force push it to remote after terraform apply.
+                           This option doesn't work with Terraform 1.1+
 ```
 
 ```
@@ -323,11 +332,14 @@ Apply computes a new state and pushes it to remote state.
 It will fail if terraform plan detects any diffs with the new state.
 
 Arguments
-  PATH               A path of migration file
-                     Required in non-history mode. Optional in history-mode.
+  PATH                     A path of migration file
+                           Required in non-history mode. Optional in history-mode.
 
 Options:
-  --config           A path to tfmigrate config file
+  --config                 A path to tfmigrate config file
+  --backend-config=path    A backend configuration, a path to backend configuration file or
+                           key=value format backend configuraion.
+                           This option is passed to terraform init when switching backend to remote.
 ```
 
 ```
