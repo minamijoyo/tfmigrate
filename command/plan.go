@@ -13,13 +13,15 @@ import (
 // migration operations to a temporary state.
 type PlanCommand struct {
 	Meta
-	out string
+	backendConfig []string
+	out           string
 }
 
 // Run runs the procedure of this command.
 func (c *PlanCommand) Run(args []string) int {
 	cmdFlags := flag.NewFlagSet("plan", flag.ContinueOnError)
 	cmdFlags.StringVar(&c.configFile, "config", defaultConfigFile, "A path to tfmigrate config file")
+	cmdFlags.StringArrayVar(&c.backendConfig, "backend-config", nil, "A backend configuration for remote state")
 	cmdFlags.StringVar(&c.out, "out", "", "[Deprecated] Save a plan file after dry-run migration to the given path")
 
 	if err := cmdFlags.Parse(args); err != nil {
@@ -36,6 +38,7 @@ func (c *PlanCommand) Run(args []string) int {
 
 	c.Option = newOption()
 	c.Option.PlanOut = c.out
+	c.Option.BackendConfig = c.backendConfig
 	// The option may contains sensitive values such as environment variables.
 	// So logging the option set log level to DEBUG instead of INFO.
 	log.Printf("[DEBUG] [command] option: %#v\n", c.Option)
@@ -115,18 +118,20 @@ Plan computes a new state by applying state migration operations to a temporary 
 It will fail if terraform plan detects any diffs with the new state.
 
 Arguments:
-  PATH               A path of migration file
-                     Required in non-history mode. Optional in history-mode.
+  PATH                     A path of migration file
+                           Required in non-history mode. Optional in history-mode.
 
 Options:
-  --config           A path to tfmigrate config file
+  --config                 A path to tfmigrate config file
+  --backend-config=path    A backend configuration, a path to backend configuration file or key=value format backend configuraion.
+                           This option is passed to terraform init when switching backend to remote.
 
   [Deprecated]
   --out=path
-                     Save a plan file after dry-run migration to the given path.
-                     Note that applying the plan file only affects a local state,
-                     make sure to force push it to remote after terraform apply.
-                     This option doesn't work with Terraform 1.1+
+                           Save a plan file after dry-run migration to the given path.
+                           Note that applying the plan file only affects a local state,
+                           make sure to force push it to remote after terraform apply.
+                           This option doesn't work with Terraform 1.1+
 `
 	return strings.TrimSpace(helpText)
 }

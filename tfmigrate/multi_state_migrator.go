@@ -107,14 +107,14 @@ func NewMultiStateMigrator(fromDir string, toDir string, fromWorkspace string, t
 // the Migrator interface between a single and multi state migrator.
 func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.State, error) {
 	// setup fromDir.
-	fromCurrentState, fromSwitchBackToRemoteFunc, err := setupWorkDir(ctx, m.fromTf, m.fromWorkspace, m.o.IsBackendTerraformCloud)
+	fromCurrentState, fromSwitchBackToRemoteFunc, err := setupWorkDir(ctx, m.fromTf, m.fromWorkspace, m.o.IsBackendTerraformCloud, m.o.BackendConfig)
 	if err != nil {
 		return nil, nil, err
 	}
 	// switch back it to remote on exit.
 	defer fromSwitchBackToRemoteFunc()
 	// setup toDir.
-	toCurrentState, toSwitchBackToRemoteFunc, err := setupWorkDir(ctx, m.toTf, m.toWorkspace, m.o.IsBackendTerraformCloud)
+	toCurrentState, toSwitchBackToRemoteFunc, err := setupWorkDir(ctx, m.toTf, m.toWorkspace, m.o.IsBackendTerraformCloud, m.o.BackendConfig)
 	if err != nil {
 		return nil, nil, err
 	}

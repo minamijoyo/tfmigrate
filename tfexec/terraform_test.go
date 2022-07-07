@@ -2,6 +2,7 @@ package tfexec
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -125,7 +126,155 @@ resource "aws_security_group" "bar" {}
 		t.Fatalf("an override file already exists: %s", err)
 	}
 
-	switchBackToRemotekFunc, err := terraformCLI.OverrideBackendToLocal(context.Background(), filename, workspace, false)
+	switchBackToRemotekFunc, err := terraformCLI.OverrideBackendToLocal(context.Background(), filename, workspace, false, nil)
+	if err != nil {
+		t.Fatalf("failed to run OverrideBackendToLocal: %s", err)
+	}
+
+	if _, err := os.Stat(filepath.Join(terraformCLI.Dir(), filename)); os.IsNotExist(err) {
+		t.Fatalf("the override file does not exist: %s", err)
+	}
+
+	updatedState, _, err := terraformCLI.StateMv(context.Background(), state, nil, "aws_security_group.foo", "aws_security_group.foo2")
+	if err != nil {
+		t.Fatalf("failed to run terraform state mv: %s", err)
+	}
+
+	changed, err = terraformCLI.PlanHasChange(context.Background(), updatedState)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange: %s", err)
+	}
+	if changed {
+		t.Fatalf("expect not to have changes")
+	}
+
+	switchBackToRemotekFunc()
+
+	if _, err := os.Stat(filepath.Join(terraformCLI.Dir(), filename)); err == nil {
+		t.Fatalf("the override file wasn't removed: %s", err)
+	}
+
+	changed, err = terraformCLI.PlanHasChange(context.Background(), nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange: %s", err)
+	}
+	if !changed {
+		t.Fatalf("expect to have changes")
+	}
+}
+
+func TestAccTerraformCLIOverrideBackendToLocalWithBackendConfig(t *testing.T) {
+	SkipUnlessAcceptanceTestEnabled(t)
+
+	endpoint := "http://localhost:4566"
+	localstackEndpoint := os.Getenv("LOCALSTACK_ENDPOINT")
+	if len(localstackEndpoint) > 0 {
+		endpoint = localstackEndpoint
+	}
+
+	backend := fmt.Sprintf(`
+terraform {
+  # https://www.terraform.io/docs/backends/types/s3.html
+  backend "s3" {
+    region = "ap-northeast-1"
+    // bucket = "tfstate-test"
+    key    = "%s/terraform.tfstate"
+
+    // mock s3 endpoint with localstack
+    endpoint                    = "%s"
+    access_key                  = "dummy"
+    secret_key                  = "dummy"
+    skip_credentials_validation = true
+    skip_metadata_api_check     = true
+    force_path_style            = true
+  }
+}
+# https://www.terraform.io/docs/providers/aws/index.html
+# https://www.terraform.io/docs/providers/aws/guides/custom-service-endpoints.html#localstack
+provider "aws" {
+  region = "ap-northeast-1"
+
+  access_key                  = "dummy"
+  secret_key                  = "dummy"
+  skip_credentials_validation = true
+  skip_metadata_api_check     = true
+  skip_region_validation      = true
+  skip_requesting_account_id  = true
+  s3_force_path_style         = true
+
+  // mock endpoints with localstack
+  endpoints {
+    s3  = "%s"
+    ec2 = "%s"
+    iam = "%s"
+  }
+}
+`, t.Name(), endpoint, endpoint, endpoint, endpoint)
+	source := `
+resource "aws_security_group" "foo" {}
+resource "aws_security_group" "bar" {}
+`
+	workspace := "work1"
+	backendConfig := []string{"bucket=tfstate-test"}
+	e := SetupTestAcc(t, source+backend)
+	terraformCLI := NewTerraformCLI(e)
+	ctx := context.Background()
+
+	var args = []string{"-input=false", "-no-color"}
+	for _, b := range backendConfig {
+		args = append(args, fmt.Sprintf("-backend-config=%s", b))
+	}
+	err := terraformCLI.Init(ctx, args...)
+	if err != nil {
+		t.Fatalf("failed to run terraform init: %s", err)
+	}
+
+	//default workspace always exists so don't try to create it
+	if workspace != "default" {
+		err = terraformCLI.WorkspaceNew(ctx, workspace)
+		if err != nil {
+			t.Fatalf("failed to run terraform workspace new %s : %s", workspace, err)
+		}
+	}
+
+	err = terraformCLI.Apply(ctx, nil, "-input=false", "-no-color", "-auto-approve")
+	if err != nil {
+		t.Fatalf("failed to run terraform apply: %s", err)
+	}
+
+	// destroy resources after each test not to have any state.
+	t.Cleanup(func() {
+		err := terraformCLI.Destroy(ctx, "-input=false", "-no-color", "-auto-approve")
+		if err != nil {
+			t.Fatalf("failed to run terraform destroy: %s", err)
+		}
+	})
+
+	updatedSource := `
+resource "aws_security_group" "foo2" {}
+resource "aws_security_group" "bar" {}
+`
+	UpdateTestAccSource(t, terraformCLI, backend+updatedSource)
+
+	changed, err := terraformCLI.PlanHasChange(context.Background(), nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange: %s", err)
+	}
+	if !changed {
+		t.Fatalf("expect to have changes")
+	}
+
+	state, err := terraformCLI.StatePull(context.Background())
+	if err != nil {
+		t.Fatalf("failed to run terraform state pull: %s", err)
+	}
+
+	filename := "_tfexec_override.tf"
+	if _, err := os.Stat(filepath.Join(terraformCLI.Dir(), filename)); err == nil {
+		t.Fatalf("an override file already exists: %s", err)
+	}
+
+	switchBackToRemotekFunc, err := terraformCLI.OverrideBackendToLocal(context.Background(), filename, workspace, false, backendConfig)
 	if err != nil {
 		t.Fatalf("failed to run OverrideBackendToLocal: %s", err)
 	}

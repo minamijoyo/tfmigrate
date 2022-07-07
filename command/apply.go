@@ -12,12 +12,14 @@ import (
 // ApplyCommand is a command which computes a new state and pushes it to the remote state.
 type ApplyCommand struct {
 	Meta
+	backendConfig []string
 }
 
 // Run runs the procedure of this command.
 func (c *ApplyCommand) Run(args []string) int {
 	cmdFlags := flag.NewFlagSet("apply", flag.ContinueOnError)
 	cmdFlags.StringVar(&c.configFile, "config", defaultConfigFile, "A path to tfmigrate config file")
+	cmdFlags.StringArrayVar(&c.backendConfig, "backend-config", nil, "A backend configuration for remote state")
 
 	if err := cmdFlags.Parse(args); err != nil {
 		c.UI.Error(fmt.Sprintf("failed to parse arguments: %s", err))
@@ -32,6 +34,7 @@ func (c *ApplyCommand) Run(args []string) int {
 	log.Printf("[DEBUG] [command] config: %#v\n", c.config)
 
 	c.Option = newOption()
+	c.Option.BackendConfig = c.backendConfig
 	// The option may contain sensitive values such as environment variables.
 	// So logging the option set log level to DEBUG instead of INFO.
 	log.Printf("[DEBUG] [command] option: %#v\n", c.Option)
@@ -105,11 +108,13 @@ Apply computes a new state and pushes it to remote state.
 It will fail if terraform plan detects any diffs with the new state.
 
 Arguments
-  PATH               A path of migration file
-                     Required in non-history mode. Optional in history-mode.
+  PATH                     A path of migration file
+                           Required in non-history mode. Optional in history-mode.
 
 Options:
-  --config           A path to tfmigrate config file
+  --config                 A path to tfmigrate config file
+  --backend-config=path    A backend configuration, a path to backend configuration file or key=value format backend configuraion.
+                           This option is passed to terraform init when switching backend to remote.
 `
 	return strings.TrimSpace(helpText)
 }

@@ -1,6 +1,8 @@
 package tfexec
 
-import "context"
+import (
+	"context"
+)
 
 // Init initializes the current work directory.
 func (c *terraformCLI) Init(ctx context.Context, opts ...string) error {

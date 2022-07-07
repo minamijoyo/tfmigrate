@@ -105,7 +105,7 @@ func NewStateMigrator(dir string, workspace string, actions []StateAction,
 // the Migrator interface between a single and multi state migrator.
 func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 	// setup work dir.
-	currentState, switchBackToRemoteFunc, err := setupWorkDir(ctx, m.tf, m.workspace, m.o.IsBackendTerraformCloud)
+	currentState, switchBackToRemoteFunc, err := setupWorkDir(ctx, m.tf, m.workspace, m.o.IsBackendTerraformCloud, m.o.BackendConfig)
 	if err != nil {
 		return nil, err
 	}

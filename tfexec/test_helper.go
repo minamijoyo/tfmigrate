@@ -257,7 +257,6 @@ terraform {
     force_path_style            = true
   }
 }
-
 # https://www.terraform.io/docs/providers/aws/index.html
 # https://www.terraform.io/docs/providers/aws/guides/custom-service-endpoints.html#localstack
 provider "aws" {
