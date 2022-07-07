@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+NEW FEATURES:
+
+* Add --backend-config cli option to tfmigrate plan/apply ([#94](https://github.com/minamijoyo/tfmigrate/pull/94))
+
 ## 0.3.3 (2022/04/18)
 
 ENHANCEMENTS:
