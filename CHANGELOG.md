@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * docs: update to use the core tap ([#93](https://github.com/minamijoyo/tfmigrate/pull/93))
 * Update Go to v1.17.11 ([#95](https://github.com/minamijoyo/tfmigrate/pull/95))
 * Use a native cache feature in actions/setup-go ([#96](https://github.com/minamijoyo/tfmigrate/pull/96))
+* Use s3_use_path_style instead of s3_force_path_style ([#97](https://github.com/minamijoyo/tfmigrate/pull/97))
 
 ## 0.3.3 (2022/04/18)
 
