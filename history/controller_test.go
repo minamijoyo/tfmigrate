@@ -2,7 +2,6 @@ package history
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -82,14 +81,14 @@ func TestLoadMigrationFileNames(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			migrationDir, err := ioutil.TempDir("", "migrationDir")
+			migrationDir, err := os.MkdirTemp("", "migrationDir")
 			if err != nil {
 				t.Fatalf("failed to craete temp dir: %s", err)
 			}
 			t.Cleanup(func() { os.RemoveAll(migrationDir) })
 
 			for _, filename := range tc.files {
-				err = ioutil.WriteFile(filepath.Join(migrationDir, filename), []byte{}, 0600)
+				err = os.WriteFile(filepath.Join(migrationDir, filename), []byte{}, 0600)
 				if err != nil {
 					t.Fatalf("failed to write dummy migration file: %s", err)
 				}

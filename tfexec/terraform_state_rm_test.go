@@ -2,7 +2,7 @@ package tfexec
 
 import (
 	"context"
-	"io/ioutil"
+	"os"
 	"reflect"
 	"regexp"
 	"strings"
@@ -20,7 +20,7 @@ func TestTerraformCLIStateRm(t *testing.T) {
 			// It updates the inpute state in-place.
 			if strings.HasPrefix(arg, "-state=") {
 				stateFile := arg[len("-state="):]
-				return ioutil.WriteFile(stateFile, stateOut.Bytes(), 0600)
+				return os.WriteFile(stateFile, stateOut.Bytes(), 0600)
 			}
 		}
 		// if the -state option is not set, nothing to do.

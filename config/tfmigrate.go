@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/hashicorp/hcl/v2/hclsimple"
 	"github.com/minamijoyo/tfmigrate/history"
@@ -43,7 +43,7 @@ type TfmigrateConfig struct {
 
 // LoadConfigurationFile is a helper function which reads and parses a given configuration file.
 func LoadConfigurationFile(filename string) (*TfmigrateConfig, error) {
-	source, err := ioutil.ReadFile(filename)
+	source, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}

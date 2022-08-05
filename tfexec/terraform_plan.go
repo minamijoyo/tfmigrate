@@ -3,7 +3,6 @@ package tfexec
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 )
 
@@ -30,7 +29,7 @@ func (c *terraformCLI) Plan(ctx context.Context, state *State, opts ...string) (
 	if hasPrefixOptions(opts, "-out=") {
 		planOut = getOptionValue(opts, "-out=")
 	} else {
-		tmpPlan, err := ioutil.TempFile("", "tfplan")
+		tmpPlan, err := os.CreateTemp("", "tfplan")
 		if err != nil {
 			return nil, fmt.Errorf("failed to create temporary plan file: %s", err)
 		}
@@ -50,6 +49,6 @@ func (c *terraformCLI) Plan(ctx context.Context, state *State, opts ...string) (
 	// terraform plan -detailed-exitcode returns 2 if there is a diff.
 	// So we intentionally ignore an error of read the plan file and returns the
 	// original error of terraform plan command.
-	plan, _ := ioutil.ReadFile(planOut)
+	plan, _ := os.ReadFile(planOut)
 	return NewPlan(plan), err
 }
