@@ -24,7 +24,7 @@ test: build
 
 .PHONY: testacc
 testacc: build
-	TEST_ACC=1 go test -count=1 -failfast ./...
+	TEST_ACC=1 go test -count=1 -failfast -timeout=20m ./...
 
 .PHONY: check
 check: lint test
