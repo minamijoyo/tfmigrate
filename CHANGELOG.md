@@ -1,5 +1,13 @@
 ## master (Unreleased)
 
+BUG FIXES:
+
+* Do not reconfigure for cloud backend ([#98](https://github.com/minamijoyo/tfmigrate/pull/98))
+
+ENHANCEMENTS:
+
+* Set timeout for testacc to 20m ([#100](https://github.com/minamijoyo/tfmigrate/pull/100))
+
 ## 0.3.4 (2022/07/08)
 
 NEW FEATURES:
