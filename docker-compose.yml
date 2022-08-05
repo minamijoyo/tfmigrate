@@ -17,7 +17,7 @@ services:
       - localstack
 
   localstack:
-    image: localstack/localstack:0.14.4
+    image: localstack/localstack:1.0.3
     ports:
       - "4566:4566"
     environment:
@@ -29,6 +29,6 @@ services:
       - "./scripts/localstack:/docker-entrypoint-initaws.d"  # initialize scripts on startup
 
   dockerize:
-    image: powerman/dockerize:0.16.0
+    image: powerman/dockerize:0.16.3
     depends_on:
       - localstack
