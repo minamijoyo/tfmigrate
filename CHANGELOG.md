@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.3.5 (2022/08/05)
+
 BUG FIXES:
 
 * Do not reconfigure for cloud backend ([#98](https://github.com/minamijoyo/tfmigrate/pull/98))
