@@ -254,7 +254,7 @@ terraform {
 		}
 		log.Printf("[INFO] [executor@%s] switch back to remote\n", c.Dir())
 
-		var args = []string{"-input=false", "-no-color", "-reconfigure"}
+		var args = []string{"-input=false", "-no-color"}
 		for _, b := range backendConfig {
 			args = append(args, fmt.Sprintf("-backend-config=%s", b))
 		}
