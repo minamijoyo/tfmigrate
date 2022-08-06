@@ -2,7 +2,7 @@ package tfmigrate
 
 import (
 	"context"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"reflect"
 	"sort"
@@ -344,7 +344,7 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 				}
 
 				// apply the saved plan files
-				fromPlan, err := ioutil.ReadFile(filepath.Join(fromTf.Dir(), o.PlanOut))
+				fromPlan, err := os.ReadFile(filepath.Join(fromTf.Dir(), o.PlanOut))
 				if err != nil {
 					t.Fatalf("failed to read a saved plan file in fromDir: %s", err)
 				}
@@ -352,7 +352,7 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 				if err != nil {
 					t.Fatalf("failed to apply the saved plan file in fromDir: %s", err)
 				}
-				toPlan, err := ioutil.ReadFile(filepath.Join(toTf.Dir(), o.PlanOut))
+				toPlan, err := os.ReadFile(filepath.Join(toTf.Dir(), o.PlanOut))
 				if err != nil {
 					t.Fatalf("failed to read a saved plan file in toDir: %s", err)
 				}
@@ -381,7 +381,7 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 				// Note that applying the plan file only affects a local state,
 				// make sure to force push it to remote after terraform apply.
 				// The -force flag is required here because the lineage of the state was changed.
-				fromState, err := ioutil.ReadFile(filepath.Join(fromTf.Dir(), "terraform.tfstate"))
+				fromState, err := os.ReadFile(filepath.Join(fromTf.Dir(), "terraform.tfstate"))
 				if err != nil {
 					t.Fatalf("failed to read a local state file in fromDir: %s", err)
 				}
@@ -389,7 +389,7 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 				if err != nil {
 					t.Fatalf("failed to force push the local state in fromDir: %s", err)
 				}
-				toState, err := ioutil.ReadFile(filepath.Join(toTf.Dir(), "terraform.tfstate"))
+				toState, err := os.ReadFile(filepath.Join(toTf.Dir(), "terraform.tfstate"))
 				if err != nil {
 					t.Fatalf("failed to read a local state file in toDir: %s", err)
 				}

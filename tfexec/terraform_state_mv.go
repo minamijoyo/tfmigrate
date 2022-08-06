@@ -3,7 +3,6 @@ package tfexec
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 )
 
@@ -55,7 +54,7 @@ func (c *terraformCLI) StateMv(ctx context.Context, state *State, stateOut *Stat
 	var updatedStateOut *State
 
 	if state != nil {
-		bytes, err := ioutil.ReadFile(tmpState.Name())
+		bytes, err := os.ReadFile(tmpState.Name())
 		if err != nil {
 			return nil, nil, err
 		}
@@ -63,7 +62,7 @@ func (c *terraformCLI) StateMv(ctx context.Context, state *State, stateOut *Stat
 	}
 
 	if stateOut != nil {
-		bytes, err := ioutil.ReadFile(tmpStateOut.Name())
+		bytes, err := os.ReadFile(tmpStateOut.Name())
 		if err != nil {
 			return nil, nil, err
 		}

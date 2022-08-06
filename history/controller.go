@@ -2,8 +2,8 @@ package history
 
 import (
 	"context"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -57,7 +57,7 @@ func NewController(ctx context.Context, migrationDir string, config *Config) (*C
 func loadMigrationFileNames(dir string) ([]string, error) {
 	migrations := []string{}
 
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}

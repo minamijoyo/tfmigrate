@@ -3,7 +3,6 @@ package tfexec
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 )
 
@@ -44,7 +43,7 @@ func (c *terraformCLI) StateRm(ctx context.Context, state *State, addresses []st
 	// The interface is a bit inconsistency against the terraform command,
 	// but we prefer returning a new state to updating the argument in-place.
 	if state != nil {
-		stateOut, err := ioutil.ReadFile(tmpState.Name())
+		stateOut, err := os.ReadFile(tmpState.Name())
 		if err != nil {
 			return nil, err
 		}

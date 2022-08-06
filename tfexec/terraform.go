@@ -3,7 +3,6 @@ package tfexec
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -208,7 +207,7 @@ terraform {
 }
 `
 	log.Printf("[INFO] [executor@%s] create an override file\n", c.Dir())
-	if err := ioutil.WriteFile(path, []byte(contents), 0600); err != nil {
+	if err := os.WriteFile(path, []byte(contents), 0600); err != nil {
 		return nil, fmt.Errorf("failed to create override file: %s", err)
 	}
 
@@ -305,7 +304,7 @@ func mergeOptions(a []string, b []string) []string {
 
 // writeTempFile writes content to a temporary file and return its file.
 func writeTempFile(content []byte) (*os.File, error) {
-	tmpfile, err := ioutil.TempFile("", "tmp")
+	tmpfile, err := os.CreateTemp("", "tmp")
 	if err != nil {
 		return tmpfile, fmt.Errorf("failed to create temporary file: %s", err)
 	}

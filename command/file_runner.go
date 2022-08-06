@@ -2,8 +2,8 @@ package command
 
 import (
 	"context"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 
 	"github.com/minamijoyo/tfmigrate/config"
@@ -57,7 +57,7 @@ func NewFileRunner(filename string, config *config.TfmigrateConfig, option *tfmi
 
 // loadMigrationFile is a helper function which reads and parses a migration file.
 func loadMigrationFile(filename string) (*tfmigrate.MigrationConfig, error) {
-	source, err := ioutil.ReadFile(filename)
+	source, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}

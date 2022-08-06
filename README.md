@@ -279,7 +279,7 @@ https://github.com/minamijoyo/tfmigrate/releases
 
 ### Source
 
-If you have Go 1.17+ development environment:
+If you have Go 1.19+ development environment:
 
 ```
 $ git clone https://github.com/minamijoyo/tfmigrate
@@ -393,7 +393,7 @@ tfmigrate {
 ```
 
 #### is_backend_terraform_cloud
-Whether the remote backend specified in Terraform files references a 
+Whether the remote backend specified in Terraform files references a
 [terraform cloud remote backend](https://www.terraform.io/language/settings/terraform-cloud),
 in particular specified as a `cloud` block within the `terraform` config block. This backend
 type was introduced in Terraform 1.1.+ and is the recommended way to specify a Terraform backend.

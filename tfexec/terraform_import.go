@@ -3,7 +3,6 @@ package tfexec
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 )
 
@@ -29,7 +28,7 @@ func (c *terraformCLI) Import(ctx context.Context, state *State, address string,
 		return nil, fmt.Errorf("failed to build options. The -state-out= option is not allowed. Read a return value: %v", opts)
 	}
 
-	tmpStateOut, err := ioutil.TempFile("", "tfstate")
+	tmpStateOut, err := os.CreateTemp("", "tfstate")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temporary state out file: %s", err)
 	}
@@ -48,7 +47,7 @@ func (c *terraformCLI) Import(ctx context.Context, state *State, address string,
 		return nil, err
 	}
 
-	stateOut, err := ioutil.ReadFile(tmpStateOut.Name())
+	stateOut, err := os.ReadFile(tmpStateOut.Name())
 	if err != nil {
 		return nil, err
 	}

@@ -8,7 +8,7 @@ deps:
 
 .PHONY: build
 build: deps
-	go build -o bin/$(NAME)
+	go build -buildvcs=false -o bin/$(NAME)
 
 .PHONY: install
 install: deps

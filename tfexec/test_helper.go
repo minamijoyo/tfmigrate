@@ -3,7 +3,6 @@ package tfexec
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -199,12 +198,12 @@ func SetupTestAcc(t *testing.T, source string) Executor {
 
 // setupTestWorkDir creates temporary working directory with a given source for testing.
 func setupTestWorkDir(source string) (string, error) {
-	workDir, err := ioutil.TempDir("", "workDir")
+	workDir, err := os.MkdirTemp("", "workDir")
 	if err != nil {
 		return "", fmt.Errorf("failed to create work dir: %s", err)
 	}
 
-	if err := ioutil.WriteFile(filepath.Join(workDir, testAccSourceFileName), []byte(source), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(workDir, testAccSourceFileName), []byte(source), 0600); err != nil {
 		os.RemoveAll(workDir)
 		return "", fmt.Errorf("failed to create main.tf: %s", err)
 	}
@@ -322,7 +321,7 @@ func SetupTestAccWithApply(t *testing.T, workspace string, source string) Terraf
 // UpdateTestAccSource updates a terraform configuration file with a given contents.
 func UpdateTestAccSource(t *testing.T, tf TerraformCLI, source string) {
 	t.Helper()
-	if err := ioutil.WriteFile(filepath.Join(tf.Dir(), testAccSourceFileName), []byte(source), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(tf.Dir(), testAccSourceFileName), []byte(source), 0600); err != nil {
 		t.Fatalf("failed to update source: %s", err)
 	}
 }

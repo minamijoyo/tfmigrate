@@ -2,7 +2,7 @@ package tfmigrate
 
 import (
 	"context"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"reflect"
 	"sort"
@@ -301,7 +301,7 @@ resource "aws_security_group" "baz" {}
 	}
 
 	// apply the saved plan files
-	plan, err := ioutil.ReadFile(filepath.Join(tf.Dir(), o.PlanOut))
+	plan, err := os.ReadFile(filepath.Join(tf.Dir(), o.PlanOut))
 	if err != nil {
 		t.Fatalf("failed to read a saved plan file: %s", err)
 	}
@@ -323,7 +323,7 @@ resource "aws_security_group" "baz" {}
 	// Note that applying the plan file only affects a local state,
 	// make sure to force push it to remote after terraform apply.
 	// The -force flag is required here because the lineage of the state was changed.
-	state, err := ioutil.ReadFile(filepath.Join(tf.Dir(), "terraform.tfstate"))
+	state, err := os.ReadFile(filepath.Join(tf.Dir(), "terraform.tfstate"))
 	if err != nil {
 		t.Fatalf("failed to read a local state file: %s", err)
 	}

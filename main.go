@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -52,7 +51,7 @@ func logOutput() io.Writer {
 	}
 
 	// default log writer is null device.
-	writer := ioutil.Discard
+	writer := io.Discard
 	if minLevel != "" {
 		writer = os.Stderr
 	}
