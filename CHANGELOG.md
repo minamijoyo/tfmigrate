@@ -1,5 +1,10 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* deps: upgrade to use go1.19 ([#101](https://github.com/minamijoyo/tfmigrate/pull/101))
+* Use GitHub App token for updating brew formula on release ([#102](https://github.com/minamijoyo/tfmigrate/pull/102))
+
 ## 0.3.5 (2022/08/05)
 
 BUG FIXES:
