@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.3.6 (2022/08/11)
+
 ENHANCEMENTS:
 
 * deps: upgrade to use go1.19 ([#101](https://github.com/minamijoyo/tfmigrate/pull/101))
