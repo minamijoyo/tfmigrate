@@ -3,7 +3,7 @@ package gcs
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 
 	gcStorage "cloud.google.com/go/storage"
@@ -26,7 +26,7 @@ func (a Adapter) Read(ctx context.Context) ([]byte, error) {
 	}
 	defer r.Close()
 
-	body, err := ioutil.ReadAll(r)
+	body, err := io.ReadAll(r)
 	if err != nil {
 		return nil, fmt.Errorf("failed reading from gcs://%s/%s: %w", a.config.Bucket, a.config.Name, err)
 	}
