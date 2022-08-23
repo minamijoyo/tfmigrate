@@ -7,6 +7,7 @@ import (
 	storage "github.com/minamijoyo/tfmigrate-storage"
 )
 
+// An implementation of [storage.Storage] interface.
 type Storage struct {
 	// config is a storage config for GCS.
 	config *Config

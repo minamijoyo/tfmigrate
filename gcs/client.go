@@ -8,13 +8,20 @@ import (
 	gcStorage "cloud.google.com/go/storage"
 )
 
+// A minimal interface to mock behavior of GCS client.
 type Client interface {
+	// Read an object from a GCS bucket.
 	Read(ctx context.Context) ([]byte, error)
+
+	// Write an object onto a GCS bucket.
 	Write(ctx context.Context, p []byte) error
 }
 
+// An implementation of Client that delegates actual operation to gcsStorage.Client.
 type Adapter struct {
+	// A config to specify which bucket and object we handle.
 	config Config
+	// A GCS client which is delegated actual operation.
 	client *gcStorage.Client
 }
 
@@ -42,6 +49,7 @@ func (a Adapter) Write(ctx context.Context, p []byte) error {
 	return w.Close()
 }
 
+// NewClient returns a new Client with given Context and Config.
 func NewClient(ctx context.Context, config Config) (Client, error) {
 	c, err := gcStorage.NewClient(ctx)
 	a := &Adapter{
