@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 
 	gcStorage "cloud.google.com/go/storage"
 )
@@ -44,14 +43,6 @@ func (a Adapter) Write(ctx context.Context, p []byte) error {
 }
 
 func NewClient(ctx context.Context, config Config) (Client, error) {
-	if config.Endpoint == "" {
-		// https://pkg.go.dev/cloud.google.com/go/storage#hdr-Creating_a_Client
-		err := os.Setenv("STORAGE_EMULATOR_HOST", config.Endpoint)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	c, err := gcStorage.NewClient(ctx)
 	a := &Adapter{
 		config: config,

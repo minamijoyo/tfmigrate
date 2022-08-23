@@ -12,8 +12,6 @@ type Config struct {
 	Bucket string `hcl:"bucket"`
 	// Path to the migration history file.
 	Name string `hcl:"name"`
-
-	Endpoint string `hcl:"endpoint,optional"`
 }
 
 // Config implements a storage.Config.
