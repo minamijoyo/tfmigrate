@@ -57,7 +57,7 @@ tfmigrate {
 tfmigrate {
   history {
     storage "gcs" {
-      Name = "tfmigrate/history.json"
+      name = "tfmigrate/history.json"
     }
   }
 }
