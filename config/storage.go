@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/gohcl"
 	storage "github.com/minamijoyo/tfmigrate-storage"
+	"github.com/minamijoyo/tfmigrate-storage/gcs"
 	"github.com/minamijoyo/tfmigrate-storage/local"
 	"github.com/minamijoyo/tfmigrate-storage/mock"
 	"github.com/minamijoyo/tfmigrate-storage/s3"
@@ -37,6 +38,9 @@ func parseStorageBlock(b StorageBlock) (storage.Config, error) {
 	case "s3":
 		return parseS3StorageBlock(b)
 
+	case "gcs":
+		return parseGCSStorageBlock(b)
+
 	default:
 		return nil, fmt.Errorf("unknown history storage type: %s", b.Type)
 	}
@@ -67,6 +71,16 @@ func parseLocalStorageBlock(b StorageBlock) (storage.Config, error) {
 // parseS3StorageBlock parses a storage block for s3 and returns a storage.Config.
 func parseS3StorageBlock(b StorageBlock) (storage.Config, error) {
 	var config s3.Config
+	diags := gohcl.DecodeBody(b.Remain, nil, &config)
+	if diags.HasErrors() {
+		return nil, diags
+	}
+
+	return &config, nil
+}
+
+func parseGCSStorageBlock(b StorageBlock) (storage.Config, error) {
+	var config gcs.Config
 	diags := gohcl.DecodeBody(b.Remain, nil, &config)
 	if diags.HasErrors() {
 		return nil, diags

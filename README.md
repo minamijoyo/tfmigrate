@@ -421,6 +421,7 @@ The storage block has one label, which is a type of storage. Valid types are as 
 
 - `local`: Save a history file to local filesystem.
 - `s3`: Save a history file to AWS S3.
+- `gcs`: Save a history file to GCS (Google Cloud Storage).
 
 If your cloud provider has not been supported yet, as a workaround, you can use `local` storage and synchronize a history file to your cloud storage with a wrapper script.
 
@@ -478,6 +479,31 @@ tfmigrate {
   }
 }
 ```
+
+#### storage block (gcs)
+
+The `gcs` storage has the following attributes:
+
+- `bucket` (required): Name of the bucket.
+- `name` (required): Path to the migration history file.
+
+Note that this storage implementation refers the Application Default Credentials (ADC) for authentication.
+
+An example of configuration file is as follows.
+
+```hcl
+tfmigrate {
+  migration_dir = "./tfmigrate"
+  history {
+    storage "gcs" {
+      bucket = "tfstate-test"
+      name   = "tfmigrate/history.json"
+    }
+  }
+}
+```
+
+If you want to connect to an emulator instead of GCS, set the `STORAGE_EMULATOR_HOST` environment variable as required by the [Go library for GCS](https://pkg.go.dev/cloud.google.com/go/storage).
 
 ## Migration file
 
