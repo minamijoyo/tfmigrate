@@ -13,7 +13,7 @@ services:
       # Use the same filesystem to avoid a checksum mismatch error
       # or a file busy error caused by asynchronous IO.
       TF_PLUGIN_CACHE_DIR: "/tmp/plugin-cache"
-      STORAGE_EMULATOR_HOST: "http://fake-gcs-server:4443"
+      STORAGE_EMULATOR_HOST: "fake-gcs-server:4443"
     depends_on:
       - localstack
       - fake-gcs-server
@@ -34,7 +34,7 @@ services:
     image: fsouza/fake-gcs-server:1.38
     ports:
       - "4443:4443"
-    command: -scheme http
+    command: ["-scheme", "http", "-public-host", "fake-gcs-server:4443"]
 
   dockerize:
     image: powerman/dockerize:0.16.3
