@@ -34,6 +34,8 @@ services:
     image: fsouza/fake-gcs-server:1.38
     ports:
       - "4443:4443"
+    volumes:
+      - "./test-fixtures/fake-gcs-server:/data"
     command: ["-scheme", "http", "-public-host", "fake-gcs-server:4443"]
 
   dockerize:
