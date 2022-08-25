@@ -34,24 +34,6 @@ tfmigrate {
 			ok: true,
 		},
 		{
-			desc: "valid (with optional)",
-			source: `
-tfmigrate {
-  history {
-    storage "gcs" {
-      bucket   = "tfmigrate-test"
-      name     = "tfmigrate/history.json"
-    }
-  }
-}
-`,
-			want: &gcs.Config{
-				Bucket: "tfmigrate-test",
-				Name:   "tfmigrate/history.json",
-			},
-			ok: true,
-		},
-		{
 			desc: "missing required attribute (bucket)",
 			source: `
 tfmigrate {
