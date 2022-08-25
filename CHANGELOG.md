@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+NEW FEATURES:
+
+* Support GCS as a history storage ([#103](https://github.com/minamijoyo/tfmigrate/pull/103))
+
 ## 0.3.6 (2022/08/11)
 
 ENHANCEMENTS:
