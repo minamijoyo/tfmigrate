@@ -24,6 +24,7 @@ A Terraform state migration tool for GitOps.
          * [storage block](#storage-block)
          * [storage block (local)](#storage-block-local)
          * [storage block (s3)](#storage-block-s3)
+         * [storage block (gcs)](#storage-block-gcs)
    * [Migration file](#migration-file)
       * [migration block](#migration-block)
       * [migration block (state)](#migration-block-state)
