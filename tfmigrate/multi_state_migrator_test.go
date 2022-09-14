@@ -326,8 +326,10 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 			}
 
 			if tc.force {
-				// The tfmigrate plan --out=tfplan option is deprecated and doesn't work with Terraform 1.1+
-				// https://github.com/minamijoyo/tfmigrate/issues/62
+				// Note that the saved plan file is not applicable in Terraform 1.1+.
+				// https://github.com/minamijoyo/tfmigrate/pull/63
+				// It's intended to use only for static analysis.
+				// https://github.com/minamijoyo/tfmigrate/issues/106
 				fromTfVersionMatched, err := tfexec.MatchTerraformVersion(ctx, fromTf, ">= 1.1.0")
 				if err != nil {
 					t.Fatalf("failed to check terraform version constraints in fromDir: %s", err)

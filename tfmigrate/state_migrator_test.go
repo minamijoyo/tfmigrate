@@ -288,10 +288,10 @@ resource "aws_security_group" "baz" {}
 		t.Fatalf("expect to have changes")
 	}
 
-	// The tfmigrate plan --out=tfplan option was based on a bug prior to Terraform 1.1.
-	// Terraform v1.1 now rejects the plan as stale.
-	// The tfmigrate plan --out=tfplan option is deprecated without replacement.
-	// https://github.com/minamijoyo/tfmigrate/issues/62
+	// Note that the saved plan file is not applicable in Terraform 1.1+.
+	// https://github.com/minamijoyo/tfmigrate/pull/63
+	// It's intended to use only for static analysis.
+	// https://github.com/minamijoyo/tfmigrate/issues/106
 	tfVersionMatched, err := tfexec.MatchTerraformVersion(ctx, tf, ">= 1.1.0")
 	if err != nil {
 		t.Fatalf("failed to check terraform version constraints: %s", err)

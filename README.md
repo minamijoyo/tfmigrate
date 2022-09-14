@@ -318,11 +318,9 @@ Options:
                            key=value format backend configuraion.
                            This option is passed to terraform init when switching backend to remote.
 
-  [Deprecated]
   --out=path               Save a plan file after dry-run migration to the given path.
-                           Note that applying the plan file only affects a local state,
-                           make sure to force push it to remote after terraform apply.
-                           This option doesn't work with Terraform 1.1+
+                           Note that the saved plan file is not applicable in Terraform 1.1+.
+                           It's intended to use only for static analysis.
 ```
 
 ```
