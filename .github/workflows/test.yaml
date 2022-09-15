@@ -39,7 +39,8 @@ jobs:
     strategy:
       matrix:
         terraform:
-        - 1.2.0
+        - 1.3.0
+        - 1.2.9
         - 1.1.9
         - 1.0.11
         - 0.15.5
