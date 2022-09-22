@@ -43,9 +43,6 @@ jobs:
         - 1.2.9
         - 1.1.9
         - 1.0.11
-        - 0.15.5
-        - 0.14.11
-        - 0.13.7
         - 0.12.31
     env:
       TERRAFORM_VERSION: ${{ matrix.terraform }}

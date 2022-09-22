@@ -9,7 +9,7 @@ A Terraform state migration tool for GitOps.
 <!--ts-->
    * [Features](#features)
    * [Why?](#why)
-   * [Supported Terraform versions](#supported-terraform-versions)
+   * [Requirements](#requirements)
    * [Getting Started](#getting-started)
    * [Install](#install)
       * [Homebrew](#homebrew)
@@ -76,18 +76,11 @@ However, most Terraform refactorings require not only configuration changes, but
 To fit into the GitOps workflow, the answer is obvious. We should commit all terraform state operations to git.
 This brings us to a new paradigm, that is to say, Terraform state operation as Code!
 
-## Supported Terraform versions
+## Requirements
 
-The tfmigrate invokes `terraform` command under the hood. This is because we want to support multiple terraform versions in a stable way. Currently supported terraform versions are as follows:
+The tfmigrate invokes `terraform` command under the hood. This is because we want to support multiple terraform versions in a stable way.
 
-- Terraform v1.3.x
-- Terraform v1.2.x
-- Terraform v1.1.x
-- Terraform v1.0.x
-- Terraform v0.15.x
-- Terraform v0.14.x
-- Terraform v0.13.x
-- Terraform v0.12.x
+The minimum requirement is Terraform v0.12 or higher, but we recommend the Terraform v1.x.
 
 ## Getting Started
 
