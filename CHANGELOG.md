@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * Add support for Terraform v1.3 ([#109](https://github.com/minamijoyo/tfmigrate/pull/109))
+* Stop testing with old Terraform v0.13, v0.14, and v0.15 ([#110](https://github.com/minamijoyo/tfmigrate/pull/110))
 * Revert the deprecation of the tfmigrate plan --out=tfplan option ([#108](https://github.com/minamijoyo/tfmigrate/pull/108))
 
 The tfmigrate plan --out=tfplan option had been deprecated in v0.3.0 because the saved plan file was no longer applicable in Terraform v1.1+. Even though, we found the plan file would still be useful for static analysis such as Conftest. Therefore, we reverted the deprecation and clarify it's intended to use only for static analysis.
