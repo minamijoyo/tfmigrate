@@ -40,6 +40,33 @@ func TestNewStateActionFromString(t *testing.T) {
 			ok:     false,
 		},
 		{
+			desc:   "xmv action (valid)",
+			cmdStr: "xmv aws_security_group.* aws_security_group.$1",
+			want: &StateXMvAction{
+				source:      "aws_security_group.*",
+				destination: "aws_security_group.$1",
+			},
+			ok: true,
+		},
+		{
+			desc:   "xmv action (no args)",
+			cmdStr: "xmv",
+			want:   nil,
+			ok:     false,
+		},
+		{
+			desc:   "xmv action (1 arg)",
+			cmdStr: "xmv aws_security_group.foo",
+			want:   nil,
+			ok:     false,
+		},
+		{
+			desc:   "xmv action (3 args)",
+			cmdStr: "xmv aws_security_group.foo aws_security_group.foo2  ws_security_group.foo3",
+			want:   nil,
+			ok:     false,
+		},
+		{
 			desc:   "rm action (valid)",
 			cmdStr: "rm aws_security_group.foo",
 			want: &StateRmAction{

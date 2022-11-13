@@ -22,6 +22,7 @@ type StateAction interface {
 // "mv <source> <destination>"
 // "rm <addresses>...
 // "import <address> <id>"
+// "xmv <source> <destination>"  // To support moves with wildcards
 func NewStateActionFromString(cmdStr string) (StateAction, error) {
 	args, err := splitStateAction(cmdStr)
 	if err != nil {
@@ -43,6 +44,14 @@ func NewStateActionFromString(cmdStr string) (StateAction, error) {
 		src := args[1]
 		dst := args[2]
 		action = NewStateMvAction(src, dst)
+
+	case "xmv":
+		if len(args) != 3 {
+			return nil, fmt.Errorf("state xmv action is invalid: %s", cmdStr)
+		}
+		src := args[1]
+		dst := args[2]
+		action = NewStateXMvAction(src, dst)
 
 	case "rm":
 		if len(args) < 2 {

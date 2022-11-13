@@ -29,6 +29,7 @@ A Terraform state migration tool for GitOps.
       * [migration block](#migration-block)
       * [migration block (state)](#migration-block-state)
          * [state mv](#state-mv)
+         * [state xmv](#state-xmv)
          * [state rm](#state-rm)
          * [state import](#state-import)
       * [migration block (multi_state)](#migration-block-multi_state)
@@ -583,6 +584,26 @@ migration "state" "test" {
   actions = [
     "mv aws_security_group.foo aws_security_group.foo2",
     "mv aws_security_group.bar aws_security_group.bar2",
+  ]
+}
+```
+
+#### state xmv
+
+The `xmv` command works like the `mv` command but allows usage of
+wildcards `*` in the source definition. The source expressions will be 
+matched against resources defined in the terraform state. The matched value
+can be used in the destination definition via a dollar sign and their ordinal number: 
+`$1`, `$2`, ... When there is ambiguity the ordinal number can be put in curly braces (e.g. `${1}`).
+
+For example if `foo` and `bar` in de `mv` command example above are the only 2 security group resources
+defined at the top level then you can rename them using:
+
+```hcl
+migration "state" "test" {
+  dir = "dir1"
+  actions = [
+    "mv aws_security_group.* aws_security_group.${1}2",
   ]
 }
 ```

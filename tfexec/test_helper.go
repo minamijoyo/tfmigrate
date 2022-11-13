@@ -326,6 +326,28 @@ func UpdateTestAccSource(t *testing.T, tf TerraformCLI, source string) {
 	}
 }
 
+// AddModuleToTestAcc adds a module dir with given contents
+func AddModuleToTestAcc(t *testing.T, tf TerraformCLI, moduleName, source string) {
+	t.Helper()
+	moduleDir := filepath.Join(tf.Dir(), moduleName)
+	if err := os.Mkdir(moduleDir, 0700); err != nil {
+		t.Fatalf("Failed to add module dir to source: %s", err)
+	}
+	if err := os.WriteFile(filepath.Join(moduleDir, testAccSourceFileName), []byte(source), 0600); err != nil {
+		t.Fatalf("failed to update module source: %s", err)
+	}
+}
+
+// RunTestAccInitModule performs a tf init
+func RunTestAccInitModule(t *testing.T, tf TerraformCLI) {
+	t.Helper()
+	ctx := context.Background()
+	err := tf.Init(ctx, "-input=false", "-no-color")
+	if err != nil {
+		t.Fatalf("failed to run terraform init: %s", err)
+	}
+}
+
 // MatchTerraformVersion returns true if terraform version matches a given constraints.
 func MatchTerraformVersion(ctx context.Context, tf TerraformCLI, constraints string) (bool, error) {
 	tfVersionRaw, err := tf.Version(ctx)
