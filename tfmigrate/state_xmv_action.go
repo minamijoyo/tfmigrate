@@ -30,7 +30,7 @@ func NewStateXMvAction(source string, destination string) *StateXMvAction {
 }
 
 // StateUpdate updates a given state and returns a new state.
-// Source resources have wildcards wich should be matched against the tf state. Each occurrence will generate
+// Source resources have wildcards which should be matched against the tf state. Each occurrence will generate
 // a move command.
 func (a *StateXMvAction) StateUpdate(ctx context.Context, tf tfexec.TerraformCLI, state *tfexec.State) (*tfexec.State, error) {
 	stateMvActions, err := a.generateMvActions(ctx, tf, state)
@@ -57,7 +57,7 @@ func (a *StateXMvAction) generateMvActions(ctx context.Context, tf tfexec.Terraf
 
 // When a wildcardChar is used in a path it should only match a single part of the path
 // It can therefore not contain a dot(.), whitespace nor square brackets
-const matchWildcardRegex = "([^\\]\\[\t\n\v\f\r ]*)"
+const matchWildcardRegex = "(.*)"
 const wildcardChar = "*"
 
 func (a *StateXMvAction) nrOfWildcards() int {
@@ -73,36 +73,39 @@ func makeSourceMatchPattern(s string) string {
 }
 
 // Get a regex that will do matching based on the wildcard source that was given.
-func makeSrcRegex(source string) (r *regexp.Regexp, err error) {
+func makeSrcRegex(source string) (*regexp.Regexp, error) {
 	regPattern := makeSourceMatchPattern(source)
-	r, err = regexp.Compile(regPattern)
+	regExpression, err := regexp.Compile(regPattern)
 	if err != nil {
-		return nil, fmt.Errorf("could not make pattern out of %s (%s) due to %s", source, regPattern, err.Error())
+		return nil, fmt.Errorf("could not make pattern out of %s (%s) due to %s", source, regPattern, err)
 	}
-	return
+	return regExpression, nil
 }
 
 // Look into the state and find sources that match pattern with wild cards.
-func (a *StateXMvAction) getMatchingSourcesFromState(stateList []string) (wildcardMatches []string, err error) {
-	r, e := makeSrcRegex(a.source)
-	if e != nil {
-		return nil, e
+func (a *StateXMvAction) getMatchingSourcesFromState(stateList []string) (matchingStateSources []string, err error) {
+	r, err := makeSrcRegex(a.source)
+	if err != nil {
+		return nil, err
 	}
-	wildcardMatches = r.FindAllString(strings.Join(stateList, "\n"), -1)
-	if wildcardMatches == nil {
-		return []string{}, nil
+
+	for _, s := range stateList {
+		match := r.FindString(s)
+		if match != "" {
+			matchingStateSources = append(matchingStateSources, match)
+		}
 	}
-	return
+	return matchingStateSources, err
 }
 
 // When you have the stateXMvAction with wildcards get the destination for a source
 func (a *StateXMvAction) getDestinationForStateSrc(stateSource string) (destination string, err error) {
-	r, e := makeSrcRegex(a.source)
-	if e != nil {
-		return "", e
+	r, err := makeSrcRegex(a.source)
+	if err != nil {
+		return "", err
 	}
 	destination = r.ReplaceAllString(stateSource, a.destination)
-	return
+	return destination, err
 }
 
 // Get actions matching wildcard move actions based on the list of resources.
@@ -112,9 +115,9 @@ func (a *StateXMvAction) getStateMvActionsForStateList(stateList []string) (resp
 		response[0] = NewStateMvAction(a.source, a.destination)
 		return response, nil
 	}
-	matchingSources, e := a.getMatchingSourcesFromState(stateList)
-	if e != nil {
-		return nil, e
+	matchingSources, err := a.getMatchingSourcesFromState(stateList)
+	if err != nil {
+		return nil, err
 	}
 	response = make([]*StateMvAction, len(matchingSources))
 	for i, matchingSource := range matchingSources {
@@ -122,8 +125,7 @@ func (a *StateXMvAction) getStateMvActionsForStateList(stateList []string) (resp
 		if e2 != nil {
 			return nil, e2
 		}
-		sma := StateMvAction{matchingSource, destination}
-		response[i] = &sma
+		response[i] = NewStateMvAction(matchingSource, destination)
 	}
-	return
+	return response, nil
 }

@@ -2,12 +2,14 @@ package tfmigrate
 
 import (
 	"context"
+	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/minamijoyo/tfmigrate/tfexec"
 )
 
-func TestAccStateMvActionWildcardRefactorToModule(t *testing.T) {
+func TestAccStateMvActionWildcardRenameSecurityGroupResourceNamesFromDocs(t *testing.T) {
 	tfexec.SkipUnlessAcceptanceTestEnabled(t)
 
 	backend := tfexec.GetTestAccBackendS3Config(t.Name())
@@ -15,24 +17,15 @@ func TestAccStateMvActionWildcardRefactorToModule(t *testing.T) {
 	source := `
 resource "aws_security_group" "foo" {}
 resource "aws_security_group" "bar" {}
-resource "aws_security_group" "baz" {}
 `
 	tf := tfexec.SetupTestAccWithApply(t, "default", backend+source)
 	ctx := context.Background()
 
 	updatedSource := `
-module "sg_module" {
- source = "./sg_module"
- for_each = toset(["foo", "bar", "baz"])
-}
+resource "aws_security_group" "foo2" {}
+resource "aws_security_group" "bar2" {}
 `
-	sgModuleSource := `
-resource "aws_security_group" "sg" {}
-`
-
-	tfexec.AddModuleToTestAcc(t, tf, "sg_module", sgModuleSource)
 	tfexec.UpdateTestAccSource(t, tf, backend+updatedSource)
-	tfexec.RunTestAccInitModule(t, tf)
 
 	changed, err := tf.PlanHasChange(ctx, nil)
 	if err != nil {
@@ -43,7 +36,7 @@ resource "aws_security_group" "sg" {}
 	}
 
 	actions := []StateAction{
-		NewStateXMvAction("aws_security_group.*", "module.sg_module[\"$1\"].aws_security_group.sg"),
+		NewStateXMvAction("aws_security_group.*", "aws_security_group.${1}2"),
 	}
 
 	m := NewStateMigrator(tf.Dir(), "default", actions, &MigratorOption{}, false)
@@ -81,7 +74,7 @@ func TestGetNrOfWildcard(t *testing.T) {
 	}
 }
 
-func TestSingleResourceStateMoves(t *testing.T) {
+func TestGetStateMvActionsForStateList(t *testing.T) {
 	cases := []struct {
 		desc            string
 		stateList       []string
@@ -139,27 +132,68 @@ func TestSingleResourceStateMoves(t *testing.T) {
 			},
 			outputMvActions: []*StateMvAction{},
 		},
+		{
+			desc:      "Documented feature; positional matching for example to allow switching matches from place",
+			stateList: []string{"module[\"bar\"].aws_vpc.foo"},
+			inputXMvAction: &StateXMvAction{
+				source:      "module[\"*\"].aws_vpc.*",
+				destination: "module[\"$2\"].aws_vpc.$1",
+			},
+			outputMvActions: []*StateMvAction{
+				{
+					source:      "module[\"bar\"].aws_vpc.foo",
+					destination: "module[\"foo\"].aws_vpc.bar",
+				},
+			},
+		},
+		{
+			desc: "Multiple resources refactored into a module",
+			stateList: []string{
+				"aws_security_group.foo",
+				"aws_security_group.bar",
+				"aws_security_group.baz",
+			},
+			inputXMvAction: &StateXMvAction{
+				source:      "aws_security_group.*",
+				destination: "module.sg_module[\"$1\"].aws_security_group.sg",
+			},
+			outputMvActions: []*StateMvAction{
+				{
+					source:      "aws_security_group.foo",
+					destination: "module.sg_module[\"foo\"].aws_security_group.sg",
+				},
+				{
+					source:      "aws_security_group.bar",
+					destination: "module.sg_module[\"bar\"].aws_security_group.sg",
+				},
+				{
+					source:      "aws_security_group.baz",
+					destination: "module.sg_module[\"baz\"].aws_security_group.sg",
+				},
+			},
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			got, err := tc.inputXMvAction.getStateMvActionsForStateList(tc.stateList)
-			// Should be location agnostic
+			// Errors are not expected. At this stage the only location from which errors are expected is if the regular
+			// expression that comes from the source cannot compile but since meta-characters are quoted and we only
+			// introduce matched braces and unmatched meta-characters there are no known cases where we would hit this.
+			// Still this case gets handled explicitly as it can be helpful info if the author missed a case.
 			if err != nil {
 				t.Errorf("Encountered error %v", err)
 			}
-			if len(got) != len(tc.outputMvActions) {
-				t.Errorf("Did not get same amount of matches: %d, %d", len(got), len(tc.outputMvActions))
+
+			if !reflect.DeepEqual(got, tc.outputMvActions) {
+				t.Errorf("got: %v, expected: %v", got, tc.outputMvActions)
 			}
 
-			for i, outputMvAction := range got {
-				if tc.outputMvActions[i].source != outputMvAction.source {
-					t.Errorf("Mistmatching output sources %d: %v, %v", i, tc.outputMvActions[i].source, outputMvAction.source)
-				}
-				if tc.outputMvActions[i].destination != outputMvAction.destination {
-					t.Errorf("Mistmatching output destination %d: %v, %v", i, tc.outputMvActions[i].destination, outputMvAction.destination)
-				}
-			}
 		})
 	}
+}
+
+// At this time purely for testing purposes if a real string function is needed for code this can be replaced.
+func (a StateMvAction) String() string {
+	return fmt.Sprintf("mv %s %s", a.source, a.destination)
 }

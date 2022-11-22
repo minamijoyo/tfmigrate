@@ -596,14 +596,14 @@ matched against resources defined in the terraform state. The matched value
 can be used in the destination definition via a dollar sign and their ordinal number: 
 `$1`, `$2`, ... When there is ambiguity the ordinal number can be put in curly braces (e.g. `${1}`).
 
-For example if `foo` and `bar` in de `mv` command example above are the only 2 security group resources
+For example if `foo` and `bar` in the `mv` command example above are the only 2 security group resources
 defined at the top level then you can rename them using:
 
 ```hcl
 migration "state" "test" {
   dir = "dir1"
   actions = [
-    "mv aws_security_group.* aws_security_group.${1}2",
+    "xmv aws_security_group.* aws_security_group.${1}2",
   ]
 }
 ```
