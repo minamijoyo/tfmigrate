@@ -2,10 +2,10 @@ package tfmigrate
 
 import (
 	"context"
-	"fmt"
-	"reflect"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
+	"github.com/google/go-cmp/cmp"
 	"github.com/minamijoyo/tfmigrate/tfexec"
 )
 
@@ -182,18 +182,13 @@ func TestGetStateMvActionsForStateList(t *testing.T) {
 			// introduce matched braces and unmatched meta-characters there are no known cases where we would hit this.
 			// Still this case gets handled explicitly as it can be helpful info if the author missed a case.
 			if err != nil {
-				t.Errorf("Encountered error %v", err)
+				t.Fatalf("Encountered error %v", err)
 			}
 
-			if !reflect.DeepEqual(got, tc.outputMvActions) {
-				t.Errorf("got: %v, expected: %v", got, tc.outputMvActions)
+			if diff := cmp.Diff(got, tc.outputMvActions, cmp.AllowUnexported(StateMvAction{})); diff != "" {
+				t.Errorf("got: %s, want = %s, diff = %s", spew.Sdump(got), spew.Sdump(tc.outputMvActions), diff)
 			}
 
 		})
 	}
-}
-
-// At this time purely for testing purposes if a real string function is needed for code this can be replaced.
-func (a StateMvAction) String() string {
-	return fmt.Sprintf("mv %s %s", a.source, a.destination)
 }

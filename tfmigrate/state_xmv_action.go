@@ -47,7 +47,8 @@ func (a *StateXMvAction) StateUpdate(ctx context.Context, tf tfexec.TerraformCLI
 	return state, err
 }
 
-func (a *StateXMvAction) generateMvActions(ctx context.Context, tf tfexec.TerraformCLI, state *tfexec.State) (response []*StateMvAction, err error) {
+// Use an xmv and use the state to determine the corresponding mv actions.
+func (a *StateXMvAction) generateMvActions(ctx context.Context, tf tfexec.TerraformCLI, state *tfexec.State) ([]*StateMvAction, error) {
 	stateList, err := tf.StateList(ctx, state, nil)
 	if err != nil {
 		return nil, err
@@ -83,11 +84,13 @@ func makeSrcRegex(source string) (*regexp.Regexp, error) {
 }
 
 // Look into the state and find sources that match pattern with wild cards.
-func (a *StateXMvAction) getMatchingSourcesFromState(stateList []string) (matchingStateSources []string, err error) {
+func (a *StateXMvAction) getMatchingSourcesFromState(stateList []string) ([]string, error) {
 	r, err := makeSrcRegex(a.source)
 	if err != nil {
 		return nil, err
 	}
+
+	var matchingStateSources []string
 
 	for _, s := range stateList {
 		match := r.FindString(s)
@@ -99,33 +102,33 @@ func (a *StateXMvAction) getMatchingSourcesFromState(stateList []string) (matchi
 }
 
 // When you have the stateXMvAction with wildcards get the destination for a source
-func (a *StateXMvAction) getDestinationForStateSrc(stateSource string) (destination string, err error) {
+func (a *StateXMvAction) getDestinationForStateSrc(stateSource string) (string, error) {
 	r, err := makeSrcRegex(a.source)
 	if err != nil {
 		return "", err
 	}
-	destination = r.ReplaceAllString(stateSource, a.destination)
+	destination := r.ReplaceAllString(stateSource, a.destination)
 	return destination, err
 }
 
 // Get actions matching wildcard move actions based on the list of resources.
-func (a *StateXMvAction) getStateMvActionsForStateList(stateList []string) (response []*StateMvAction, err error) {
+func (a *StateXMvAction) getStateMvActionsForStateList(stateList []string) ([]*StateMvAction, error) {
 	if a.nrOfWildcards() == 0 {
-		response = make([]*StateMvAction, 1)
-		response[0] = NewStateMvAction(a.source, a.destination)
-		return response, nil
+		staticActionAsList := make([]*StateMvAction, 1)
+		staticActionAsList[0] = NewStateMvAction(a.source, a.destination)
+		return staticActionAsList, nil
 	}
 	matchingSources, err := a.getMatchingSourcesFromState(stateList)
 	if err != nil {
 		return nil, err
 	}
-	response = make([]*StateMvAction, len(matchingSources))
+	matchingActions := make([]*StateMvAction, len(matchingSources))
 	for i, matchingSource := range matchingSources {
 		destination, e2 := a.getDestinationForStateSrc(matchingSource)
 		if e2 != nil {
 			return nil, e2
 		}
-		response[i] = NewStateMvAction(matchingSource, destination)
+		matchingActions[i] = NewStateMvAction(matchingSource, destination)
 	}
-	return response, nil
+	return matchingActions, nil
 }
