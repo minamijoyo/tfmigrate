@@ -21,7 +21,7 @@ type StateXMvAction struct {
 
 var _ StateAction = (*StateXMvAction)(nil)
 
-// NewStateMvAction returns a new StateXMvAction instance.
+// NewStateXMvAction returns a new StateXMvAction instance.
 func NewStateXMvAction(source string, destination string) *StateXMvAction {
 	return &StateXMvAction{
 		source:      source,
@@ -56,8 +56,7 @@ func (a *StateXMvAction) generateMvActions(ctx context.Context, tf tfexec.Terraf
 	return a.getStateMvActionsForStateList(stateList)
 }
 
-// When a wildcardChar is used in a path it should only match a single part of the path
-// It can therefore not contain a dot(.), whitespace nor square brackets
+// A wildcardChar will greedy match with any character in the resource path.
 const matchWildcardRegex = "(.*)"
 const wildcardChar = "*"
 

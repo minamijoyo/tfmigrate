@@ -603,7 +603,7 @@ defined at the top level then you can rename them using:
 migration "state" "test" {
   dir = "dir1"
   actions = [
-    "xmv aws_security_group.* aws_security_group.${1}2",
+    "xmv aws_security_group.* aws_security_group.$${1}2",
   ]
 }
 ```
