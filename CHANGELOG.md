@@ -1,5 +1,13 @@
 ## master (Unreleased)
 
+NEW FEATURES:
+
+* feature: Allow usage of wildcards for state moves ([#111](https://github.com/minamijoyo/tfmigrate/pull/111))
+
+ENHANCEMENTS:
+
+* Fix failing import acceptance test ([#112](https://github.com/minamijoyo/tfmigrate/pull/112))
+
 ## 0.3.8 (2022/09/22)
 
 ENHANCEMENTS:
