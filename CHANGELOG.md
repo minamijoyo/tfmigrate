@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.3.9 (2022/12/07)
+
 NEW FEATURES:
 
 * feature: Allow usage of wildcards for state moves ([#111](https://github.com/minamijoyo/tfmigrate/pull/111))
