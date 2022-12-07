@@ -10,10 +10,13 @@ services:
     environment:
       CGO_ENABLED: 0 # disable cgo for go test
       LOCALSTACK_ENDPOINT: "http://localstack:4566"
+      STORAGE_EMULATOR_HOST: "fake-gcs-server:4443"
       # Use the same filesystem to avoid a checksum mismatch error
       # or a file busy error caused by asynchronous IO.
       TF_PLUGIN_CACHE_DIR: "/tmp/plugin-cache"
-      STORAGE_EMULATOR_HOST: "fake-gcs-server:4443"
+      # From observation, although we don’t have complete confidence in the root cause,
+      # it appears that localstack sometimes misses API requests when run in parallel.
+      TF_CLI_ARGS_apply: "--parallelism=1"
     depends_on:
       - localstack
       - fake-gcs-server
