@@ -13,16 +13,16 @@ func TestAccStateRmAction(t *testing.T) {
 	backend := tfexec.GetTestAccBackendS3Config(t.Name())
 
 	source := `
-resource "aws_security_group" "foo" {}
-resource "aws_security_group" "bar" {}
-resource "aws_security_group" "baz" {}
-resource "aws_security_group" "qux" {}
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
+resource "null_resource" "baz" {}
+resource "null_resource" "qux" {}
 `
 	tf := tfexec.SetupTestAccWithApply(t, "default", backend+source)
 	ctx := context.Background()
 
 	updatedSource := `
-resource "aws_security_group" "baz" {}
+resource "null_resource" "baz" {}
 `
 
 	tfexec.UpdateTestAccSource(t, tf, backend+updatedSource)
@@ -36,8 +36,8 @@ resource "aws_security_group" "baz" {}
 	}
 
 	actions := []StateAction{
-		NewStateRmAction([]string{"aws_security_group.foo", "aws_security_group.bar"}),
-		NewStateRmAction([]string{"aws_security_group.qux"}),
+		NewStateRmAction([]string{"null_resource.foo", "null_resource.bar"}),
+		NewStateRmAction([]string{"null_resource.qux"}),
 	}
 
 	m := NewStateMigrator(tf.Dir(), "default", actions, &MigratorOption{}, false)

@@ -13,20 +13,20 @@ func TestAccStateImportAction(t *testing.T) {
 	backend := tfexec.GetTestAccBackendS3Config(t.Name())
 
 	source := `
-resource "aws_iam_user" "foo" {
-	name = "foo"
+resource "time_static" "foo" {
+  triggers = {}
 }
-resource "aws_iam_user" "bar" {
-	name = "bar"
+resource "time_static" "bar" {
+  triggers = {}
 }
-resource "aws_iam_user" "baz" {
-	name = "baz"
+resource "time_static" "baz" {
+  triggers = {}
 }
 `
 	tf := tfexec.SetupTestAccWithApply(t, "default", backend+source)
 	ctx := context.Background()
 
-	_, err := tf.StateRm(ctx, nil, []string{"aws_iam_user.foo", "aws_iam_user.baz"})
+	_, err := tf.StateRm(ctx, nil, []string{"time_static.foo", "time_static.baz"})
 	if err != nil {
 		t.Fatalf("failed to run terraform state rm: %s", err)
 	}
@@ -40,8 +40,8 @@ resource "aws_iam_user" "baz" {
 	}
 
 	actions := []StateAction{
-		NewStateImportAction("aws_iam_user.foo", "foo"),
-		NewStateImportAction("aws_iam_user.baz", "baz"),
+		NewStateImportAction("time_static.foo", "2006-01-02T15:04:05Z"),
+		NewStateImportAction("time_static.baz", "2006-01-02T15:04:05Z"),
 	}
 
 	m := NewStateMigrator(tf.Dir(), "default", actions, &MigratorOption{}, false)

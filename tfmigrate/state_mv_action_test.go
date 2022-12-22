@@ -13,17 +13,17 @@ func TestAccStateMvAction(t *testing.T) {
 	backend := tfexec.GetTestAccBackendS3Config(t.Name())
 
 	source := `
-resource "aws_security_group" "foo" {}
-resource "aws_security_group" "bar" {}
-resource "aws_security_group" "baz" {}
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
+resource "null_resource" "baz" {}
 `
 	tf := tfexec.SetupTestAccWithApply(t, "default", backend+source)
 	ctx := context.Background()
 
 	updatedSource := `
-resource "aws_security_group" "foo2" {}
-resource "aws_security_group" "bar2" {}
-resource "aws_security_group" "baz" {}
+resource "null_resource" "foo2" {}
+resource "null_resource" "bar2" {}
+resource "null_resource" "baz" {}
 `
 
 	tfexec.UpdateTestAccSource(t, tf, backend+updatedSource)
@@ -37,8 +37,8 @@ resource "aws_security_group" "baz" {}
 	}
 
 	actions := []StateAction{
-		NewStateMvAction("aws_security_group.foo", "aws_security_group.foo2"),
-		NewStateMvAction("aws_security_group.bar", "aws_security_group.bar2"),
+		NewStateMvAction("null_resource.foo", "null_resource.foo2"),
+		NewStateMvAction("null_resource.bar", "null_resource.bar2"),
 	}
 
 	m := NewStateMigrator(tf.Dir(), "default", actions, &MigratorOption{}, false)

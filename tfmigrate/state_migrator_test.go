@@ -142,27 +142,27 @@ func TestAccStateMigratorApply(t *testing.T) {
 			backend := tfexec.GetTestAccBackendS3Config(t.Name())
 
 			source := `
-resource "aws_security_group" "foo" {}
-resource "aws_security_group" "bar" {}
-resource "aws_security_group" "baz" {}
-resource "aws_iam_user" "qux" {
-	name = "qux"
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
+resource "null_resource" "baz" {}
+resource "time_static" "qux" {
+  triggers = {}
 }
 `
 			tf := tfexec.SetupTestAccWithApply(t, tc.workspace, backend+source)
 			ctx := context.Background()
 
 			updatedSource := `
-resource "aws_security_group" "foo2" {}
-resource "aws_security_group" "baz" {}
-resource "aws_iam_user" "qux" {
-	name = "qux"
+resource "null_resource" "foo2" {}
+resource "null_resource" "baz" {}
+resource "time_static" "qux" {
+  triggers = {}
 }
 `
 
 			tfexec.UpdateTestAccSource(t, tf, backend+updatedSource)
 
-			_, err := tf.StateRm(ctx, nil, []string{"aws_iam_user.qux"})
+			_, err := tf.StateRm(ctx, nil, []string{"time_static.qux"})
 			if err != nil {
 				t.Fatalf("failed to run terraform state rm: %s", err)
 			}
@@ -176,9 +176,9 @@ resource "aws_iam_user" "qux" {
 			}
 
 			actions := []StateAction{
-				NewStateMvAction("aws_security_group.foo", "aws_security_group.foo2"),
-				NewStateRmAction([]string{"aws_security_group.bar"}),
-				NewStateImportAction("aws_iam_user.qux", "qux"),
+				NewStateMvAction("null_resource.foo", "null_resource.foo2"),
+				NewStateRmAction([]string{"null_resource.bar"}),
+				NewStateImportAction("time_static.qux", "2006-01-02T15:04:05Z"),
 			}
 
 			m := NewStateMigrator(tf.Dir(), tc.workspace, actions, &MigratorOption{}, false)
@@ -198,9 +198,9 @@ resource "aws_iam_user" "qux" {
 			}
 
 			want := []string{
-				"aws_security_group.foo2",
-				"aws_security_group.baz",
-				"aws_iam_user.qux",
+				"null_resource.foo2",
+				"null_resource.baz",
+				"time_static.qux",
 			}
 			sort.Strings(got)
 			sort.Strings(want)
@@ -225,16 +225,16 @@ func TestAccStateMigratorApplyForce(t *testing.T) {
 	backend := tfexec.GetTestAccBackendS3Config(t.Name())
 
 	source := `
-resource "aws_security_group" "foo" {}
-resource "aws_security_group" "bar" {}
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
 `
 	tf := tfexec.SetupTestAccWithApply(t, "default", backend+source)
 	ctx := context.Background()
 
 	updatedSource := `
-resource "aws_security_group" "foo2" {}
-resource "aws_security_group" "bar" {}
-resource "aws_security_group" "baz" {}
+resource "null_resource" "foo2" {}
+resource "null_resource" "bar" {}
+resource "null_resource" "baz" {}
 `
 
 	tfexec.UpdateTestAccSource(t, tf, backend+updatedSource)
@@ -248,7 +248,7 @@ resource "aws_security_group" "baz" {}
 	}
 
 	actions := []StateAction{
-		NewStateMvAction("aws_security_group.foo", "aws_security_group.foo2"),
+		NewStateMvAction("null_resource.foo", "null_resource.foo2"),
 	}
 
 	o := &MigratorOption{}
@@ -271,8 +271,8 @@ resource "aws_security_group" "baz" {}
 	}
 
 	want := []string{
-		"aws_security_group.foo2",
-		"aws_security_group.bar",
+		"null_resource.foo2",
+		"null_resource.bar",
 	}
 	sort.Strings(got)
 	sort.Strings(want)
