@@ -96,15 +96,15 @@ func TestAccTerraformCLIOverrideBackendToLocal(t *testing.T) {
 
 	backend := GetTestAccBackendS3Config(t.Name())
 	source := `
-resource "aws_security_group" "foo" {}
-resource "aws_security_group" "bar" {}
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
 `
 	workspace := "work1"
 	terraformCLI := SetupTestAccWithApply(t, workspace, backend+source)
 
 	updatedSource := `
-resource "aws_security_group" "foo2" {}
-resource "aws_security_group" "bar" {}
+resource "null_resource" "foo2" {}
+resource "null_resource" "bar" {}
 `
 	UpdateTestAccSource(t, terraformCLI, backend+updatedSource)
 
@@ -135,7 +135,7 @@ resource "aws_security_group" "bar" {}
 		t.Fatalf("the override file does not exist: %s", err)
 	}
 
-	updatedState, _, err := terraformCLI.StateMv(context.Background(), state, nil, "aws_security_group.foo", "aws_security_group.foo2")
+	updatedState, _, err := terraformCLI.StateMv(context.Background(), state, nil, "null_resource.foo", "null_resource.foo2")
 	if err != nil {
 		t.Fatalf("failed to run terraform state mv: %s", err)
 	}
@@ -189,30 +189,10 @@ terraform {
     force_path_style            = true
   }
 }
-# https://www.terraform.io/docs/providers/aws/index.html
-# https://www.terraform.io/docs/providers/aws/guides/custom-service-endpoints.html#localstack
-provider "aws" {
-  region = "ap-northeast-1"
-
-  access_key                  = "dummy"
-  secret_key                  = "dummy"
-  skip_credentials_validation = true
-  skip_metadata_api_check     = true
-  skip_region_validation      = true
-  skip_requesting_account_id  = true
-  s3_use_path_style           = true
-
-  // mock endpoints with localstack
-  endpoints {
-    s3  = "%s"
-    ec2 = "%s"
-    iam = "%s"
-  }
-}
-`, t.Name(), endpoint, endpoint, endpoint, endpoint)
+`, t.Name(), endpoint)
 	source := `
-resource "aws_security_group" "foo" {}
-resource "aws_security_group" "bar" {}
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
 `
 	workspace := "work1"
 	backendConfig := []string{"bucket=tfstate-test"}
@@ -251,8 +231,8 @@ resource "aws_security_group" "bar" {}
 	})
 
 	updatedSource := `
-resource "aws_security_group" "foo2" {}
-resource "aws_security_group" "bar" {}
+resource "null_resource" "foo2" {}
+resource "null_resource" "bar" {}
 `
 	UpdateTestAccSource(t, terraformCLI, backend+updatedSource)
 
@@ -283,7 +263,7 @@ resource "aws_security_group" "bar" {}
 		t.Fatalf("the override file does not exist: %s", err)
 	}
 
-	updatedState, _, err := terraformCLI.StateMv(context.Background(), state, nil, "aws_security_group.foo", "aws_security_group.foo2")
+	updatedState, _, err := terraformCLI.StateMv(context.Background(), state, nil, "null_resource.foo", "null_resource.foo2")
 	if err != nil {
 		t.Fatalf("failed to run terraform state mv: %s", err)
 	}

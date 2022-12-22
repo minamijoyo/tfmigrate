@@ -15,15 +15,15 @@ func TestAccStateMvActionWildcardRenameSecurityGroupResourceNamesFromDocs(t *tes
 	backend := tfexec.GetTestAccBackendS3Config(t.Name())
 
 	source := `
-resource "aws_security_group" "foo" {}
-resource "aws_security_group" "bar" {}
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
 `
 	tf := tfexec.SetupTestAccWithApply(t, "default", backend+source)
 	ctx := context.Background()
 
 	updatedSource := `
-resource "aws_security_group" "foo2" {}
-resource "aws_security_group" "bar2" {}
+resource "null_resource" "foo2" {}
+resource "null_resource" "bar2" {}
 `
 	tfexec.UpdateTestAccSource(t, tf, backend+updatedSource)
 
@@ -36,7 +36,7 @@ resource "aws_security_group" "bar2" {}
 	}
 
 	actions := []StateAction{
-		NewStateXMvAction("aws_security_group.*", "aws_security_group.${1}2"),
+		NewStateXMvAction("null_resource.*", "null_resource.${1}2"),
 	}
 
 	m := NewStateMigrator(tf.Dir(), "default", actions, &MigratorOption{}, false)

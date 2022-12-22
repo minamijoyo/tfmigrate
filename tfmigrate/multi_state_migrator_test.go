@@ -131,35 +131,35 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 			desc:          "multi-state migration between default workspaces",
 			fromWorkspace: "default",
 			fromSource: `
-			resource "aws_security_group" "foo" {}
-			resource "aws_security_group" "bar" {}
-			resource "aws_security_group" "baz" {}
+			resource "null_resource" "foo" {}
+			resource "null_resource" "bar" {}
+			resource "null_resource" "baz" {}
 			`,
 			fromUpdatedSource: `
-			resource "aws_security_group" "baz" {}
+			resource "null_resource" "baz" {}
 			`,
 			fromUpdatedState: []string{
-				"aws_security_group.baz",
+				"null_resource.baz",
 			},
 			fromStateExpectChange: false,
 			toWorkspace:           "default",
 			toSource: `
-			resource "aws_security_group" "qux" {}
+			resource "null_resource" "qux" {}
 			`,
 			toUpdatedSource: `
-			resource "aws_security_group" "foo" {}
-			resource "aws_security_group" "bar2" {}
-			resource "aws_security_group" "qux" {}
+			resource "null_resource" "foo" {}
+			resource "null_resource" "bar2" {}
+			resource "null_resource" "qux" {}
 			`,
 			toUpdatedState: []string{
-				"aws_security_group.foo",
-				"aws_security_group.bar2",
-				"aws_security_group.qux",
+				"null_resource.foo",
+				"null_resource.bar2",
+				"null_resource.qux",
 			},
 			toStateExpectChange: false,
 			actions: []string{
-				"mv aws_security_group.foo aws_security_group.foo",
-				"mv aws_security_group.bar aws_security_group.bar2",
+				"mv null_resource.foo null_resource.foo",
+				"mv null_resource.bar null_resource.bar2",
 			},
 			force: false,
 		},
@@ -167,36 +167,36 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 			desc:          "multi-state migration between default workspaces with force == true",
 			fromWorkspace: "default",
 			fromSource: `
-			resource "aws_security_group" "foo" {}
-			resource "aws_security_group" "bar" {}
-			resource "aws_security_group" "baz" {}
+			resource "null_resource" "foo" {}
+			resource "null_resource" "bar" {}
+			resource "null_resource" "baz" {}
 			`,
 			fromUpdatedSource: `
-			resource "aws_security_group" "baz" {}
+			resource "null_resource" "baz" {}
 			`,
 			fromUpdatedState: []string{
-				"aws_security_group.baz",
+				"null_resource.baz",
 			},
 			fromStateExpectChange: false,
 			toWorkspace:           "default",
 			toSource: `
-			resource "aws_security_group" "qux" {}
+			resource "null_resource" "qux" {}
 			`,
 			toUpdatedSource: `
-			resource "aws_security_group" "foo" {}
-			resource "aws_security_group" "bar2" {}
-			resource "aws_security_group" "qux" {}
-			resource "aws_security_group" "qux2" {}
+			resource "null_resource" "foo" {}
+			resource "null_resource" "bar2" {}
+			resource "null_resource" "qux" {}
+			resource "null_resource" "qux2" {}
 			`,
 			toUpdatedState: []string{
-				"aws_security_group.foo",
-				"aws_security_group.bar2",
-				"aws_security_group.qux",
+				"null_resource.foo",
+				"null_resource.bar2",
+				"null_resource.qux",
 			},
 			toStateExpectChange: true,
 			actions: []string{
-				"mv aws_security_group.foo aws_security_group.foo",
-				"mv aws_security_group.bar aws_security_group.bar2",
+				"mv null_resource.foo null_resource.foo",
+				"mv null_resource.bar null_resource.bar2",
 			},
 			force: true,
 		},
@@ -204,35 +204,35 @@ func TestAccMultiStateMigratorApply(t *testing.T) {
 			desc:          "multi-state migration between user-defined workspaces",
 			fromWorkspace: "work1",
 			fromSource: `
-			resource "aws_security_group" "foo" {}
-			resource "aws_security_group" "bar" {}
-			resource "aws_security_group" "baz" {}
+			resource "null_resource" "foo" {}
+			resource "null_resource" "bar" {}
+			resource "null_resource" "baz" {}
 			`,
 			fromUpdatedSource: `
-			resource "aws_security_group" "baz" {}
+			resource "null_resource" "baz" {}
 			`,
 			fromUpdatedState: []string{
-				"aws_security_group.baz",
+				"null_resource.baz",
 			},
 			fromStateExpectChange: false,
 			toWorkspace:           "work2",
 			toSource: `
-			resource "aws_security_group" "qux" {}
+			resource "null_resource" "qux" {}
 			`,
 			toUpdatedSource: `
-			resource "aws_security_group" "foo" {}
-			resource "aws_security_group" "bar2" {}
-			resource "aws_security_group" "qux" {}
+			resource "null_resource" "foo" {}
+			resource "null_resource" "bar2" {}
+			resource "null_resource" "qux" {}
 			`,
 			toUpdatedState: []string{
-				"aws_security_group.foo",
-				"aws_security_group.bar2",
-				"aws_security_group.qux",
+				"null_resource.foo",
+				"null_resource.bar2",
+				"null_resource.qux",
 			},
 			toStateExpectChange: false,
 			actions: []string{
-				"mv aws_security_group.foo aws_security_group.foo",
-				"mv aws_security_group.bar aws_security_group.bar2",
+				"mv null_resource.foo null_resource.foo",
+				"mv null_resource.bar null_resource.bar2",
 			},
 			force: false,
 		},
