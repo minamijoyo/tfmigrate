@@ -1,5 +1,15 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Set TF_CLI_ARGS_apply to --parallelism=1 in sandbox ([#113](https://github.com/minamijoyo/tfmigrate/pull/113))
+* Update Terraform to v1.3.6 ([#115](https://github.com/minamijoyo/tfmigrate/pull/115))
+* Avoid using the AWS provider for acceptance tests ([#116](https://github.com/minamijoyo/tfmigrate/pull/116))
+* Disable fail-fast for matrix tests ([#117](https://github.com/minamijoyo/tfmigrate/pull/117))
+* Download the providers and generate a cache once before testing ([#118](https://github.com/minamijoyo/tfmigrate/pull/118))
+* Avoid using the AWS provider for unit tests ([#119](https://github.com/minamijoyo/tfmigrate/pull/119))
+* Restructure acceptance tests ([#120](https://github.com/minamijoyo/tfmigrate/pull/120))
+
 ## 0.3.9 (2022/12/07)
 
 NEW FEATURES:
