@@ -10,8 +10,8 @@ import (
 
 func TestTerraformCLIStateList(t *testing.T) {
 	state := NewState([]byte("dummy state"))
-	stdout := `aws_security_group.bar
-aws_security_group.foo
+	stdout := `null_resource.bar
+null_resource.foo
 `
 
 	cases := []struct {
@@ -33,7 +33,7 @@ aws_security_group.foo
 				},
 			},
 			state: nil,
-			want:  []string{"aws_security_group.bar", "aws_security_group.foo"},
+			want:  []string{"null_resource.bar", "null_resource.foo"},
 			ok:    true,
 		},
 		{
@@ -59,7 +59,7 @@ aws_security_group.foo
 			},
 			state:     nil,
 			addresses: []string{"aws_instance.example", "module.example"},
-			want:      []string{"aws_security_group.bar", "aws_security_group.foo"},
+			want:      []string{"null_resource.bar", "null_resource.foo"},
 			ok:        true,
 		},
 		{
@@ -73,7 +73,7 @@ aws_security_group.foo
 			},
 			state: nil,
 			opts:  []string{"-state=foo.tfstate", "-id=bar"},
-			want:  []string{"aws_security_group.bar", "aws_security_group.foo"},
+			want:  []string{"null_resource.bar", "null_resource.foo"},
 			ok:    true,
 		},
 		{
@@ -88,7 +88,7 @@ aws_security_group.foo
 			state:     nil,
 			addresses: []string{"aws_instance.example", "module.example"},
 			opts:      []string{"-state=foo.tfstate", "-id=bar"},
-			want:      []string{"aws_security_group.bar", "aws_security_group.foo"},
+			want:      []string{"null_resource.bar", "null_resource.foo"},
 			ok:        true,
 		},
 		{
@@ -104,7 +104,7 @@ aws_security_group.foo
 			state:     state,
 			addresses: []string{"aws_instance.example", "module.example"},
 			opts:      []string{"-id=bar"},
-			want:      []string{"aws_security_group.bar", "aws_security_group.foo"},
+			want:      []string{"null_resource.bar", "null_resource.foo"},
 			ok:        true,
 		},
 		{

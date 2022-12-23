@@ -38,10 +38,10 @@ migration "mock" "test" {
 migration "state" "test" {
 	dir = "dir1"
 	actions = [
-		"mv aws_security_group.foo aws_security_group.foo2",
-		"mv aws_security_group.bar aws_security_group.bar2",
-		"rm aws_security_group.baz",
-		"import aws_security_group.qux qux",
+		"mv null_resource.foo null_resource.foo2",
+		"mv null_resource.bar null_resource.bar2",
+		"rm time_static.baz",
+		"import time_static.qux 2006-01-02T15:04:05Z",
 	]
 }
 `,
@@ -51,10 +51,10 @@ migration "state" "test" {
 				Migrator: &tfmigrate.StateMigratorConfig{
 					Dir: "dir1",
 					Actions: []string{
-						"mv aws_security_group.foo aws_security_group.foo2",
-						"mv aws_security_group.bar aws_security_group.bar2",
-						"rm aws_security_group.baz",
-						"import aws_security_group.qux qux",
+						"mv null_resource.foo null_resource.foo2",
+						"mv null_resource.bar null_resource.bar2",
+						"rm time_static.baz",
+						"import time_static.qux 2006-01-02T15:04:05Z",
 					},
 				},
 			},
@@ -65,7 +65,7 @@ migration "state" "test" {
 			source: `
 migration "state" "test" {
 	actions = [
-		"mv aws_security_group.foo aws_security_group.foo2",
+		"mv null_resource.foo null_resource.foo2",
 	]
 }
 `,
@@ -75,7 +75,7 @@ migration "state" "test" {
 				Migrator: &tfmigrate.StateMigratorConfig{
 					Dir: "",
 					Actions: []string{
-						"mv aws_security_group.foo aws_security_group.foo2",
+						"mv null_resource.foo null_resource.foo2",
 					},
 				},
 			},
@@ -104,10 +104,10 @@ migration "state" "test" {
 	dir = "dir1"
     force = true
 	actions = [
-		"mv aws_security_group.foo aws_security_group.foo2",
-		"mv aws_security_group.bar aws_security_group.bar2",
-		"rm aws_security_group.baz",
-		"import aws_security_group.qux qux",
+		"mv null_resource.foo null_resource.foo2",
+		"mv null_resource.bar null_resource.bar2",
+		"rm time_static.baz",
+		"import time_static.qux 2006-01-02T15:04:05Z",
 	]
 }
 `,
@@ -117,10 +117,10 @@ migration "state" "test" {
 				Migrator: &tfmigrate.StateMigratorConfig{
 					Dir: "dir1",
 					Actions: []string{
-						"mv aws_security_group.foo aws_security_group.foo2",
-						"mv aws_security_group.bar aws_security_group.bar2",
-						"rm aws_security_group.baz",
-						"import aws_security_group.qux qux",
+						"mv null_resource.foo null_resource.foo2",
+						"mv null_resource.bar null_resource.bar2",
+						"rm time_static.baz",
+						"import time_static.qux 2006-01-02T15:04:05Z",
 					},
 					Force: true,
 				},
@@ -134,8 +134,8 @@ migration "multi_state" "mv_dir1_dir2" {
 	from_dir = "dir1"
 	to_dir   = "dir2"
 	actions = [
-		"mv aws_security_group.foo aws_security_group.foo2",
-		"mv aws_security_group.bar aws_security_group.bar2",
+		"mv null_resource.foo null_resource.foo2",
+		"mv null_resource.bar null_resource.bar2",
 	]
 }
 `,
@@ -146,8 +146,8 @@ migration "multi_state" "mv_dir1_dir2" {
 					FromDir: "dir1",
 					ToDir:   "dir2",
 					Actions: []string{
-						"mv aws_security_group.foo aws_security_group.foo2",
-						"mv aws_security_group.bar aws_security_group.bar2",
+						"mv null_resource.foo null_resource.foo2",
+						"mv null_resource.bar null_resource.bar2",
 					},
 				},
 			},
@@ -159,8 +159,8 @@ migration "multi_state" "mv_dir1_dir2" {
 migration "multi_state" "mv_dir1_dir2" {
 	to_dir   = "dir2"
 	actions = [
-		"mv aws_security_group.foo aws_security_group.foo2",
-		"mv aws_security_group.bar aws_security_group.bar2",
+		"mv null_resource.foo null_resource.foo2",
+		"mv null_resource.bar null_resource.bar2",
 	]
 }
 `,
@@ -173,8 +173,8 @@ migration "multi_state" "mv_dir1_dir2" {
 migration "multi_state" "mv_dir1_dir2" {
 	from_dir = "dir1"
 	actions = [
-		"mv aws_security_group.foo aws_security_group.foo2",
-		"mv aws_security_group.bar aws_security_group.bar2",
+		"mv null_resource.foo null_resource.foo2",
+		"mv null_resource.bar null_resource.bar2",
 	]
 }
 `,
@@ -199,8 +199,8 @@ migration "multi_state" "mv_dir1_dir2" {
 	from_dir = "dir1"
 	to_dir   = "dir2"
 	actions = [
-		"mv aws_security_group.foo aws_security_group.foo2",
-		"mv aws_security_group.bar aws_security_group.bar2",
+		"mv null_resource.foo null_resource.foo2",
+		"mv null_resource.bar null_resource.bar2",
 	]
     force    = true
 }
@@ -212,8 +212,8 @@ migration "multi_state" "mv_dir1_dir2" {
 					FromDir: "dir1",
 					ToDir:   "dir2",
 					Actions: []string{
-						"mv aws_security_group.foo aws_security_group.foo2",
-						"mv aws_security_group.bar aws_security_group.bar2",
+						"mv null_resource.foo null_resource.foo2",
+						"mv null_resource.bar null_resource.bar2",
 					},
 					Force: true,
 				},
@@ -234,12 +234,12 @@ migration "foo" "test" {
 			source: `
 migration "state" "foo" {
 	actions = [
-		"mv aws_security_group.foo aws_security_group.foo2",
+		"mv null_resource.foo null_resource.foo2",
 	]
 }
 migration "state" "bar" {
 	actions = [
-		"mv aws_security_group.bar aws_security_group.bar2",
+		"mv null_resource.bar null_resource.bar2",
 	]
 }
 `,
@@ -253,14 +253,14 @@ migration "multi_state" "foo" {
 	from_dir = "dir1"
 	to_dir   = "dir2"
 	actions = [
-		"mv aws_security_group.foo aws_security_group.foo2",
+		"mv null_resource.foo null_resource.foo2",
 	]
 }
 migration "multi_state" "bar" {
 	from_dir = "dir1"
 	to_dir   = "dir2"
 	actions = [
-		"mv aws_security_group.bar aws_security_group.bar2",
+		"mv null_resource.bar null_resource.bar2",
 	]
 }
 `,
@@ -272,14 +272,14 @@ migration "multi_state" "bar" {
 			source: `
 migration "state" "foo" {
 	actions = [
-		"mv aws_security_group.foo aws_security_group.foo2",
+		"mv null_resource.foo null_resource.foo2",
 	]
 }
 migration "multi_state" "bar" {
 	from_dir = "dir1"
 	to_dir   = "dir2"
 	actions = [
-		"mv aws_security_group.bar aws_security_group.bar2",
+		"mv null_resource.bar null_resource.bar2",
 	]
 }
 `,
@@ -336,10 +336,10 @@ func TestParseMigrationFileWithJsonSyntax(t *testing.T) {
       "test": {
         "dir": "dir1",
         "actions": [
-          "mv aws_security_group.foo aws_security_group.foo2",
-          "mv aws_security_group.bar aws_security_group.bar2",
-          "rm aws_security_group.baz",
-          "import aws_security_group.qux qux"
+          "mv null_resource.foo null_resource.foo2",
+          "mv null_resource.bar null_resource.bar2",
+          "rm time_static.baz",
+          "import time_static.qux 2006-01-02T15:04:05Z"
         ]
       }
     }
@@ -352,10 +352,10 @@ func TestParseMigrationFileWithJsonSyntax(t *testing.T) {
 				Migrator: &tfmigrate.StateMigratorConfig{
 					Dir: "dir1",
 					Actions: []string{
-						"mv aws_security_group.foo aws_security_group.foo2",
-						"mv aws_security_group.bar aws_security_group.bar2",
-						"rm aws_security_group.baz",
-						"import aws_security_group.qux qux",
+						"mv null_resource.foo null_resource.foo2",
+						"mv null_resource.bar null_resource.bar2",
+						"rm time_static.baz",
+						"import time_static.qux 2006-01-02T15:04:05Z",
 					},
 				},
 			},
