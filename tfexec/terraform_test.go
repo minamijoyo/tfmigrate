@@ -177,10 +177,10 @@ terraform {
   # https://www.terraform.io/docs/backends/types/s3.html
   backend "s3" {
     region = "ap-northeast-1"
-    // bucket = "tfstate-test"
+    # bucket = "tfstate-test"
     key    = "%s/terraform.tfstate"
 
-    // mock s3 endpoint with localstack
+    # mock s3 endpoint with localstack
     endpoint                    = "%s"
     access_key                  = "dummy"
     secret_key                  = "dummy"

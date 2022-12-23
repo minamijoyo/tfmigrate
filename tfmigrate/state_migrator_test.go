@@ -23,10 +23,10 @@ func TestStateMigratorConfigNewMigrator(t *testing.T) {
 			config: &StateMigratorConfig{
 				Dir: "dir1",
 				Actions: []string{
-					"mv aws_security_group.foo aws_security_group.foo2",
-					"mv aws_security_group.bar aws_security_group.bar2",
-					"rm aws_security_group.baz",
-					"import aws_security_group.qux qux",
+					"mv null_resource.foo null_resource.foo2",
+					"mv null_resource.bar null_resource.bar2",
+					"rm time_static.baz",
+					"import time_static.qux 2006-01-02T15:04:05Z",
 				},
 			},
 			o: &MigratorOption{
@@ -39,10 +39,10 @@ func TestStateMigratorConfigNewMigrator(t *testing.T) {
 			config: &StateMigratorConfig{
 				Dir: "",
 				Actions: []string{
-					"mv aws_security_group.foo aws_security_group.foo2",
-					"mv aws_security_group.bar aws_security_group.bar2",
-					"rm aws_security_group.baz",
-					"import aws_security_group.qux qux",
+					"mv null_resource.foo null_resource.foo2",
+					"mv null_resource.bar null_resource.bar2",
+					"rm time_static.baz",
+					"import time_static.qux 2006-01-02T15:04:05Z",
 				},
 			},
 			o: &MigratorOption{
@@ -55,10 +55,10 @@ func TestStateMigratorConfigNewMigrator(t *testing.T) {
 			config: &StateMigratorConfig{
 				Dir: "dir1",
 				Actions: []string{
-					"mv aws_security_group.foo aws_security_group.foo2",
-					"mv aws_security_group.bar aws_security_group.bar2",
-					"rm aws_security_group.baz",
-					"import aws_security_group.qux qux",
+					"mv null_resource.foo null_resource.foo2",
+					"mv null_resource.bar null_resource.bar2",
+					"rm time_static.baz",
+					"import time_static.qux 2006-01-02T15:04:05Z",
 				},
 				Workspace: "workspace1",
 			},
@@ -72,7 +72,7 @@ func TestStateMigratorConfigNewMigrator(t *testing.T) {
 			config: &StateMigratorConfig{
 				Dir: "",
 				Actions: []string{
-					"mv aws_security_group.foo",
+					"mv null_resource.foo",
 				},
 			},
 			o:  nil,
@@ -92,10 +92,10 @@ func TestStateMigratorConfigNewMigrator(t *testing.T) {
 			config: &StateMigratorConfig{
 				Dir: "dir1",
 				Actions: []string{
-					"mv aws_security_group.foo aws_security_group.foo2",
-					"mv aws_security_group.bar aws_security_group.bar2",
-					"rm aws_security_group.baz",
-					"import aws_security_group.qux qux",
+					"mv null_resource.foo null_resource.foo2",
+					"mv null_resource.bar null_resource.bar2",
+					"rm time_static.baz",
+					"import time_static.qux 2006-01-02T15:04:05Z",
 				},
 				Force: true,
 			},

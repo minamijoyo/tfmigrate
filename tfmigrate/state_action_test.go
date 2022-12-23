@@ -14,10 +14,10 @@ func TestNewStateActionFromString(t *testing.T) {
 	}{
 		{
 			desc:   "mv action (valid)",
-			cmdStr: "mv aws_security_group.foo aws_security_group.foo2",
+			cmdStr: "mv null_resource.foo null_resource.foo2",
 			want: &StateMvAction{
-				source:      "aws_security_group.foo",
-				destination: "aws_security_group.foo2",
+				source:      "null_resource.foo",
+				destination: "null_resource.foo2",
 			},
 			ok: true,
 		},
@@ -29,22 +29,22 @@ func TestNewStateActionFromString(t *testing.T) {
 		},
 		{
 			desc:   "mv action (1 arg)",
-			cmdStr: "mv aws_security_group.foo",
+			cmdStr: "mv null_resource.foo",
 			want:   nil,
 			ok:     false,
 		},
 		{
 			desc:   "mv action (3 args)",
-			cmdStr: "mv aws_security_group.foo aws_security_group.foo2  ws_security_group.foo3",
+			cmdStr: "mv null_resource.foo null_resource.foo2  null_resource.foo3",
 			want:   nil,
 			ok:     false,
 		},
 		{
 			desc:   "xmv action (valid)",
-			cmdStr: "xmv aws_security_group.* aws_security_group.$1",
+			cmdStr: "xmv null_resource.* null_resource.$1",
 			want: &StateXMvAction{
-				source:      "aws_security_group.*",
-				destination: "aws_security_group.$1",
+				source:      "null_resource.*",
+				destination: "null_resource.$1",
 			},
 			ok: true,
 		},
@@ -56,21 +56,21 @@ func TestNewStateActionFromString(t *testing.T) {
 		},
 		{
 			desc:   "xmv action (1 arg)",
-			cmdStr: "xmv aws_security_group.foo",
+			cmdStr: "xmv null_resource.foo",
 			want:   nil,
 			ok:     false,
 		},
 		{
 			desc:   "xmv action (3 args)",
-			cmdStr: "xmv aws_security_group.foo aws_security_group.foo2  ws_security_group.foo3",
+			cmdStr: "xmv null_resource.foo null_resource.foo2  null_resource.foo3",
 			want:   nil,
 			ok:     false,
 		},
 		{
 			desc:   "rm action (valid)",
-			cmdStr: "rm aws_security_group.foo",
+			cmdStr: "rm time_static.foo",
 			want: &StateRmAction{
-				addresses: []string{"aws_security_group.foo"},
+				addresses: []string{"time_static.foo"},
 			},
 			ok: true,
 		},
@@ -82,18 +82,18 @@ func TestNewStateActionFromString(t *testing.T) {
 		},
 		{
 			desc:   "rm action (2 args)",
-			cmdStr: "rm aws_security_group.foo aws_security_group.bar",
+			cmdStr: "rm time_static.foo time_static.bar",
 			want: &StateRmAction{
-				addresses: []string{"aws_security_group.foo", "aws_security_group.bar"},
+				addresses: []string{"time_static.foo", "time_static.bar"},
 			},
 			ok: true,
 		},
 		{
 			desc:   "import action (valid)",
-			cmdStr: "import aws_security_group.foo foo",
+			cmdStr: "import time_static.foo 2006-01-02T15:04:05Z",
 			want: &StateImportAction{
-				address: "aws_security_group.foo",
-				id:      "foo",
+				address: "time_static.foo",
+				id:      "2006-01-02T15:04:05Z",
 			},
 			ok: true,
 		},
@@ -105,22 +105,22 @@ func TestNewStateActionFromString(t *testing.T) {
 		},
 		{
 			desc:   "import action (1 arg)",
-			cmdStr: "import aws_security_group.foo",
+			cmdStr: "import time_static.foo",
 			want:   nil,
 			ok:     false,
 		},
 		{
 			desc:   "import action (3 args)",
-			cmdStr: "import aws_security_group.foo foo bar",
+			cmdStr: "import time_static.foo foo bar",
 			want:   nil,
 			ok:     false,
 		},
 		{
 			desc:   "duplicated white spaces",
-			cmdStr: " mv  aws_security_group.foo    aws_security_group.foo2 ",
+			cmdStr: " mv  null_resource.foo    null_resource.foo2 ",
 			want: &StateMvAction{
-				source:      "aws_security_group.foo",
-				destination: "aws_security_group.foo2",
+				source:      "null_resource.foo",
+				destination: "null_resource.foo2",
 			},
 			ok: true,
 		},
@@ -166,14 +166,14 @@ func TestSplitStateAction(t *testing.T) {
 	}{
 		{
 			desc:   "simple",
-			cmdStr: "mv aws_security_group.foo aws_security_group.foo2",
-			want:   []string{"mv", "aws_security_group.foo", "aws_security_group.foo2"},
+			cmdStr: "mv null_resource.foo null_resource.foo2",
+			want:   []string{"mv", "null_resource.foo", "null_resource.foo2"},
 			ok:     true,
 		},
 		{
 			desc:   "duplicated white spaces",
-			cmdStr: " mv  aws_security_group.foo    aws_security_group.foo2 ",
-			want:   []string{"mv", "aws_security_group.foo", "aws_security_group.foo2"},
+			cmdStr: " mv  null_resource.foo    null_resource.foo2 ",
+			want:   []string{"mv", "null_resource.foo", "null_resource.foo2"},
 			ok:     true,
 		},
 		{

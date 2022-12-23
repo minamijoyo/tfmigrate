@@ -5,7 +5,7 @@ terraform {
     bucket = "tfstate-test"
     key    = "test/terraform.tfstate"
 
-    // mock s3 endpoint with localstack
+    # mock s3 endpoint with localstack
     endpoint                    = "http://localstack:4566"
     access_key                  = "dummy"
     secret_key                  = "dummy"
@@ -28,7 +28,7 @@ provider "aws" {
   skip_requesting_account_id  = true
   s3_use_path_style           = true
 
-  // mock endpoints with localstack
+  # mock endpoints with localstack
   endpoints {
     s3  = "http://localstack:4566"
     ec2 = "http://localstack:4566"

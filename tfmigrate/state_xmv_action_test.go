@@ -54,12 +54,12 @@ func TestGetNrOfWildcard(t *testing.T) {
 	}{
 		{
 			desc:        "Simple resource no wildcardChar",
-			resource:    NewStateXMvAction("aws_security_group.foo", "aws_security_group.foo2"),
+			resource:    NewStateXMvAction("null_resource.foo", "null_resource.foo2"),
 			nrWildcards: 0,
 		},
 		{
 			desc:        "Simple wildcardChar for a resource",
-			resource:    NewStateXMvAction("aws_security_group.*", "aws_security_group.$1"),
+			resource:    NewStateXMvAction("null_resource.*", "null_resource.$1"),
 			nrWildcards: 1,
 		},
 	}
@@ -85,90 +85,90 @@ func TestGetStateMvActionsForStateList(t *testing.T) {
 			desc:      "Simple resource no wildcardChar",
 			stateList: nil,
 			inputXMvAction: &StateXMvAction{
-				source:      "aws_security_group.foo",
-				destination: "aws_security_group.foo2",
+				source:      "null_resource.foo",
+				destination: "null_resource.foo2",
 			},
 			outputMvActions: []*StateMvAction{
 				{
-					source:      "aws_security_group.foo",
-					destination: "aws_security_group.foo2",
+					source:      "null_resource.foo",
+					destination: "null_resource.foo2",
 				},
 			},
 		},
 		{
 			desc:      "Simple resource with wildcardChar",
-			stateList: []string{"aws_security_group.foo"},
+			stateList: []string{"null_resource.foo"},
 			inputXMvAction: &StateXMvAction{
-				source:      "aws_security_group.*",
-				destination: "module.security_group[\"$1\"].sg",
+				source:      "null_resource.*",
+				destination: "module.example[\"$1\"].this",
 			},
 			outputMvActions: []*StateMvAction{
 				{
-					source:      "aws_security_group.foo",
-					destination: "module.security_group[\"foo\"].sg",
+					source:      "null_resource.foo",
+					destination: "module.example[\"foo\"].this",
 				},
 			},
 		},
 		{
 			desc:      "Simple module name refactor with wildcardChar",
-			stateList: []string{"module.security_group[\"foo\"].sg"},
+			stateList: []string{"module.example1[\"foo\"].this"},
 			inputXMvAction: &StateXMvAction{
-				source:      "module.security_group[\"*\"].sg",
-				destination: "module.sg[\"$1\"].sg",
+				source:      "module.example1[\"*\"].this",
+				destination: "module.example2[\"$1\"].this",
 			},
 			outputMvActions: []*StateMvAction{
 				{
-					source:      "module.security_group[\"foo\"].sg",
-					destination: "module.sg[\"foo\"].sg",
+					source:      "module.example1[\"foo\"].this",
+					destination: "module.example2[\"foo\"].this",
 				},
 			},
 		},
 		{
 			desc:      "No matching resources in state",
-			stateList: []string{"aws_vpc.foo"},
+			stateList: []string{"time_static.foo"},
 			inputXMvAction: &StateXMvAction{
-				source:      "aws_security_group.*",
-				destination: "module.security_group[\"$1\"].sg",
+				source:      "null_resource.*",
+				destination: "module.example[\"$1\"].this",
 			},
 			outputMvActions: []*StateMvAction{},
 		},
 		{
 			desc:      "Documented feature; positional matching for example to allow switching matches from place",
-			stateList: []string{"module[\"bar\"].aws_vpc.foo"},
+			stateList: []string{"module[\"bar\"].null_resource.foo"},
 			inputXMvAction: &StateXMvAction{
-				source:      "module[\"*\"].aws_vpc.*",
-				destination: "module[\"$2\"].aws_vpc.$1",
+				source:      "module[\"*\"].null_resource.*",
+				destination: "module[\"$2\"].null_resource.$1",
 			},
 			outputMvActions: []*StateMvAction{
 				{
-					source:      "module[\"bar\"].aws_vpc.foo",
-					destination: "module[\"foo\"].aws_vpc.bar",
+					source:      "module[\"bar\"].null_resource.foo",
+					destination: "module[\"foo\"].null_resource.bar",
 				},
 			},
 		},
 		{
 			desc: "Multiple resources refactored into a module",
 			stateList: []string{
-				"aws_security_group.foo",
-				"aws_security_group.bar",
-				"aws_security_group.baz",
+				"null_resource.foo",
+				"null_resource.bar",
+				"null_resource.baz",
 			},
 			inputXMvAction: &StateXMvAction{
-				source:      "aws_security_group.*",
-				destination: "module.sg_module[\"$1\"].aws_security_group.sg",
+				source:      "null_resource.*",
+				destination: "module.example[\"$1\"].null_resource.this",
 			},
 			outputMvActions: []*StateMvAction{
 				{
-					source:      "aws_security_group.foo",
-					destination: "module.sg_module[\"foo\"].aws_security_group.sg",
+					source:      "null_resource.foo",
+					destination: "module.example[\"foo\"].null_resource.this",
 				},
 				{
-					source:      "aws_security_group.bar",
-					destination: "module.sg_module[\"bar\"].aws_security_group.sg",
+					source:      "null_resource.bar",
+					destination: "module.example[\"bar\"].null_resource.this",
 				},
 				{
-					source:      "aws_security_group.baz",
-					destination: "module.sg_module[\"baz\"].aws_security_group.sg",
+					source:      "null_resource.baz",
+					destination: "module.example[\"baz\"].null_resource.this",
 				},
 			},
 		},

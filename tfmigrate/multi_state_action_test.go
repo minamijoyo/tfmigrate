@@ -14,10 +14,10 @@ func TestNewMultiStateActionFromString(t *testing.T) {
 	}{
 		{
 			desc:   "mv action (valid)",
-			cmdStr: "mv aws_security_group.foo aws_security_group.foo2",
+			cmdStr: "mv null_resource.foo null_resource.foo2",
 			want: &MultiStateMvAction{
-				source:      "aws_security_group.foo",
-				destination: "aws_security_group.foo2",
+				source:      "null_resource.foo",
+				destination: "null_resource.foo2",
 			},
 			ok: true,
 		},
@@ -29,22 +29,22 @@ func TestNewMultiStateActionFromString(t *testing.T) {
 		},
 		{
 			desc:   "mv action (1 arg)",
-			cmdStr: "mv aws_security_group.foo",
+			cmdStr: "mv null_resource.foo",
 			want:   nil,
 			ok:     false,
 		},
 		{
 			desc:   "mv action (3 args)",
-			cmdStr: "mv aws_security_group.foo aws_security_group.foo2  ws_security_group.foo3",
+			cmdStr: "mv null_resource.foo null_resource.foo2  null_resource.foo3",
 			want:   nil,
 			ok:     false,
 		},
 		{
 			desc:   "duplicated white spaces",
-			cmdStr: " mv  aws_security_group.foo    aws_security_group.foo2 ",
+			cmdStr: " mv  null_resource.foo    null_resource.foo2 ",
 			want: &MultiStateMvAction{
-				source:      "aws_security_group.foo",
-				destination: "aws_security_group.foo2",
+				source:      "null_resource.foo",
+				destination: "null_resource.foo2",
 			},
 			ok: true,
 		},

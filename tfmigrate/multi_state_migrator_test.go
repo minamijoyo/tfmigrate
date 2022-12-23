@@ -24,8 +24,8 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 				FromDir: "dir1",
 				ToDir:   "dir2",
 				Actions: []string{
-					"mv aws_security_group.foo aws_security_group.foo2",
-					"mv aws_security_group.bar aws_security_group.bar2",
+					"mv null_resource.foo null_resource.foo2",
+					"mv null_resource.bar null_resource.bar2",
 				},
 			},
 			o: &MigratorOption{
@@ -41,8 +41,8 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 				FromWorkspace: "work1",
 				ToWorkspace:   "work2",
 				Actions: []string{
-					"mv aws_security_group.foo aws_security_group.foo2",
-					"mv aws_security_group.bar aws_security_group.bar2",
+					"mv null_resource.foo null_resource.foo2",
+					"mv null_resource.bar null_resource.bar2",
 				},
 			},
 			o: &MigratorOption{
@@ -58,7 +58,7 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 				FromWorkspace: "work1",
 				ToWorkspace:   "work2",
 				Actions: []string{
-					"mv aws_security_group.foo",
+					"mv null_resource.foo",
 				},
 			},
 			o:  nil,
@@ -84,8 +84,8 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 				FromWorkspace: "work1",
 				ToWorkspace:   "work2",
 				Actions: []string{
-					"mv aws_security_group.foo aws_security_group.foo2",
-					"mv aws_security_group.bar aws_security_group.bar2",
+					"mv null_resource.foo null_resource.foo2",
+					"mv null_resource.bar null_resource.bar2",
 				},
 				Force: true,
 			},
