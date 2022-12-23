@@ -13,15 +13,9 @@ func TestAccStateImportAction(t *testing.T) {
 	backend := tfexec.GetTestAccBackendS3Config(t.Name())
 
 	source := `
-resource "time_static" "foo" {
-  triggers = {}
-}
-resource "time_static" "bar" {
-  triggers = {}
-}
-resource "time_static" "baz" {
-  triggers = {}
-}
+resource "time_static" "foo" { triggers = {} }
+resource "time_static" "bar" { triggers = {} }
+resource "time_static" "baz" { triggers = {} }
 `
 
 	workspace := "default"
