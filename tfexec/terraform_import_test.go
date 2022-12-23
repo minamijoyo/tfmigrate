@@ -160,9 +160,7 @@ func TestAccTerraformCLIImport(t *testing.T) {
 	SkipUnlessAcceptanceTestEnabled(t)
 
 	source := `
-resource "time_static" "foo" {
-  triggers = {}
-}
+resource "time_static" "foo" { triggers = {} }
 `
 	e := SetupTestAcc(t, source)
 	terraformCLI := NewTerraformCLI(e)

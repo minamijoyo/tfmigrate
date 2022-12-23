@@ -120,106 +120,87 @@ func TestStateMigratorConfigNewMigrator(t *testing.T) {
 	}
 }
 
-func TestAccStateMigratorApply(t *testing.T) {
+func TestAccStateMigratorApplySimple(t *testing.T) {
 	tfexec.SkipUnlessAcceptanceTestEnabled(t)
 
-	cases := []struct {
-		desc      string
-		workspace string
-	}{
-		{
-			desc:      "default workspace",
-			workspace: "default",
-		},
-		{
-			desc:      "non-default workspace",
-			workspace: "workspace1",
-		},
-	}
+	backend := tfexec.GetTestAccBackendS3Config(t.Name())
 
-	for _, tc := range cases {
-		t.Run(tc.desc, func(t *testing.T) {
-			backend := tfexec.GetTestAccBackendS3Config(t.Name())
-
-			source := `
+	source := `
 resource "null_resource" "foo" {}
 resource "null_resource" "bar" {}
 resource "null_resource" "baz" {}
-resource "time_static" "qux" {
-  triggers = {}
-}
+resource "time_static" "qux" { triggers = {} }
 `
-			tf := tfexec.SetupTestAccWithApply(t, tc.workspace, backend+source)
-			ctx := context.Background()
 
-			updatedSource := `
+	workspace := "default"
+	tf := tfexec.SetupTestAccWithApply(t, workspace, backend+source)
+	ctx := context.Background()
+
+	updatedSource := `
 resource "null_resource" "foo2" {}
 resource "null_resource" "baz" {}
-resource "time_static" "qux" {
-  triggers = {}
-}
+resource "time_static" "qux" { triggers = {} }
 `
 
-			tfexec.UpdateTestAccSource(t, tf, backend+updatedSource)
+	tfexec.UpdateTestAccSource(t, tf, backend+updatedSource)
 
-			_, err := tf.StateRm(ctx, nil, []string{"time_static.qux"})
-			if err != nil {
-				t.Fatalf("failed to run terraform state rm: %s", err)
-			}
+	_, err := tf.StateRm(ctx, nil, []string{"time_static.qux"})
+	if err != nil {
+		t.Fatalf("failed to run terraform state rm: %s", err)
+	}
 
-			changed, err := tf.PlanHasChange(ctx, nil)
-			if err != nil {
-				t.Fatalf("failed to run PlanHasChange: %s", err)
-			}
-			if !changed {
-				t.Fatalf("expect to have changes")
-			}
+	changed, err := tf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange: %s", err)
+	}
+	if !changed {
+		t.Fatalf("expect to have changes")
+	}
 
-			actions := []StateAction{
-				NewStateMvAction("null_resource.foo", "null_resource.foo2"),
-				NewStateRmAction([]string{"null_resource.bar"}),
-				NewStateImportAction("time_static.qux", "2006-01-02T15:04:05Z"),
-			}
+	actions := []StateAction{
+		NewStateMvAction("null_resource.foo", "null_resource.foo2"),
+		NewStateRmAction([]string{"null_resource.bar"}),
+		NewStateImportAction("time_static.qux", "2006-01-02T15:04:05Z"),
+	}
 
-			m := NewStateMigrator(tf.Dir(), tc.workspace, actions, &MigratorOption{}, false)
-			err = m.Plan(ctx)
-			if err != nil {
-				t.Fatalf("failed to run migrator plan: %s", err)
-			}
+	force := false
+	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, force)
+	err = m.Plan(ctx)
+	if err != nil {
+		t.Fatalf("failed to run migrator plan: %s", err)
+	}
 
-			err = m.Apply(ctx)
-			if err != nil {
-				t.Fatalf("failed to run migrator apply: %s", err)
-			}
+	err = m.Apply(ctx)
+	if err != nil {
+		t.Fatalf("failed to run migrator apply: %s", err)
+	}
 
-			got, err := tf.StateList(ctx, nil, nil)
-			if err != nil {
-				t.Fatalf("failed to run terraform state list: %s", err)
-			}
+	got, err := tf.StateList(ctx, nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list: %s", err)
+	}
 
-			want := []string{
-				"null_resource.foo2",
-				"null_resource.baz",
-				"time_static.qux",
-			}
-			sort.Strings(got)
-			sort.Strings(want)
-			if !reflect.DeepEqual(got, want) {
-				t.Errorf("got state: %v, want state: %v", got, want)
-			}
+	want := []string{
+		"null_resource.foo2",
+		"null_resource.baz",
+		"time_static.qux",
+	}
+	sort.Strings(got)
+	sort.Strings(want)
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got state: %v, want state: %v", got, want)
+	}
 
-			changed, err = tf.PlanHasChange(ctx, nil)
-			if err != nil {
-				t.Fatalf("failed to run PlanHasChange: %s", err)
-			}
-			if changed {
-				t.Fatalf("expect not to have changes")
-			}
-		})
+	changed, err = tf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange: %s", err)
+	}
+	if changed {
+		t.Fatalf("expect not to have changes")
 	}
 }
 
-func TestAccStateMigratorApplyForce(t *testing.T) {
+func TestAccStateMigratorApplyWithWorkspace(t *testing.T) {
 	tfexec.SkipUnlessAcceptanceTestEnabled(t)
 
 	backend := tfexec.GetTestAccBackendS3Config(t.Name())
@@ -228,7 +209,78 @@ func TestAccStateMigratorApplyForce(t *testing.T) {
 resource "null_resource" "foo" {}
 resource "null_resource" "bar" {}
 `
-	tf := tfexec.SetupTestAccWithApply(t, "default", backend+source)
+
+	workspace := "workspace1"
+	tf := tfexec.SetupTestAccWithApply(t, workspace, backend+source)
+	ctx := context.Background()
+
+	updatedSource := `
+resource "null_resource" "foo2" {}
+resource "null_resource" "bar" {}
+`
+
+	tfexec.UpdateTestAccSource(t, tf, backend+updatedSource)
+
+	changed, err := tf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange: %s", err)
+	}
+	if !changed {
+		t.Fatalf("expect to have changes")
+	}
+
+	actions := []StateAction{
+		NewStateMvAction("null_resource.foo", "null_resource.foo2"),
+	}
+
+	force := false
+	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, force)
+	err = m.Plan(ctx)
+	if err != nil {
+		t.Fatalf("failed to run migrator plan: %s", err)
+	}
+
+	err = m.Apply(ctx)
+	if err != nil {
+		t.Fatalf("failed to run migrator apply: %s", err)
+	}
+
+	got, err := tf.StateList(ctx, nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list: %s", err)
+	}
+
+	want := []string{
+		"null_resource.foo2",
+		"null_resource.bar",
+	}
+	sort.Strings(got)
+	sort.Strings(want)
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got state: %v, want state: %v", got, want)
+	}
+
+	changed, err = tf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange: %s", err)
+	}
+	if changed {
+		t.Fatalf("expect not to have changes")
+	}
+}
+
+func TestAccStateMigratorApplyWithForce(t *testing.T) {
+	tfexec.SkipUnlessAcceptanceTestEnabled(t)
+
+	backend := tfexec.GetTestAccBackendS3Config(t.Name())
+
+	source := `
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
+`
+
+	workspace := "default"
+	tf := tfexec.SetupTestAccWithApply(t, workspace, backend+source)
 	ctx := context.Background()
 
 	updatedSource := `
@@ -253,8 +305,8 @@ resource "null_resource" "baz" {}
 
 	o := &MigratorOption{}
 	o.PlanOut = "foo.tfplan"
-
-	m := NewStateMigrator(tf.Dir(), "default", actions, o, true)
+	force := true
+	m := NewStateMigrator(tf.Dir(), workspace, actions, o, force)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
