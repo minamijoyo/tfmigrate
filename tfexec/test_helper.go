@@ -247,7 +247,7 @@ terraform {
     bucket = "tfstate-test"
     key    = "%s/terraform.tfstate"
 
-    // mock s3 endpoint with localstack
+    # mock s3 endpoint with localstack
     endpoint                    = "%s"
     access_key                  = "dummy"
     secret_key                  = "dummy"
