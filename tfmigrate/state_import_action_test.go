@@ -23,7 +23,9 @@ resource "time_static" "baz" {
   triggers = {}
 }
 `
-	tf := tfexec.SetupTestAccWithApply(t, "default", backend+source)
+
+	workspace := "default"
+	tf := tfexec.SetupTestAccWithApply(t, workspace, backend+source)
 	ctx := context.Background()
 
 	_, err := tf.StateRm(ctx, nil, []string{"time_static.foo", "time_static.baz"})
@@ -44,7 +46,7 @@ resource "time_static" "baz" {
 		NewStateImportAction("time_static.baz", "2006-01-02T15:04:05Z"),
 	}
 
-	m := NewStateMigrator(tf.Dir(), "default", actions, &MigratorOption{}, false)
+	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, false)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)

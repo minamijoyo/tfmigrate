@@ -17,7 +17,9 @@ resource "null_resource" "foo" {}
 resource "null_resource" "bar" {}
 resource "null_resource" "baz" {}
 `
-	tf := tfexec.SetupTestAccWithApply(t, "default", backend+source)
+
+	workspace := "default"
+	tf := tfexec.SetupTestAccWithApply(t, workspace, backend+source)
 	ctx := context.Background()
 
 	updatedSource := `
@@ -41,7 +43,7 @@ resource "null_resource" "baz" {}
 		NewStateMvAction("null_resource.bar", "null_resource.bar2"),
 	}
 
-	m := NewStateMigrator(tf.Dir(), "default", actions, &MigratorOption{}, false)
+	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, false)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
