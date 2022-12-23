@@ -22,8 +22,12 @@ lint:
 test: build
 	go test ./...
 
+.PHONY: generate-plugin-cache
+generate-plugin-cache:
+	scripts/testacc/generate_plugin_cache.sh
+
 .PHONY: testacc
-testacc: build
+testacc: build generate-plugin-cache
 	TEST_ACC=1 go test -count=1 -failfast -timeout=20m ./...
 
 .PHONY: check
