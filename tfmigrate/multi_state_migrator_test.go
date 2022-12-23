@@ -110,312 +110,443 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 	}
 }
 
-func TestAccMultiStateMigratorApply(t *testing.T) {
+func TestAccMultiStateMigratorApplySimple(t *testing.T) {
 	tfexec.SkipUnlessAcceptanceTestEnabled(t)
-	cases := []struct {
-		desc                  string
-		fromWorkspace         string
-		fromSource            string
-		fromUpdatedSource     string
-		fromUpdatedState      []string
-		fromStateExpectChange bool
-		toWorkspace           string
-		toSource              string
-		toUpdatedSource       string
-		toUpdatedState        []string
-		toStateExpectChange   bool
-		actions               []string
-		force                 bool
-	}{
-		{
-			desc:          "multi-state migration between default workspaces",
-			fromWorkspace: "default",
-			fromSource: `
-			resource "null_resource" "foo" {}
-			resource "null_resource" "bar" {}
-			resource "null_resource" "baz" {}
-			`,
-			fromUpdatedSource: `
-			resource "null_resource" "baz" {}
-			`,
-			fromUpdatedState: []string{
-				"null_resource.baz",
-			},
-			fromStateExpectChange: false,
-			toWorkspace:           "default",
-			toSource: `
-			resource "null_resource" "qux" {}
-			`,
-			toUpdatedSource: `
-			resource "null_resource" "foo" {}
-			resource "null_resource" "bar2" {}
-			resource "null_resource" "qux" {}
-			`,
-			toUpdatedState: []string{
-				"null_resource.foo",
-				"null_resource.bar2",
-				"null_resource.qux",
-			},
-			toStateExpectChange: false,
-			actions: []string{
-				"mv null_resource.foo null_resource.foo",
-				"mv null_resource.bar null_resource.bar2",
-			},
-			force: false,
-		},
-		{
-			desc:          "multi-state migration between default workspaces with force == true",
-			fromWorkspace: "default",
-			fromSource: `
-			resource "null_resource" "foo" {}
-			resource "null_resource" "bar" {}
-			resource "null_resource" "baz" {}
-			`,
-			fromUpdatedSource: `
-			resource "null_resource" "baz" {}
-			`,
-			fromUpdatedState: []string{
-				"null_resource.baz",
-			},
-			fromStateExpectChange: false,
-			toWorkspace:           "default",
-			toSource: `
-			resource "null_resource" "qux" {}
-			`,
-			toUpdatedSource: `
-			resource "null_resource" "foo" {}
-			resource "null_resource" "bar2" {}
-			resource "null_resource" "qux" {}
-			resource "null_resource" "qux2" {}
-			`,
-			toUpdatedState: []string{
-				"null_resource.foo",
-				"null_resource.bar2",
-				"null_resource.qux",
-			},
-			toStateExpectChange: true,
-			actions: []string{
-				"mv null_resource.foo null_resource.foo",
-				"mv null_resource.bar null_resource.bar2",
-			},
-			force: true,
-		},
-		{
-			desc:          "multi-state migration between user-defined workspaces",
-			fromWorkspace: "work1",
-			fromSource: `
-			resource "null_resource" "foo" {}
-			resource "null_resource" "bar" {}
-			resource "null_resource" "baz" {}
-			`,
-			fromUpdatedSource: `
-			resource "null_resource" "baz" {}
-			`,
-			fromUpdatedState: []string{
-				"null_resource.baz",
-			},
-			fromStateExpectChange: false,
-			toWorkspace:           "work2",
-			toSource: `
-			resource "null_resource" "qux" {}
-			`,
-			toUpdatedSource: `
-			resource "null_resource" "foo" {}
-			resource "null_resource" "bar2" {}
-			resource "null_resource" "qux" {}
-			`,
-			toUpdatedState: []string{
-				"null_resource.foo",
-				"null_resource.bar2",
-				"null_resource.qux",
-			},
-			toStateExpectChange: false,
-			actions: []string{
-				"mv null_resource.foo null_resource.foo",
-				"mv null_resource.bar null_resource.bar2",
-			},
-			force: false,
-		},
+	ctx := context.Background()
+
+	// setup the initial files and states
+	fromBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/fromDir")
+	fromSource := `
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
+resource "null_resource" "baz" {}
+`
+	fromWorkspace := "default"
+	fromTf := tfexec.SetupTestAccWithApply(t, fromWorkspace, fromBackend+fromSource)
+
+	toBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/toDir")
+	toSource := `
+resource "null_resource" "qux" {}
+`
+	toWorkspace := "default"
+	toTf := tfexec.SetupTestAccWithApply(t, toWorkspace, toBackend+toSource)
+
+	// update terraform resource files for migration
+	fromUpdatedSource := `
+resource "null_resource" "baz" {}
+`
+	tfexec.UpdateTestAccSource(t, fromTf, fromBackend+fromUpdatedSource)
+
+	toUpdatedSource := `
+resource "null_resource" "foo" {}
+resource "null_resource" "bar2" {}
+resource "null_resource" "qux" {}
+`
+	tfexec.UpdateTestAccSource(t, toTf, toBackend+toUpdatedSource)
+
+	fromChanged, err := fromTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
 	}
-	for _, tc := range cases {
-		t.Run(tc.desc, func(t *testing.T) {
-			ctx := context.Background()
+	if !fromChanged {
+		t.Fatalf("expect to have changes in fromDir")
+	}
 
-			//setup the initial files and states
-			fromBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/fromDir")
-			fromTf := tfexec.SetupTestAccWithApply(t, tc.fromWorkspace, fromBackend+tc.fromSource)
-			toBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/toDir")
-			toTf := tfexec.SetupTestAccWithApply(t, tc.toWorkspace, toBackend+tc.toSource)
+	toChanged, err := toTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
+	}
+	if !toChanged {
+		t.Fatalf("expect to have changes in toDir")
+	}
 
-			//update terraform resource files for migration
-			tfexec.UpdateTestAccSource(t, fromTf, fromBackend+tc.fromUpdatedSource)
-			tfexec.UpdateTestAccSource(t, toTf, toBackend+tc.toUpdatedSource)
-			changed, err := fromTf.PlanHasChange(ctx, nil)
-			if err != nil {
-				t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
-			}
-			if !changed {
-				t.Fatalf("expect to have changes in fromDir")
-			}
-			changed, err = toTf.PlanHasChange(ctx, nil)
-			if err != nil {
-				t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
-			}
-			if !changed {
-				t.Fatalf("expect to have changes in toDir")
-			}
+	// perform state migration
+	actions := []MultiStateAction{
+		NewMultiStateMvAction("null_resource.foo", "null_resource.foo"),
+		NewMultiStateMvAction("null_resource.bar", "null_resource.bar2"),
+	}
+	o := &MigratorOption{}
+	force := false
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force)
+	err = m.Plan(ctx)
+	if err != nil {
+		t.Fatalf("failed to run migrator plan: %s", err)
+	}
 
-			//perform state migration
-			actions := []MultiStateAction{}
-			for _, cmdStr := range tc.actions {
-				action, err := NewMultiStateActionFromString(cmdStr)
-				if err != nil {
-					t.Fatalf("unable to parse migration action")
-				}
-				actions = append(actions, action)
-			}
+	err = m.Apply(ctx)
+	if err != nil {
+		t.Fatalf("failed to run migrator apply: %s", err)
+	}
 
-			o := &MigratorOption{}
-			if tc.force {
-				o.PlanOut = "foo.tfplan"
-			}
+	// verify state migration results
+	fromGot, err := fromTf.StateList(ctx, nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list in fromDir: %s", err)
+	}
+	fromWant := []string{
+		"null_resource.baz",
+	}
+	sort.Strings(fromGot)
+	sort.Strings(fromWant)
+	if !reflect.DeepEqual(fromGot, fromWant) {
+		t.Errorf("got state: %v, want state: %v in fromDir", fromGot, fromWant)
+	}
 
-			m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), tc.fromWorkspace, tc.toWorkspace, actions, o, tc.force)
-			err = m.Plan(ctx)
-			if err != nil {
-				t.Fatalf("failed to run migrator plan: %s", err)
-			}
+	toGot, err := toTf.StateList(ctx, nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list in toDir: %s", err)
+	}
+	toWant := []string{
+		"null_resource.foo",
+		"null_resource.bar2",
+		"null_resource.qux",
+	}
+	sort.Strings(toGot)
+	sort.Strings(toWant)
+	if !reflect.DeepEqual(toGot, toWant) {
+		t.Errorf("got state: %v, want state: %v in toDir", toGot, toWant)
+	}
 
-			err = m.Apply(ctx)
-			if err != nil {
-				t.Fatalf("failed to run migrator apply: %s", err)
-			}
+	fromChanged, err = fromTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
+	}
+	if fromChanged {
+		t.Error("expect not to have changes in fromDir")
+	}
 
-			//verify state migration results
-			fromGot, err := fromTf.StateList(ctx, nil, nil)
-			if err != nil {
-				t.Fatalf("failed to run terraform state list in fromDir: %s", err)
-			}
-			sort.Strings(fromGot)
-			sort.Strings(tc.fromUpdatedState)
-			if !reflect.DeepEqual(fromGot, tc.fromUpdatedState) {
-				t.Errorf("got state: %v, want state: %v in fromDir", fromGot, tc.fromUpdatedState)
-			}
-			toGot, err := toTf.StateList(ctx, nil, nil)
-			if err != nil {
-				t.Fatalf("failed to run terraform state list in toDir: %s", err)
-			}
-			sort.Strings(toGot)
-			sort.Strings(tc.toUpdatedState)
-			if !reflect.DeepEqual(toGot, tc.toUpdatedState) {
-				t.Errorf("got state: %v, want state: %v in toDir", toGot, tc.toUpdatedState)
-			}
-			changed, err = fromTf.PlanHasChange(ctx, nil)
-			if err != nil {
-				t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
-			}
-			if changed != tc.fromStateExpectChange {
-				t.Fatalf("expected change in fromDir is %t but actual value is %t", tc.fromStateExpectChange, changed)
-			}
-			changed, err = toTf.PlanHasChange(ctx, nil)
-			if err != nil {
-				t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
-			}
-			if changed != tc.toStateExpectChange {
-				t.Fatalf("expected change in toDir is %t but actual value is %t", tc.toStateExpectChange, changed)
-			}
+	toChanged, err = toTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
+	}
+	if toChanged {
+		t.Error("expect not to have changes in toDir")
+	}
+}
 
-			if tc.force {
-				// Note that the saved plan file is not applicable in Terraform 1.1+.
-				// https://github.com/minamijoyo/tfmigrate/pull/63
-				// It's intended to use only for static analysis.
-				// https://github.com/minamijoyo/tfmigrate/issues/106
-				fromTfVersionMatched, err := tfexec.MatchTerraformVersion(ctx, fromTf, ">= 1.1.0")
-				if err != nil {
-					t.Fatalf("failed to check terraform version constraints in fromDir: %s", err)
-				}
-				if fromTfVersionMatched {
-					t.Skip("skip the following test because the saved plan can't apply in Terraform v1.1+")
-				}
-				toTfVersionMatched, err := tfexec.MatchTerraformVersion(ctx, toTf, ">= 1.1.0")
-				if err != nil {
-					t.Fatalf("failed to check terraform version constraints in toDir: %s", err)
-				}
-				if toTfVersionMatched {
-					t.Skip("skip the following test because the saved plan can't apply in Terraform v1.1+")
-				}
+func TestAccMultiStateMigratorApplyWithWorkspace(t *testing.T) {
+	tfexec.SkipUnlessAcceptanceTestEnabled(t)
+	ctx := context.Background()
 
-				// apply the saved plan files
-				fromPlan, err := os.ReadFile(filepath.Join(fromTf.Dir(), o.PlanOut))
-				if err != nil {
-					t.Fatalf("failed to read a saved plan file in fromDir: %s", err)
-				}
-				err = fromTf.Apply(ctx, tfexec.NewPlan(fromPlan), "-input=false", "-no-color")
-				if err != nil {
-					t.Fatalf("failed to apply the saved plan file in fromDir: %s", err)
-				}
-				toPlan, err := os.ReadFile(filepath.Join(toTf.Dir(), o.PlanOut))
-				if err != nil {
-					t.Fatalf("failed to read a saved plan file in toDir: %s", err)
-				}
-				err = toTf.Apply(ctx, tfexec.NewPlan(toPlan), "-input=false", "-no-color")
-				if err != nil {
-					t.Fatalf("failed to apply the saved plan file in toDir: %s", err)
-				}
+	// setup the initial files and states
+	fromBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/fromDir")
+	fromSource := `
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
+resource "null_resource" "baz" {}
+`
+	fromWorkspace := "work1"
+	fromTf := tfexec.SetupTestAccWithApply(t, fromWorkspace, fromBackend+fromSource)
 
-				// Terraform >= v0.12.25 and < v0.13 has a bug for state push -force
-				// https://github.com/hashicorp/terraform/issues/25761
-				fromTfVersionMatched, err = tfexec.MatchTerraformVersion(ctx, fromTf, ">= 0.12.25, < 0.13")
-				if err != nil {
-					t.Fatalf("failed to check terraform version constraints in fromDir: %s", err)
-				}
-				if fromTfVersionMatched {
-					t.Skip("skip the following test due to a bug in Terraform v0.12")
-				}
-				toTfVersionMatched, err = tfexec.MatchTerraformVersion(ctx, toTf, ">= 0.12.25, < 0.13")
-				if err != nil {
-					t.Fatalf("failed to check terraform version constraints in toDir: %s", err)
-				}
-				if toTfVersionMatched {
-					t.Skip("skip the following test due to a bug in Terraform v0.12")
-				}
+	toBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/toDir")
+	toSource := `
+resource "null_resource" "qux" {}
+`
+	toWorkspace := "work2"
+	toTf := tfexec.SetupTestAccWithApply(t, toWorkspace, toBackend+toSource)
 
-				// Note that applying the plan file only affects a local state,
-				// make sure to force push it to remote after terraform apply.
-				// The -force flag is required here because the lineage of the state was changed.
-				fromState, err := os.ReadFile(filepath.Join(fromTf.Dir(), "terraform.tfstate"))
-				if err != nil {
-					t.Fatalf("failed to read a local state file in fromDir: %s", err)
-				}
-				err = fromTf.StatePush(ctx, tfexec.NewState(fromState), "-force")
-				if err != nil {
-					t.Fatalf("failed to force push the local state in fromDir: %s", err)
-				}
-				toState, err := os.ReadFile(filepath.Join(toTf.Dir(), "terraform.tfstate"))
-				if err != nil {
-					t.Fatalf("failed to read a local state file in toDir: %s", err)
-				}
-				err = toTf.StatePush(ctx, tfexec.NewState(toState), "-force")
-				if err != nil {
-					t.Fatalf("failed to force push the local state in toDir: %s", err)
-				}
+	// update terraform resource files for migration
+	fromUpdatedSource := `
+resource "null_resource" "baz" {}
+`
+	tfexec.UpdateTestAccSource(t, fromTf, fromBackend+fromUpdatedSource)
 
-				// confirm no changes
-				changed, err := fromTf.PlanHasChange(ctx, nil)
-				if err != nil {
-					t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
-				}
-				if changed {
-					t.Fatalf("expect not to have changes in fromDir")
-				}
-				changed, err = toTf.PlanHasChange(ctx, nil)
-				if err != nil {
-					t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
-				}
-				if changed {
-					t.Fatalf("expect not to have changes in toDir")
-				}
-			}
-		})
+	toUpdatedSource := `
+resource "null_resource" "foo" {}
+resource "null_resource" "bar2" {}
+resource "null_resource" "qux" {}
+`
+	tfexec.UpdateTestAccSource(t, toTf, toBackend+toUpdatedSource)
+
+	fromChanged, err := fromTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
+	}
+	if !fromChanged {
+		t.Fatalf("expect to have changes in fromDir")
+	}
+
+	toChanged, err := toTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
+	}
+	if !toChanged {
+		t.Fatalf("expect to have changes in toDir")
+	}
+
+	// perform state migration
+	actions := []MultiStateAction{
+		NewMultiStateMvAction("null_resource.foo", "null_resource.foo"),
+		NewMultiStateMvAction("null_resource.bar", "null_resource.bar2"),
+	}
+	o := &MigratorOption{}
+	force := false
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force)
+	err = m.Plan(ctx)
+	if err != nil {
+		t.Fatalf("failed to run migrator plan: %s", err)
+	}
+
+	err = m.Apply(ctx)
+	if err != nil {
+		t.Fatalf("failed to run migrator apply: %s", err)
+	}
+
+	// verify state migration results
+	fromGot, err := fromTf.StateList(ctx, nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list in fromDir: %s", err)
+	}
+	fromWant := []string{
+		"null_resource.baz",
+	}
+	sort.Strings(fromGot)
+	sort.Strings(fromWant)
+	if !reflect.DeepEqual(fromGot, fromWant) {
+		t.Errorf("got state: %v, want state: %v in fromDir", fromGot, fromWant)
+	}
+
+	toGot, err := toTf.StateList(ctx, nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list in toDir: %s", err)
+	}
+	toWant := []string{
+		"null_resource.foo",
+		"null_resource.bar2",
+		"null_resource.qux",
+	}
+	sort.Strings(toGot)
+	sort.Strings(toWant)
+	if !reflect.DeepEqual(toGot, toWant) {
+		t.Errorf("got state: %v, want state: %v in toDir", toGot, toWant)
+	}
+
+	fromChanged, err = fromTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
+	}
+	if fromChanged {
+		t.Error("expect not to have changes in fromDir")
+	}
+
+	toChanged, err = toTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
+	}
+	if toChanged {
+		t.Error("expect not to have changes in toDir")
+	}
+}
+
+func TestAccMultiStateMigratorApplyWithForce(t *testing.T) {
+	tfexec.SkipUnlessAcceptanceTestEnabled(t)
+	ctx := context.Background()
+
+	// setup the initial files and states
+	fromBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/fromDir")
+	fromSource := `
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
+resource "null_resource" "baz" {}
+`
+	fromWorkspace := "default"
+	fromTf := tfexec.SetupTestAccWithApply(t, fromWorkspace, fromBackend+fromSource)
+
+	toBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/toDir")
+	toSource := `
+resource "null_resource" "qux" {}
+`
+	toWorkspace := "default"
+	toTf := tfexec.SetupTestAccWithApply(t, toWorkspace, toBackend+toSource)
+
+	// update terraform resource files for migration
+	// The expect not to have changes
+	fromUpdatedSource := `
+resource "null_resource" "baz" {}
+`
+	tfexec.UpdateTestAccSource(t, fromTf, fromBackend+fromUpdatedSource)
+
+	// The expect to have changes
+	// Note that null_resource.qux2 will be added
+	toUpdatedSource := `
+resource "null_resource" "foo" {}
+resource "null_resource" "bar2" {}
+resource "null_resource" "qux" {}
+resource "null_resource" "qux2" {}
+`
+	tfexec.UpdateTestAccSource(t, toTf, toBackend+toUpdatedSource)
+
+	fromChanged, err := fromTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
+	}
+	if !fromChanged {
+		t.Fatalf("expect to have changes in fromDir")
+	}
+
+	toChanged, err := toTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
+	}
+	if !toChanged {
+		t.Fatalf("expect to have changes in toDir")
+	}
+
+	// perform state migration
+	actions := []MultiStateAction{
+		NewMultiStateMvAction("null_resource.foo", "null_resource.foo"),
+		NewMultiStateMvAction("null_resource.bar", "null_resource.bar2"),
+	}
+	o := &MigratorOption{}
+	o.PlanOut = "foo.tfplan"
+	force := true
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force)
+	err = m.Plan(ctx)
+	if err != nil {
+		t.Fatalf("failed to run migrator plan: %s", err)
+	}
+
+	err = m.Apply(ctx)
+	if err != nil {
+		t.Fatalf("failed to run migrator apply: %s", err)
+	}
+
+	// verify state migration results
+	fromGot, err := fromTf.StateList(ctx, nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list in fromDir: %s", err)
+	}
+	fromWant := []string{
+		"null_resource.baz",
+	}
+	sort.Strings(fromGot)
+	sort.Strings(fromWant)
+	if !reflect.DeepEqual(fromGot, fromWant) {
+		t.Errorf("got state: %v, want state: %v in fromDir", fromGot, fromWant)
+	}
+
+	toGot, err := toTf.StateList(ctx, nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list in toDir: %s", err)
+	}
+	toWant := []string{
+		"null_resource.foo",
+		"null_resource.bar2",
+		"null_resource.qux",
+	}
+	sort.Strings(toGot)
+	sort.Strings(toWant)
+	if !reflect.DeepEqual(toGot, toWant) {
+		t.Errorf("got state: %v, want state: %v in toDir", toGot, toWant)
+	}
+
+	fromChanged, err = fromTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
+	}
+	if fromChanged {
+		t.Error("expect not to have changes in fromDir")
+	}
+
+	toChanged, err = toTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
+	}
+	if !toChanged {
+		t.Fatalf("expect to have changes in toDir")
+	}
+
+	// Note that the saved plan file is not applicable in Terraform 1.1+.
+	// https://github.com/minamijoyo/tfmigrate/pull/63
+	// It's intended to use only for static analysis.
+	// https://github.com/minamijoyo/tfmigrate/issues/106
+	fromTfVersionMatched, err := tfexec.MatchTerraformVersion(ctx, fromTf, ">= 1.1.0")
+	if err != nil {
+		t.Fatalf("failed to check terraform version constraints in fromDir: %s", err)
+	}
+	if fromTfVersionMatched {
+		t.Skip("skip the following test because the saved plan can't apply in Terraform v1.1+")
+	}
+
+	toTfVersionMatched, err := tfexec.MatchTerraformVersion(ctx, toTf, ">= 1.1.0")
+	if err != nil {
+		t.Fatalf("failed to check terraform version constraints in toDir: %s", err)
+	}
+	if toTfVersionMatched {
+		t.Skip("skip the following test because the saved plan can't apply in Terraform v1.1+")
+	}
+
+	// apply the saved plan files
+	fromPlan, err := os.ReadFile(filepath.Join(fromTf.Dir(), o.PlanOut))
+	if err != nil {
+		t.Fatalf("failed to read a saved plan file in fromDir: %s", err)
+	}
+	err = fromTf.Apply(ctx, tfexec.NewPlan(fromPlan), "-input=false", "-no-color")
+	if err != nil {
+		t.Fatalf("failed to apply the saved plan file in fromDir: %s", err)
+	}
+
+	toPlan, err := os.ReadFile(filepath.Join(toTf.Dir(), o.PlanOut))
+	if err != nil {
+		t.Fatalf("failed to read a saved plan file in toDir: %s", err)
+	}
+	err = toTf.Apply(ctx, tfexec.NewPlan(toPlan), "-input=false", "-no-color")
+	if err != nil {
+		t.Fatalf("failed to apply the saved plan file in toDir: %s", err)
+	}
+
+	// Terraform >= v0.12.25 and < v0.13 has a bug for state push -force
+	// https://github.com/hashicorp/terraform/issues/25761
+	fromTfVersionMatched, err = tfexec.MatchTerraformVersion(ctx, fromTf, ">= 0.12.25, < 0.13")
+	if err != nil {
+		t.Fatalf("failed to check terraform version constraints in fromDir: %s", err)
+	}
+	if fromTfVersionMatched {
+		t.Skip("skip the following test due to a bug in Terraform v0.12")
+	}
+
+	toTfVersionMatched, err = tfexec.MatchTerraformVersion(ctx, toTf, ">= 0.12.25, < 0.13")
+	if err != nil {
+		t.Fatalf("failed to check terraform version constraints in toDir: %s", err)
+	}
+	if toTfVersionMatched {
+		t.Skip("skip the following test due to a bug in Terraform v0.12")
+	}
+
+	// Note that applying the plan file only affects a local state,
+	// make sure to force push it to remote after terraform apply.
+	// The -force flag is required here because the lineage of the state was changed.
+	fromState, err := os.ReadFile(filepath.Join(fromTf.Dir(), "terraform.tfstate"))
+	if err != nil {
+		t.Fatalf("failed to read a local state file in fromDir: %s", err)
+	}
+	err = fromTf.StatePush(ctx, tfexec.NewState(fromState), "-force")
+	if err != nil {
+		t.Fatalf("failed to force push the local state in fromDir: %s", err)
+	}
+
+	toState, err := os.ReadFile(filepath.Join(toTf.Dir(), "terraform.tfstate"))
+	if err != nil {
+		t.Fatalf("failed to read a local state file in toDir: %s", err)
+	}
+	err = toTf.StatePush(ctx, tfexec.NewState(toState), "-force")
+	if err != nil {
+		t.Fatalf("failed to force push the local state in toDir: %s", err)
+	}
+
+	// confirm no changes
+	fromChanged, err = fromTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
+	}
+	if fromChanged {
+		t.Error("expect not to have changes in fromDir")
+	}
+	toChanged, err = toTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
+	}
+	if toChanged {
+		t.Error("expect not to have changes in toDir")
 	}
 }

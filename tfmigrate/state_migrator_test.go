@@ -163,7 +163,8 @@ resource "time_static" "qux" { triggers = {} }
 		NewStateImportAction("time_static.qux", "2006-01-02T15:04:05Z"),
 	}
 
-	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, false)
+	force := false
+	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, force)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
@@ -232,7 +233,8 @@ resource "null_resource" "bar" {}
 		NewStateMvAction("null_resource.foo", "null_resource.foo2"),
 	}
 
-	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, false)
+	force := false
+	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, force)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
@@ -303,8 +305,8 @@ resource "null_resource" "baz" {}
 
 	o := &MigratorOption{}
 	o.PlanOut = "foo.tfplan"
-
-	m := NewStateMigrator(tf.Dir(), workspace, actions, o, true)
+	force := true
+	m := NewStateMigrator(tf.Dir(), workspace, actions, o, force)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
