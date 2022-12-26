@@ -592,12 +592,10 @@ migration "state" "test" {
 
 #### state xmv
 
-The `xmv` command works like the `mv` command but allows usage of
-wildcards `*` in the source definition. The source expressions will be
-matched against resources defined in the terraform state. The matched value
-can be used in the destination definition via a dollar sign and their ordinal number. Note that dollar signs need to be
-escaped and therefore are placed twice:
-`$$1`, `$$2`, ... When there is ambiguity the ordinal number can be put in curly braces (e.g. `$${1}`).
+The `xmv` command works like the `mv` command but allows usage of wildcards `*` in the source definition.
+The source expressions will be matched against resources defined in the terraform state.
+The matched value can be used in the destination definition via a dollar sign and their ordinal number (e.g. `$1`, `$2`, ...).
+When there is ambiguity, you need to put the ordinal number in curly braces, in this case, the dollar sign need to be escaped and therefore are placed twice (e.g. `$${1}`).
 
 For example if `foo` and `bar` in the `mv` command example above are the only 2 security group resources
 defined at the top level then you can rename them using:
@@ -686,7 +684,7 @@ migration "multi_state" "mv_dir1_dir2" {
   from_dir = "dir1"
   to_dir   = "dir2"
   actions = [
-    "xmv * $$1",
+    "xmv * $1",
   ]
 }
 ```
