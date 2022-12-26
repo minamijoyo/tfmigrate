@@ -40,6 +40,33 @@ func TestNewMultiStateActionFromString(t *testing.T) {
 			ok:     false,
 		},
 		{
+			desc:   "xmv action (valid)",
+			cmdStr: "xmv null_resource.* null_resource.$1",
+			want: &MultiStateXmvAction{
+				source:      "null_resource.*",
+				destination: "null_resource.$1",
+			},
+			ok: true,
+		},
+		{
+			desc:   "xmv action (no args)",
+			cmdStr: "xmv",
+			want:   nil,
+			ok:     false,
+		},
+		{
+			desc:   "xmv action (1 arg)",
+			cmdStr: "xmv null_resource.foo",
+			want:   nil,
+			ok:     false,
+		},
+		{
+			desc:   "xmv action (3 args)",
+			cmdStr: "xmv null_resource.foo null_resource.foo2  null_resource.foo3",
+			want:   nil,
+			ok:     false,
+		},
+		{
 			desc:   "duplicated white spaces",
 			cmdStr: " mv  null_resource.foo    null_resource.foo2 ",
 			want: &MultiStateMvAction{
