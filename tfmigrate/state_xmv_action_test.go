@@ -7,7 +7,7 @@ import (
 	"github.com/minamijoyo/tfmigrate/tfexec"
 )
 
-func TestAccStateMvActionWildcardRename(t *testing.T) {
+func TestAccStateXmvAction(t *testing.T) {
 	tfexec.SkipUnlessAcceptanceTestEnabled(t)
 
 	backend := tfexec.GetTestAccBackendS3Config(t.Name())
