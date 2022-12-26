@@ -12,7 +12,7 @@ import (
 type MultiStateMvAction struct {
 	// source is an address of resource or module to be moved.
 	source string
-	// // destination is a new address of resource or module to move.
+	// destination is a new address of resource or module to move.
 	destination string
 }
 
