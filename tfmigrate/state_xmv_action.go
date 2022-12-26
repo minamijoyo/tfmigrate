@@ -7,8 +7,8 @@ import (
 )
 
 // StateXmvAction implements the StateAction interface.
-// StateXmvAction moves a resource from source address to destination address in
-// the same tfstate file.
+// StateXmvAction is an extended version of StateMvAction.
+// It allows you to move multiple resouces with a wildcard match.
 type StateXmvAction struct {
 	// source is a address of resource or module to be moved which can contain wildcards.
 	source string
@@ -44,7 +44,7 @@ func (a *StateXmvAction) StateUpdate(ctx context.Context, tf tfexec.TerraformCLI
 	return state, err
 }
 
-// Use an xmv and use the state to determine the corresponding mv actions.
+// generateMvActions uses an xmv and use the state to determine the corresponding mv actions.
 func (a *StateXmvAction) generateMvActions(ctx context.Context, tf tfexec.TerraformCLI, state *tfexec.State) ([]*StateMvAction, error) {
 	stateList, err := tf.StateList(ctx, state, nil)
 	if err != nil {

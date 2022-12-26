@@ -14,12 +14,12 @@ func TestGetNrOfWildcard(t *testing.T) {
 		want   int
 	}{
 		{
-			desc:   "Simple resource no wildcardChar",
+			desc:   "simple resource no wildcardChar",
 			action: NewStateXmvAction("null_resource.foo", "null_resource.foo2"),
 			want:   0,
 		},
 		{
-			desc:   "Simple wildcardChar for a resource",
+			desc:   "simple wildcardChar for a resource",
 			action: NewStateXmvAction("null_resource.*", "null_resource.$1"),
 			want:   1,
 		},
@@ -36,7 +36,7 @@ func TestGetNrOfWildcard(t *testing.T) {
 	}
 }
 
-func TestGetStateMvActionsForStateList(t *testing.T) {
+func TestXmvExpanderExpand(t *testing.T) {
 	cases := []struct {
 		desc            string
 		stateList       []string
@@ -44,7 +44,7 @@ func TestGetStateMvActionsForStateList(t *testing.T) {
 		outputMvActions []*StateMvAction
 	}{
 		{
-			desc:      "Simple resource no wildcardChar",
+			desc:      "simple resource no wildcardChar",
 			stateList: nil,
 			inputXMvAction: &StateXmvAction{
 				source:      "null_resource.foo",
@@ -58,7 +58,7 @@ func TestGetStateMvActionsForStateList(t *testing.T) {
 			},
 		},
 		{
-			desc:      "Simple resource with wildcardChar",
+			desc:      "simple resource with wildcardChar",
 			stateList: []string{"null_resource.foo"},
 			inputXMvAction: &StateXmvAction{
 				source:      "null_resource.*",
@@ -72,7 +72,7 @@ func TestGetStateMvActionsForStateList(t *testing.T) {
 			},
 		},
 		{
-			desc:      "Simple module name refactor with wildcardChar",
+			desc:      "simple module name refactor with wildcardChar",
 			stateList: []string{"module.example1[\"foo\"].this"},
 			inputXMvAction: &StateXmvAction{
 				source:      "module.example1[\"*\"].this",
@@ -86,7 +86,7 @@ func TestGetStateMvActionsForStateList(t *testing.T) {
 			},
 		},
 		{
-			desc:      "No matching resources in state",
+			desc:      "no matching resources in state",
 			stateList: []string{"time_static.foo"},
 			inputXMvAction: &StateXmvAction{
 				source:      "null_resource.*",
@@ -95,7 +95,7 @@ func TestGetStateMvActionsForStateList(t *testing.T) {
 			outputMvActions: []*StateMvAction{},
 		},
 		{
-			desc:      "Documented feature; positional matching for example to allow switching matches from place",
+			desc:      "documented feature; positional matching for example to allow switching matches from place",
 			stateList: []string{"module[\"bar\"].null_resource.foo"},
 			inputXMvAction: &StateXmvAction{
 				source:      "module[\"*\"].null_resource.*",
@@ -109,7 +109,7 @@ func TestGetStateMvActionsForStateList(t *testing.T) {
 			},
 		},
 		{
-			desc: "Multiple resources refactored into a module",
+			desc: "multiple resources refactored into a module",
 			stateList: []string{
 				"null_resource.foo",
 				"null_resource.bar",
@@ -131,6 +131,27 @@ func TestGetStateMvActionsForStateList(t *testing.T) {
 				{
 					source:      "null_resource.baz",
 					destination: "module.example[\"baz\"].null_resource.this",
+				},
+			},
+		},
+		{
+			desc: "match all for merging multiple tfstates",
+			stateList: []string{
+				"null_resource.foo",
+				"null_resource.bar",
+			},
+			inputXMvAction: &StateXmvAction{
+				source:      "*",
+				destination: "$1",
+			},
+			outputMvActions: []*StateMvAction{
+				{
+					source:      "null_resource.foo",
+					destination: "null_resource.foo",
+				},
+				{
+					source:      "null_resource.bar",
+					destination: "null_resource.bar",
 				},
 			},
 		},

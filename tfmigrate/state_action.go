@@ -22,7 +22,7 @@ type StateAction interface {
 // "mv <source> <destination>"
 // "rm <addresses>...
 // "import <address> <id>"
-// "xmv <source> <destination>"  // To support moves with wildcards
+// "xmv <source> <destination>"
 func NewStateActionFromString(cmdStr string) (StateAction, error) {
 	args, err := splitStateAction(cmdStr)
 	if err != nil {
