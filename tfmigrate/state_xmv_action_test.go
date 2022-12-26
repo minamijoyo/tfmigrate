@@ -36,7 +36,7 @@ resource "null_resource" "bar2" {}
 	}
 
 	actions := []StateAction{
-		NewStateXMvAction("null_resource.*", "null_resource.${1}2"),
+		NewStateXmvAction("null_resource.*", "null_resource.${1}2"),
 	}
 
 	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, false)

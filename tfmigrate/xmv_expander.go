@@ -9,11 +9,11 @@ import (
 // xmvExpander is a helper method for implementing wildcard expansion for xmv actions.
 type xmvExpander struct {
 	// xmv action to be expanded
-	action *StateXMvAction
+	action *StateXmvAction
 }
 
 // newXMvExpander returns a new XMvExpander instance.
-func newXMvExpander(action *StateXMvAction) *xmvExpander {
+func newXMvExpander(action *StateXmvAction) *xmvExpander {
 	return &xmvExpander{
 		action: action,
 	}

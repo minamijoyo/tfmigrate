@@ -51,7 +51,7 @@ func NewStateActionFromString(cmdStr string) (StateAction, error) {
 		}
 		src := args[1]
 		dst := args[2]
-		action = NewStateXMvAction(src, dst)
+		action = NewStateXmvAction(src, dst)
 
 	case "rm":
 		if len(args) < 2 {

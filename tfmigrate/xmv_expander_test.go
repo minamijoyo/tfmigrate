@@ -10,17 +10,17 @@ import (
 func TestGetNrOfWildcard(t *testing.T) {
 	cases := []struct {
 		desc   string
-		action *StateXMvAction
+		action *StateXmvAction
 		want   int
 	}{
 		{
 			desc:   "Simple resource no wildcardChar",
-			action: NewStateXMvAction("null_resource.foo", "null_resource.foo2"),
+			action: NewStateXmvAction("null_resource.foo", "null_resource.foo2"),
 			want:   0,
 		},
 		{
 			desc:   "Simple wildcardChar for a resource",
-			action: NewStateXMvAction("null_resource.*", "null_resource.$1"),
+			action: NewStateXmvAction("null_resource.*", "null_resource.$1"),
 			want:   1,
 		},
 	}
@@ -40,13 +40,13 @@ func TestGetStateMvActionsForStateList(t *testing.T) {
 	cases := []struct {
 		desc            string
 		stateList       []string
-		inputXMvAction  *StateXMvAction
+		inputXMvAction  *StateXmvAction
 		outputMvActions []*StateMvAction
 	}{
 		{
 			desc:      "Simple resource no wildcardChar",
 			stateList: nil,
-			inputXMvAction: &StateXMvAction{
+			inputXMvAction: &StateXmvAction{
 				source:      "null_resource.foo",
 				destination: "null_resource.foo2",
 			},
@@ -60,7 +60,7 @@ func TestGetStateMvActionsForStateList(t *testing.T) {
 		{
 			desc:      "Simple resource with wildcardChar",
 			stateList: []string{"null_resource.foo"},
-			inputXMvAction: &StateXMvAction{
+			inputXMvAction: &StateXmvAction{
 				source:      "null_resource.*",
 				destination: "module.example[\"$1\"].this",
 			},
@@ -74,7 +74,7 @@ func TestGetStateMvActionsForStateList(t *testing.T) {
 		{
 			desc:      "Simple module name refactor with wildcardChar",
 			stateList: []string{"module.example1[\"foo\"].this"},
-			inputXMvAction: &StateXMvAction{
+			inputXMvAction: &StateXmvAction{
 				source:      "module.example1[\"*\"].this",
 				destination: "module.example2[\"$1\"].this",
 			},
@@ -88,7 +88,7 @@ func TestGetStateMvActionsForStateList(t *testing.T) {
 		{
 			desc:      "No matching resources in state",
 			stateList: []string{"time_static.foo"},
-			inputXMvAction: &StateXMvAction{
+			inputXMvAction: &StateXmvAction{
 				source:      "null_resource.*",
 				destination: "module.example[\"$1\"].this",
 			},
@@ -97,7 +97,7 @@ func TestGetStateMvActionsForStateList(t *testing.T) {
 		{
 			desc:      "Documented feature; positional matching for example to allow switching matches from place",
 			stateList: []string{"module[\"bar\"].null_resource.foo"},
-			inputXMvAction: &StateXMvAction{
+			inputXMvAction: &StateXmvAction{
 				source:      "module[\"*\"].null_resource.*",
 				destination: "module[\"$2\"].null_resource.$1",
 			},
@@ -115,7 +115,7 @@ func TestGetStateMvActionsForStateList(t *testing.T) {
 				"null_resource.bar",
 				"null_resource.baz",
 			},
-			inputXMvAction: &StateXMvAction{
+			inputXMvAction: &StateXmvAction{
 				source:      "null_resource.*",
 				destination: "module.example[\"$1\"].null_resource.this",
 			},
