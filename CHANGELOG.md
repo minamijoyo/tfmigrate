@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.3.10 (2022/12/26)
+
 NEW FEATURES:
 
 * Add support for multi_state xmv (wildcard expansion) ([#121](https://github.com/minamijoyo/tfmigrate/pull/121))
