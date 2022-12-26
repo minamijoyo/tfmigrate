@@ -12,8 +12,8 @@ type xmvExpander struct {
 	action *StateXmvAction
 }
 
-// newXMvExpander returns a new xmvExpander instance.
-func newXMvExpander(action *StateXmvAction) *xmvExpander {
+// newXmvExpander returns a new xmvExpander instance.
+func newXmvExpander(action *StateXmvAction) *xmvExpander {
 	return &xmvExpander{
 		action: action,
 	}

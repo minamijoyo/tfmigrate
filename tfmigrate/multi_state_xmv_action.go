@@ -56,7 +56,7 @@ func (a *MultiStateXmvAction) generateMvActions(ctx context.Context, fromTf tfex
 	// This is only because sharing the logic while maintaining consistency.
 	stateXmv := NewStateXmvAction(a.source, a.destination)
 
-	e := newXMvExpander(stateXmv)
+	e := newXmvExpander(stateXmv)
 	stateMvActions, err := e.expand(stateList)
 	if err != nil {
 		return nil, err

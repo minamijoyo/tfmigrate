@@ -51,6 +51,6 @@ func (a *StateXmvAction) generateMvActions(ctx context.Context, tf tfexec.Terraf
 		return nil, err
 	}
 
-	e := newXMvExpander(a)
+	e := newXmvExpander(a)
 	return e.expand(stateList)
 }

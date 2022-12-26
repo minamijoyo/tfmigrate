@@ -27,7 +27,7 @@ func TestGetNrOfWildcard(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			e := newXMvExpander(tc.action)
+			e := newXmvExpander(tc.action)
 			got := e.nrOfWildcards()
 			if got != tc.want {
 				t.Errorf("got: %d, but want: %d", got, tc.want)
@@ -159,7 +159,7 @@ func TestXmvExpanderExpand(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			e := newXMvExpander(tc.inputXMvAction)
+			e := newXmvExpander(tc.inputXMvAction)
 			got, err := e.expand(tc.stateList)
 			// Errors are not expected. At this stage the only location from which errors are expected is if the regular
 			// expression that comes from the source cannot compile but since meta-characters are quoted and we only
