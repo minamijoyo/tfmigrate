@@ -20,6 +20,7 @@ type MultiStateAction interface {
 // This method is useful to build an action from terraform state command.
 // Valid formats are the following.
 // "mv <source> <destination>"
+// "xmv <source> <destination>"
 func NewMultiStateActionFromString(cmdStr string) (MultiStateAction, error) {
 	args, err := splitStateAction(cmdStr)
 	if err != nil {
@@ -41,6 +42,14 @@ func NewMultiStateActionFromString(cmdStr string) (MultiStateAction, error) {
 		src := args[1]
 		dst := args[2]
 		action = NewMultiStateMvAction(src, dst)
+
+	case "xmv":
+		if len(args) != 3 {
+			return nil, fmt.Errorf("multi state xmv action is invalid: %s", cmdStr)
+		}
+		src := args[1]
+		dst := args[2]
+		action = NewMultiStateXmvAction(src, dst)
 
 	default:
 		return nil, fmt.Errorf("unknown multi state action type: %s", cmdStr)

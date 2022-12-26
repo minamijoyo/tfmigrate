@@ -34,6 +34,7 @@ A Terraform state migration tool for GitOps.
          * [state import](#state-import)
       * [migration block (multi_state)](#migration-block-multi_state)
          * [multi_state mv](#multi_state-mv)
+         * [multi_state xmv](#multi_state-xmv)
    * [Integrations](#integrations)
    * [License](#license)
 <!--te-->
@@ -566,6 +567,7 @@ The `state` migration updates the state in a single directory. It has the follow
 - `workspace` (optional): A terraform workspace. Defaults to "default".
 - `actions` (required): Actions is a list of state action. An action is a plain text for state operation. Valid formats are the following.
   - `"mv <source> <destination>"`
+  - `"xmv <source> <destination>"`
   - `"rm <addresses>...`
   - `"import <address> <id>"`
 - `force` (optional): Apply migrations even if plan show changes
@@ -590,12 +592,10 @@ migration "state" "test" {
 
 #### state xmv
 
-The `xmv` command works like the `mv` command but allows usage of
-wildcards `*` in the source definition. The source expressions will be 
-matched against resources defined in the terraform state. The matched value
-can be used in the destination definition via a dollar sign and their ordinal number. Note that dollar signs need to be
-escaped and therefore are placed twice: 
-`$$1`, `$$2`, ... When there is ambiguity the ordinal number can be put in curly braces (e.g. `$${1}`).
+The `xmv` command works like the `mv` command but allows usage of wildcards `*` in the source definition.
+The source expressions will be matched against resources defined in the terraform state.
+The matched value can be used in the destination definition via a dollar sign and their ordinal number (e.g. `$1`, `$2`, ...).
+When there is ambiguity, you need to put the ordinal number in curly braces, in this case, the dollar sign need to be escaped and therefore are placed twice (e.g. `$${1}`).
 
 For example if `foo` and `bar` in the `mv` command example above are the only 2 security group resources
 defined at the top level then you can rename them using:
@@ -641,6 +641,7 @@ The `multi_state` migration updates states in two different directories. It is i
 - `to_workspace` (optional): A terraform workspace in the TO directory. Defaults to "default".
 - `actions` (required): Actions is a list of multi state action. An action is a plain text for state operation. Valid formats are the following.
   - `"mv <source> <destination>"`
+  - `"xmv <source> <destination>"`
 - `force` (optional): Apply migrations even if plan show changes
 
 Note that `from_dir` and `to_dir` are relative path to the current working directory where `tfmigrate` command is invoked.
@@ -656,6 +657,34 @@ migration "multi_state" "mv_dir1_dir2" {
   actions = [
     "mv aws_security_group.foo aws_security_group.foo2",
     "mv aws_security_group.bar aws_security_group.bar2",
+  ]
+}
+```
+
+#### multi_state xmv
+
+The `xmv` command works like the `mv` command but allows usage of
+wildcards `*` in the source definition.
+The wildcard expansion rules are the same as for the single state xmv.
+
+```hcl
+migration "multi_state" "mv_dir1_dir2" {
+  from_dir = "dir1"
+  to_dir   = "dir2"
+  actions = [
+    "xmv aws_security_group.* aws_security_group.$${1}2",
+  ]
+}
+```
+
+If you want to move all resources to another dir for merging two tfstates, you can write something like this:
+
+```hcl
+migration "multi_state" "merge_dir1_to_dir2" {
+  from_dir = "dir1"
+  to_dir   = "dir2"
+  actions = [
+    "xmv * $1",
   ]
 }
 ```

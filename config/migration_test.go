@@ -82,6 +82,48 @@ migration "state" "test" {
 			ok: true,
 		},
 		{
+			desc: "state with a simple wildcard action",
+			source: `
+migration "state" "test" {
+	actions = [
+		"xmv null_resource.* null_resource.new_$1",
+	]
+}
+`,
+			want: &tfmigrate.MigrationConfig{
+				Type: "state",
+				Name: "test",
+				Migrator: &tfmigrate.StateMigratorConfig{
+					Dir: "",
+					Actions: []string{
+						"xmv null_resource.* null_resource.new_$1",
+					},
+				},
+			},
+			ok: true,
+		},
+		{
+			desc: "state with a escaped wildcard action",
+			source: `
+migration "state" "test" {
+	actions = [
+		"xmv null_resource.* null_resource.$${1}2",
+	]
+}
+`,
+			want: &tfmigrate.MigrationConfig{
+				Type: "state",
+				Name: "test",
+				Migrator: &tfmigrate.StateMigratorConfig{
+					Dir: "",
+					Actions: []string{
+						"xmv null_resource.* null_resource.${1}2",
+					},
+				},
+			},
+			ok: true,
+		},
+		{
 			desc: "state without actions",
 			source: `
 migration "state" "test" {

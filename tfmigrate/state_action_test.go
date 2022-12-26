@@ -42,7 +42,7 @@ func TestNewStateActionFromString(t *testing.T) {
 		{
 			desc:   "xmv action (valid)",
 			cmdStr: "xmv null_resource.* null_resource.$1",
-			want: &StateXMvAction{
+			want: &StateXmvAction{
 				source:      "null_resource.*",
 				destination: "null_resource.$1",
 			},
