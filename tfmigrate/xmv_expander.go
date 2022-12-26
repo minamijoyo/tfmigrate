@@ -6,13 +6,13 @@ import (
 	"strings"
 )
 
-// xmvExpander is a helper method for implementing wildcard expansion for xmv actions.
+// xmvExpander is a helper object for implementing wildcard expansion for xmv actions.
 type xmvExpander struct {
 	// xmv action to be expanded
 	action *StateXmvAction
 }
 
-// newXMvExpander returns a new XMvExpander instance.
+// newXMvExpander returns a new xmvExpander instance.
 func newXMvExpander(action *StateXmvAction) *xmvExpander {
 	return &xmvExpander{
 		action: action,
@@ -64,12 +64,13 @@ func (e *xmvExpander) expand(stateList []string) ([]*StateMvAction, error) {
 	return matchingActions, nil
 }
 
+// nrOfWildcards counts a number of wildcard characters.
 func (e *xmvExpander) nrOfWildcards() int {
 	return strings.Count(e.action.source, wildcardChar)
 }
 
 // getMatchingSourcesFromState looks into the state and find sources that match
-// pattern with wild cards.
+// pattern with wildcards.
 func (e *xmvExpander) getMatchingSourcesFromState(stateList []string) ([]string, error) {
 	re, err := makeSrcRegex(e.action.source)
 	if err != nil {

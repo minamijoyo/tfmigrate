@@ -8,7 +8,7 @@ import (
 
 // MultiStateXmvAction implements the MultiStateAction interface.
 // MultiStateXmvAction is an extended version of MultiStateMvAction.
-// It allows you to move multiple resouces with a wildcard match.
+// It allows you to move multiple resouces with wildcard matching.
 type MultiStateXmvAction struct {
 	// source is a address of resource or module to be moved which can contain wildcards.
 	source string

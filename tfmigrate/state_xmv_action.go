@@ -8,7 +8,7 @@ import (
 
 // StateXmvAction implements the StateAction interface.
 // StateXmvAction is an extended version of StateMvAction.
-// It allows you to move multiple resouces with a wildcard match.
+// It allows you to move multiple resouces with wildcard matching.
 type StateXmvAction struct {
 	// source is a address of resource or module to be moved which can contain wildcards.
 	source string
