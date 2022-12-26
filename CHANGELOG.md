@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+NEW FEATURES:
+
+* Add support for multi_state xmv (wildcard expansion) ([#121](https://github.com/minamijoyo/tfmigrate/pull/121))
+
 ENHANCEMENTS:
 
 * Set TF_CLI_ARGS_apply to --parallelism=1 in sandbox ([#113](https://github.com/minamijoyo/tfmigrate/pull/113))
