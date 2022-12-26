@@ -677,10 +677,10 @@ migration "multi_state" "mv_dir1_dir2" {
 }
 ```
 
-If you want to move all resources for merging two state files:
+If you want to move all resources to another dir for merging two tfstates, you can write something like this:
 
 ```hcl
-migration "multi_state" "mv_dir1_dir2" {
+migration "multi_state" "merge_dir1_to_dir2" {
   from_dir = "dir1"
   to_dir   = "dir2"
   actions = [
