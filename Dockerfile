@@ -1,7 +1,7 @@
 ARG TERRAFORM_VERSION=latest
 FROM hashicorp/terraform:$TERRAFORM_VERSION AS terraform
 
-FROM golang:1.19-alpine3.16
+FROM golang:1.20-alpine3.17
 RUN apk --no-cache add make git bash
 COPY --from=terraform /bin/terraform /usr/local/bin/
 WORKDIR /work
