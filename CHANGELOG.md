@@ -1,5 +1,10 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Update Terraform to v1.3.8 ([#122](https://github.com/minamijoyo/tfmigrate/pull/122))
+* Update Go to v1.20 ([#123](https://github.com/minamijoyo/tfmigrate/pull/123))
+
 ## 0.3.10 (2022/12/26)
 
 NEW FEATURES:
