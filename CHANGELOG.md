@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * Update Terraform to v1.3.8 ([#122](https://github.com/minamijoyo/tfmigrate/pull/122))
 * Update Go to v1.20 ([#123](https://github.com/minamijoyo/tfmigrate/pull/123))
+* Add support for Terraform v1.4 ([#124](https://github.com/minamijoyo/tfmigrate/pull/124))
 
 ## 0.3.10 (2022/12/26)
 
