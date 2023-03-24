@@ -25,6 +25,8 @@ type TfmigrateBlock struct {
 	IsBackendTerraformCloud bool `hcl:"is_backend_terraform_cloud,optional"`
 	// History is a block for migration history management.
 	History *HistoryBlock `hcl:"history,block"`
+    //  GlobalForce is a boolean representing a force on all migration files
+	GlobalForce bool
 }
 
 // TfmigrateConfig is a config for top-level CLI settings.
@@ -39,6 +41,8 @@ type TfmigrateConfig struct {
 	IsBackendTerraformCloud bool
 	// History is a config for migration history management.
 	History *history.Config
+    //  GlobalForce is a boolean representing a force on all migration files
+	GlobalForce bool
 }
 
 // LoadConfigurationFile is a helper function which reads and parses a given configuration file.
@@ -79,6 +83,10 @@ func ParseConfigurationFile(filename string, source []byte) (*TfmigrateConfig, e
 		config.History = history
 	}
 
+    if f.Tfmigrate.GlobalForce != nil {
+        config.GlobalForce = f.Tfmigrate.GlobalForce
+    }
+
 	return config, nil
 }
 
@@ -87,5 +95,6 @@ func NewDefaultConfig() *TfmigrateConfig {
 	return &TfmigrateConfig{
 		MigrationDir:            ".",
 		IsBackendTerraformCloud: false,
+		GlobalForce: false,
 	}
 }
