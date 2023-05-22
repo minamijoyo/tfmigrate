@@ -17,10 +17,9 @@ jobs:
       with:
         fetch-depth: 0
     - name: Set up Go
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@v4
       with:
         go-version-file: '.go-version'
-        cache: true
     - name: Generate github app token
       id: generate_github_app_token
       uses: tibdex/github-app-token@f717b5ecd4534d3c4df4ce9b5c1c2214f0f7cd06  # v1.6.0
