@@ -456,6 +456,26 @@ resource "null_resource" "qux2" {}
 		t.Fatalf("expect to have changes in toDir")
 	}
 
+	// A pre-release can only be compared between pre-releases due to the
+	// limitations of the hashicorp/go-version libraries and will not behave as
+	// expected, so skip the following test.
+	// https://github.com/hashicorp/go-version/pull/35
+	fromTfVersioPreRelease, err := tfexec.IsPreleaseTerraformVersion(ctx, fromTf)
+	if err != nil {
+		t.Fatalf("failed to check if terraform version is pre-release in fromDir: %s", err)
+	}
+	if fromTfVersioPreRelease {
+		t.Skip("skip the following test because a pre-release can only be compared between pre-releases")
+	}
+
+	toTfVersioPreRelease, err := tfexec.IsPreleaseTerraformVersion(ctx, toTf)
+	if err != nil {
+		t.Fatalf("failed to check if terraform version is pre-release in toDir: %s", err)
+	}
+	if toTfVersioPreRelease {
+		t.Skip("skip the following test because a pre-release can only be compared between pre-releases")
+	}
+
 	// Note that the saved plan file is not applicable in Terraform 1.1+.
 	// https://github.com/minamijoyo/tfmigrate/pull/63
 	// It's intended to use only for static analysis.
