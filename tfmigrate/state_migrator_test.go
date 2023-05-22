@@ -340,6 +340,18 @@ resource "null_resource" "baz" {}
 		t.Fatalf("expect to have changes")
 	}
 
+	// A pre-release can only be compared between pre-releases due to the
+	// limitations of the hashicorp/go-version libraries and will not behave as
+	// expected, so skip the following test.
+	// https://github.com/hashicorp/go-version/pull/35
+	tfVersioPreRelease, err := tfexec.IsPreleaseTerraformVersion(ctx, tf)
+	if err != nil {
+		t.Fatalf("failed to check if terraform version is pre-release: %s", err)
+	}
+	if tfVersioPreRelease {
+		t.Skip("skip the following test because a pre-release can only be compared between pre-releases")
+	}
+
 	// Note that the saved plan file is not applicable in Terraform 1.1+.
 	// https://github.com/minamijoyo/tfmigrate/pull/63
 	// It's intended to use only for static analysis.
