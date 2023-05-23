@@ -23,16 +23,15 @@ services:
       - fake-gcs-server
 
   localstack:
-    image: localstack/localstack:1.0.3
+    image: localstack/localstack:2.0.2
     ports:
       - "4566:4566"
     environment:
       DEBUG: "true"
-      SERVICES: "s3,ec2,iam"
       DEFAULT_REGION: "ap-northeast-1"
       S3_BUCKET: "tfstate-test"
     volumes:
-      - "./scripts/localstack:/docker-entrypoint-initaws.d"  # initialize scripts on startup
+      - "./scripts/localstack/init:/etc/localstack/init"  # initialize scripts on startup
 
   fake-gcs-server:
     image: fsouza/fake-gcs-server:1.38
