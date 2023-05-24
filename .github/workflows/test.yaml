@@ -53,7 +53,7 @@ jobs:
       run: |
         docker-compose up -d localstack
         docker-compose run --rm dockerize -wait tcp://localstack:4566 -timeout 60s
-        docker-compose exec -T localstack /docker-entrypoint-initaws.d/wait_s3_bucket_exists.sh
+        docker-compose exec -T localstack /etc/localstack/init/wait_s3_bucket_exists.sh
     - name: terraform --version
       run: docker-compose run --rm tfmigrate terraform --version
     - name: testacc
