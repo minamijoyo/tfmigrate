@@ -1,5 +1,13 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Skip ApplyWithForce test in pre-release ([#131](https://github.com/minamijoyo/tfmigrate/pull/131))
+* Set timeout to 5m for golangci-lint ([#132](https://github.com/minamijoyo/tfmigrate/pull/132))
+* Update actions/setup-go to v4 ([#133](https://github.com/minamijoyo/tfmigrate/pull/133))
+* Update goreleaser-action to v4 ([#134](https://github.com/minamijoyo/tfmigrate/pull/134))
+* Update localstack to v2.0.2 ([#135](https://github.com/minamijoyo/tfmigrate/pull/135))
+
 ## 0.3.11 (2023/03/09)
 
 ENHANCEMENTS:
