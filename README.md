@@ -100,8 +100,8 @@ $ docker-compose run --rm tfmigrate /bin/bash
 In the sandbox environment, create and initialize a working directory from test fixtures:
 
 ```
-# mkdir -p tmp/dir1 && cd tmp/dir1
-# terraform init -from-module=../../test-fixtures/backend_s3/
+# mkdir -p tmp && cp -pr test-fixtures/backend_s3 tmp/dir1 && cd tmp/dir1
+# terraform init
 # cat main.tf
 ```
 
