@@ -7,6 +7,11 @@ ENHANCEMENTS:
 * Update actions/setup-go to v4 ([#133](https://github.com/minamijoyo/tfmigrate/pull/133))
 * Update goreleaser-action to v4 ([#134](https://github.com/minamijoyo/tfmigrate/pull/134))
 * Update localstack to v2.0.2 ([#135](https://github.com/minamijoyo/tfmigrate/pull/135))
+* Avoid using terraform init -from-module ([#137](https://github.com/minamijoyo/tfmigrate/pull/137))
+
+BUG FIXES:
+
+* Continue to plan to_dir for multi_state if force is true ([#139](https://github.com/minamijoyo/tfmigrate/pull/139))
 
 ## 0.3.11 (2023/03/09)
 
