@@ -144,14 +144,12 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.S
 	_, err = m.fromTf.Plan(ctx, fromCurrentState, planOpts...)
 	if err != nil {
 		if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
-			if m.force {
-				log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true: %s", m.fromTf.Dir(), err)
-				return fromCurrentState, toCurrentState, nil
+			if !m.force {
+				log.Printf("[ERROR] [migrator@%s] unexpected diffs\n", m.fromTf.Dir())
+				return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs: %s", err)
 			}
-			log.Printf("[ERROR] [migrator@%s] unexpected diffs\n", m.fromTf.Dir())
-			return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs: %s", err)
+			log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true: %s", m.fromTf.Dir(), err)
 		}
-		return nil, nil, err
 	}
 
 	// check if a plan in toDir has no changes.
@@ -159,14 +157,12 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.S
 	_, err = m.toTf.Plan(ctx, toCurrentState, planOpts...)
 	if err != nil {
 		if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
-			if m.force {
-				log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true: %s", m.toTf.Dir(), err)
-				return fromCurrentState, toCurrentState, nil
+			if !m.force {
+				log.Printf("[ERROR] [migrator@%s] unexpected diffs\n", m.toTf.Dir())
+				return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs: %s", err)
 			}
-			log.Printf("[ERROR] [migrator@%s] unexpected diffs\n", m.toTf.Dir())
-			return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs: %s", err)
+			log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true: %s", m.toTf.Dir(), err)
 		}
-		return nil, nil, err
 	}
 
 	return fromCurrentState, toCurrentState, nil
