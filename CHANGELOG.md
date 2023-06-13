@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.3.12 (2023/06/13)
+
 ENHANCEMENTS:
 
 * Skip ApplyWithForce test in pre-release ([#131](https://github.com/minamijoyo/tfmigrate/pull/131))
