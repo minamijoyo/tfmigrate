@@ -8,6 +8,7 @@ ENHANCEMENTS:
 * Update goreleaser-action to v4 ([#134](https://github.com/minamijoyo/tfmigrate/pull/134))
 * Update localstack to v2.0.2 ([#135](https://github.com/minamijoyo/tfmigrate/pull/135))
 * Avoid using terraform init -from-module ([#137](https://github.com/minamijoyo/tfmigrate/pull/137))
+* Add support for Terraform v1.5 ([#130](https://github.com/minamijoyo/tfmigrate/pull/130))
 
 BUG FIXES:
 
