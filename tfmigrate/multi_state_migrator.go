@@ -149,6 +149,8 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.S
 				return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs: %s", err)
 			}
 			log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true: %s", m.fromTf.Dir(), err)
+		} else {
+			return nil, nil, err
 		}
 	}
 
@@ -162,6 +164,8 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.S
 				return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs: %s", err)
 			}
 			log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true: %s", m.toTf.Dir(), err)
+		} else {
+			return nil, nil, err
 		}
 	}
 

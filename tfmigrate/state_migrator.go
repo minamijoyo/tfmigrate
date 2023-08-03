@@ -133,14 +133,14 @@ func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 	_, err = m.tf.Plan(ctx, currentState, planOpts...)
 	if err != nil {
 		if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
-			if m.force {
-				log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true: %s", m.tf.Dir(), err)
-				return currentState, nil
+			if !m.force {
+				log.Printf("[ERROR] [migrator@%s] unexpected diffs\n", m.tf.Dir())
+				return nil, fmt.Errorf("terraform plan command returns unexpected diffs: %s", err)
 			}
-			log.Printf("[ERROR] [migrator@%s] unexpected diffs\n", m.tf.Dir())
-			return nil, fmt.Errorf("terraform plan command returns unexpected diffs: %s", err)
+			log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true: %s", m.tf.Dir(), err)
+		} else {
+			return nil, err
 		}
-		return nil, err
 	}
 
 	return currentState, nil
