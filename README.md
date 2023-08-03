@@ -394,6 +394,8 @@ in particular specified as a `cloud` block within the `terraform` config block. 
 type was introduced in Terraform 1.1.+ and is the recommended way to specify a Terraform backend.
 Attribute defaults to `false`.
 
+Note that when using tfmigrate with Terraform Cloud, you also need to set a workspace name in a migration file.
+
 #### tfmigrate block
 
 The `tfmigrate` block has the following attributes:
