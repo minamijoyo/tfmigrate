@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+BUG FIXES:
+
+* Fix a regression issue of error handling in multi_state migration ([#141](https://github.com/minamijoyo/tfmigrate/pull/141))
+
 ## 0.3.12 (2023/06/13)
 
 ENHANCEMENTS:
