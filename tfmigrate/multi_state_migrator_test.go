@@ -36,9 +36,9 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 		{
 			desc: "valid and default workspace, with diff check disabled in from dir",
 			config: &MultiStateMigratorConfig{
-				FromDir:                 "dir1",
-				DisableFromDirDiffCheck: true,
-				ToDir:                   "dir2",
+				FromDir:      "dir1",
+				FromSkipPlan: true,
+				ToDir:        "dir2",
 				Actions: []string{
 					"mv null_resource.foo null_resource.foo2",
 					"mv null_resource.bar null_resource.bar2",
@@ -52,9 +52,9 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 		{
 			desc: "valid and default workspace, with diff check disabled in to dir",
 			config: &MultiStateMigratorConfig{
-				FromDir:               "dir1",
-				ToDir:                 "dir2",
-				DisableToDirDiffCheck: true,
+				FromDir:    "dir1",
+				ToDir:      "dir2",
+				ToSkipPlan: true,
 				Actions: []string{
 					"mv null_resource.foo null_resource.foo2",
 					"mv null_resource.bar null_resource.bar2",
@@ -68,10 +68,10 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 		{
 			desc: "valid and default workspace, with diff check disabled in from and to dirs",
 			config: &MultiStateMigratorConfig{
-				FromDir:                 "dir1",
-				DisableFromDirDiffCheck: true,
-				ToDir:                   "dir2",
-				DisableToDirDiffCheck:   true,
+				FromDir:      "dir1",
+				FromSkipPlan: true,
+				ToDir:        "dir2",
+				ToSkipPlan:   true,
 				Actions: []string{
 					"mv null_resource.foo null_resource.foo2",
 					"mv null_resource.bar null_resource.bar2",
@@ -273,7 +273,7 @@ resource "null_resource" "qux" {}
 	}
 }
 
-func TestAccMultiStateMigratorApplyWithDisableFromDirDiffCheck(t *testing.T) {
+func TestAccMultiStateMigratorApplyWithFromSkipPlan(t *testing.T) {
 	tfexec.SkipUnlessAcceptanceTestEnabled(t)
 	ctx := context.Background()
 
@@ -386,7 +386,7 @@ resource "null_resource" "qux" {}
 	}
 }
 
-func TestAccMultiStateMigratorApplyWithDisableToDirDiffCheck(t *testing.T) {
+func TestAccMultiStateMigratorApplyWithToSkipPlan(t *testing.T) {
 	tfexec.SkipUnlessAcceptanceTestEnabled(t)
 	ctx := context.Background()
 
@@ -497,7 +497,7 @@ resource "null_resource" "baz" {}
 	}
 }
 
-func TestAccMultiStateMigratorApplyWithDisableDiffCheck(t *testing.T) {
+func TestAccMultiStateMigratorApplyWithSkipPlan(t *testing.T) {
 	tfexec.SkipUnlessAcceptanceTestEnabled(t)
 	ctx := context.Background()
 
