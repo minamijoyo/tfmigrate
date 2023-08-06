@@ -373,8 +373,8 @@ resource "null_resource" "qux" {}
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
 	}
-	if fromChanged {
-		t.Error("expect not to have changes in fromDir")
+	if !fromChanged {
+		t.Error("expect to have changes in fromDir")
 	}
 
 	toChanged, err = toTf.PlanHasChange(ctx, nil)
@@ -429,8 +429,8 @@ resource "null_resource" "baz" {}
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
 	}
-	if !toChanged {
-		t.Fatalf("expect to have changes in toDir")
+	if toChanged {
+		t.Fatalf("expect not to have changes in toDir")
 	}
 
 	// perform state migration
@@ -492,8 +492,8 @@ resource "null_resource" "baz" {}
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
 	}
-	if toChanged {
-		t.Error("expect not to have changes in toDir")
+	if !toChanged {
+		t.Error("expect to have changes in toDir")
 	}
 }
 
@@ -531,16 +531,16 @@ resource "null_resource" "qux" {}
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
 	}
-	if !fromChanged {
-		t.Fatalf("expect to have changes in fromDir")
+	if fromChanged {
+		t.Fatalf("expect not to have changes in fromDir")
 	}
 
 	toChanged, err := toTf.PlanHasChange(ctx, nil)
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
 	}
-	if !toChanged {
-		t.Fatalf("expect to have changes in toDir")
+	if toChanged {
+		t.Fatalf("expect not to have changes in toDir")
 	}
 
 	// perform state migration
@@ -594,16 +594,16 @@ resource "null_resource" "qux" {}
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
 	}
-	if fromChanged {
-		t.Error("expect not to have changes in fromDir")
+	if !fromChanged {
+		t.Error("expect to have changes in fromDir")
 	}
 
 	toChanged, err = toTf.PlanHasChange(ctx, nil)
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
 	}
-	if toChanged {
-		t.Error("expect not to have changes in toDir")
+	if !toChanged {
+		t.Error("expect to have changes in toDir")
 	}
 }
 
