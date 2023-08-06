@@ -152,6 +152,8 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.S
 	}
 
 	if m.fromSkipPlan {
+		log.Printf("[INFO] [migrator@%s] skipping check diffs\n", m.fromTf.Dir())
+	} else {
 		// check if a plan in fromDir has no changes.
 		log.Printf("[INFO] [migrator@%s] check diffs\n", m.fromTf.Dir())
 		_, err = m.fromTf.Plan(ctx, fromCurrentState, planOpts...)
@@ -159,18 +161,18 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.S
 			if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
 				if !m.force {
 					log.Printf("[ERROR] [migrator@%s] unexpected diffs\n", m.fromTf.Dir())
-					return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs: %s", err)
+					return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs in %s from_dir: %s", m.fromTf.Dir(), err)
 				}
 				log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true: %s", m.fromTf.Dir(), err)
 			} else {
 				return nil, nil, err
 			}
 		}
-	} else {
-		log.Printf("[INFO] [migrator@%s] skipping check diffs\n", m.fromTf.Dir())
 	}
 
 	if m.toSkipPlan {
+		log.Printf("[INFO] [migrator@%s] skipping check diffs\n", m.toTf.Dir())
+	} else {
 		// check if a plan in toDir has no changes.
 		log.Printf("[INFO] [migrator@%s] check diffs\n", m.toTf.Dir())
 		_, err = m.toTf.Plan(ctx, toCurrentState, planOpts...)
@@ -178,15 +180,13 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.S
 			if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
 				if !m.force {
 					log.Printf("[ERROR] [migrator@%s] unexpected diffs\n", m.toTf.Dir())
-					return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs: %s", err)
+					return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs in %s to_dir: %s", m.toTf.Dir(), err)
 				}
 				log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true: %s", m.toTf.Dir(), err)
 			} else {
 				return nil, nil, err
 			}
 		}
-	} else {
-		log.Printf("[INFO] [migrator@%s] skipping check diffs\n", m.toTf.Dir())
 	}
 
 	return fromCurrentState, toCurrentState, nil

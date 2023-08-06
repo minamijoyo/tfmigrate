@@ -310,8 +310,8 @@ resource "null_resource" "qux" {}
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
 	}
-	if !fromChanged {
-		t.Fatalf("expect to have changes in fromDir")
+	if fromChanged {
+		t.Fatalf("expect not to have changes in fromDir")
 	}
 
 	toChanged, err := toTf.PlanHasChange(ctx, nil)
