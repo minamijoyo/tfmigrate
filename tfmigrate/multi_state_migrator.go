@@ -13,8 +13,14 @@ import (
 type MultiStateMigratorConfig struct {
 	// FromDir is a working directory where states of resources move from.
 	FromDir string `hcl:"from_dir"`
+	// FromSkipPlan controls whether or not to run and analyze Terraform plan
+	// within the from_dir.
+	FromSkipPlan bool `hcl:"from_skip_plan,optional"`
 	// ToDir is a working directory where states of resources move to.
 	ToDir string `hcl:"to_dir"`
+	// ToSkipPlan controls whether or not to and analyze Terraform plan within the
+	// to_dir.
+	ToSkipPlan bool `hcl:"to_skip_plan,optional"`
 	// FromWorkspace is a workspace within FromDir
 	FromWorkspace string `hcl:"from_workspace,optional"`
 	// ToWorkspace is a workspace within ToDir
@@ -56,15 +62,19 @@ func (c *MultiStateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, err
 		c.ToWorkspace = "default"
 	}
 
-	return NewMultiStateMigrator(c.FromDir, c.ToDir, c.FromWorkspace, c.ToWorkspace, actions, o, c.Force), nil
+	return NewMultiStateMigrator(c.FromDir, c.ToDir, c.FromWorkspace, c.ToWorkspace, actions, o, c.Force, c.FromSkipPlan, c.ToSkipPlan), nil
 }
 
 // MultiStateMigrator implements the Migrator interface.
 type MultiStateMigrator struct {
 	// fromTf is an instance of TerraformCLI which executes terraform command in a fromDir.
 	fromTf tfexec.TerraformCLI
+	// fromSkipPlan disables the running of Terraform plan in fromDir.
+	fromSkipPlan bool
 	// fromTf is an instance of TerraformCLI which executes terraform command in a toDir.
 	toTf tfexec.TerraformCLI
+	// toSkipPlan disables the running of Terraform plan in toDir.
+	toSkipPlan bool
 	//fromWorkspace is the workspace from which the resource will be migrated
 	fromWorkspace string
 	//toWorkspace is the workspace to which the resource will be migrated
@@ -82,7 +92,7 @@ var _ Migrator = (*MultiStateMigrator)(nil)
 
 // NewMultiStateMigrator returns a new MultiStateMigrator instance.
 func NewMultiStateMigrator(fromDir string, toDir string, fromWorkspace string, toWorkspace string,
-	actions []MultiStateAction, o *MigratorOption, force bool) *MultiStateMigrator {
+	actions []MultiStateAction, o *MigratorOption, force bool, fromSkipPlan bool, toSkipPlan bool) *MultiStateMigrator {
 	fromTf := tfexec.NewTerraformCLI(tfexec.NewExecutor(fromDir, os.Environ()))
 	toTf := tfexec.NewTerraformCLI(tfexec.NewExecutor(toDir, os.Environ()))
 	if o != nil && len(o.ExecPath) > 0 {
@@ -92,7 +102,9 @@ func NewMultiStateMigrator(fromDir string, toDir string, fromWorkspace string, t
 
 	return &MultiStateMigrator{
 		fromTf:        fromTf,
+		fromSkipPlan:  fromSkipPlan,
 		toTf:          toTf,
+		toSkipPlan:    toSkipPlan,
 		fromWorkspace: fromWorkspace,
 		toWorkspace:   toWorkspace,
 		actions:       actions,
@@ -139,33 +151,41 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.S
 		planOpts = append(planOpts, "-out="+m.o.PlanOut)
 	}
 
-	// check if a plan in fromDir has no changes.
-	log.Printf("[INFO] [migrator@%s] check diffs\n", m.fromTf.Dir())
-	_, err = m.fromTf.Plan(ctx, fromCurrentState, planOpts...)
-	if err != nil {
-		if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
-			if !m.force {
-				log.Printf("[ERROR] [migrator@%s] unexpected diffs\n", m.fromTf.Dir())
-				return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs: %s", err)
+	if m.fromSkipPlan {
+		log.Printf("[INFO] [migrator@%s] skipping check diffs\n", m.fromTf.Dir())
+	} else {
+		// check if a plan in fromDir has no changes.
+		log.Printf("[INFO] [migrator@%s] check diffs\n", m.fromTf.Dir())
+		_, err = m.fromTf.Plan(ctx, fromCurrentState, planOpts...)
+		if err != nil {
+			if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
+				if !m.force {
+					log.Printf("[ERROR] [migrator@%s] unexpected diffs\n", m.fromTf.Dir())
+					return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs in %s from_dir: %s", m.fromTf.Dir(), err)
+				}
+				log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true: %s", m.fromTf.Dir(), err)
+			} else {
+				return nil, nil, err
 			}
-			log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true: %s", m.fromTf.Dir(), err)
-		} else {
-			return nil, nil, err
 		}
 	}
 
-	// check if a plan in toDir has no changes.
-	log.Printf("[INFO] [migrator@%s] check diffs\n", m.toTf.Dir())
-	_, err = m.toTf.Plan(ctx, toCurrentState, planOpts...)
-	if err != nil {
-		if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
-			if !m.force {
-				log.Printf("[ERROR] [migrator@%s] unexpected diffs\n", m.toTf.Dir())
-				return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs: %s", err)
+	if m.toSkipPlan {
+		log.Printf("[INFO] [migrator@%s] skipping check diffs\n", m.toTf.Dir())
+	} else {
+		// check if a plan in toDir has no changes.
+		log.Printf("[INFO] [migrator@%s] check diffs\n", m.toTf.Dir())
+		_, err = m.toTf.Plan(ctx, toCurrentState, planOpts...)
+		if err != nil {
+			if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
+				if !m.force {
+					log.Printf("[ERROR] [migrator@%s] unexpected diffs\n", m.toTf.Dir())
+					return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs in %s to_dir: %s", m.toTf.Dir(), err)
+				}
+				log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true: %s", m.toTf.Dir(), err)
+			} else {
+				return nil, nil, err
 			}
-			log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true: %s", m.toTf.Dir(), err)
-		} else {
-			return nil, nil, err
 		}
 	}
 

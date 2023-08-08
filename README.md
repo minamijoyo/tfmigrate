@@ -638,8 +638,10 @@ migration "state" "test" {
 The `multi_state` migration updates states in two different directories. It is intended for moving resources across states. It has the following attributes.
 
 - `from_dir` (required): A working directory where states of resources move from.
+- `from_skip_plan` (optional): If true, `tfmigrate` will not perform and analyze a `terraform plan` in the `from_dir`.
 - `from_workspace` (optional): A terraform workspace in the FROM directory. Defaults to "default".
 - `to_dir` (required): A working directory where states of resources move to.
+- `to_skip_plan` (optional): If true, `tfmigrate` will not perform and analyze a `terraform plan` in the `to_dir`.
 - `to_workspace` (optional): A terraform workspace in the TO directory. Defaults to "default".
 - `actions` (required): Actions is a list of multi state action. An action is a plain text for state operation. Valid formats are the following.
   - `"mv <source> <destination>"`

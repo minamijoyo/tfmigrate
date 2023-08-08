@@ -34,6 +34,55 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 			ok: true,
 		},
 		{
+			desc: "valid and default workspace, with diff check disabled in from dir",
+			config: &MultiStateMigratorConfig{
+				FromDir:      "dir1",
+				FromSkipPlan: true,
+				ToDir:        "dir2",
+				Actions: []string{
+					"mv null_resource.foo null_resource.foo2",
+					"mv null_resource.bar null_resource.bar2",
+				},
+			},
+			o: &MigratorOption{
+				ExecPath: "direnv exec . terraform",
+			},
+			ok: true,
+		},
+		{
+			desc: "valid and default workspace, with diff check disabled in to dir",
+			config: &MultiStateMigratorConfig{
+				FromDir:    "dir1",
+				ToDir:      "dir2",
+				ToSkipPlan: true,
+				Actions: []string{
+					"mv null_resource.foo null_resource.foo2",
+					"mv null_resource.bar null_resource.bar2",
+				},
+			},
+			o: &MigratorOption{
+				ExecPath: "direnv exec . terraform",
+			},
+			ok: true,
+		},
+		{
+			desc: "valid and default workspace, with diff check disabled in from and to dirs",
+			config: &MultiStateMigratorConfig{
+				FromDir:      "dir1",
+				FromSkipPlan: true,
+				ToDir:        "dir2",
+				ToSkipPlan:   true,
+				Actions: []string{
+					"mv null_resource.foo null_resource.foo2",
+					"mv null_resource.bar null_resource.bar2",
+				},
+			},
+			o: &MigratorOption{
+				ExecPath: "direnv exec . terraform",
+			},
+			ok: true,
+		},
+		{
 			desc: "valid and custom workspace",
 			config: &MultiStateMigratorConfig{
 				FromDir:       "dir1",
@@ -167,7 +216,7 @@ resource "null_resource" "qux" {}
 	}
 	o := &MigratorOption{}
 	force := false
-	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force)
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, false, false)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
@@ -221,6 +270,340 @@ resource "null_resource" "qux" {}
 	}
 	if toChanged {
 		t.Error("expect not to have changes in toDir")
+	}
+}
+
+func TestAccMultiStateMigratorApplyWithFromSkipPlan(t *testing.T) {
+	tfexec.SkipUnlessAcceptanceTestEnabled(t)
+	ctx := context.Background()
+
+	// setup the initial files and states
+	fromBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/fromDir")
+	fromSource := `
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
+resource "null_resource" "baz" {}
+`
+	fromWorkspace := "default"
+	fromTf := tfexec.SetupTestAccWithApply(t, fromWorkspace, fromBackend+fromSource)
+
+	toBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/toDir")
+	toSource := `
+resource "null_resource" "qux" {}
+`
+	toWorkspace := "default"
+	toTf := tfexec.SetupTestAccWithApply(t, toWorkspace, toBackend+toSource)
+
+	// update terraform resource files for migration
+	fromUpdatedSource := fromSource
+
+	tfexec.UpdateTestAccSource(t, fromTf, fromBackend+fromUpdatedSource)
+
+	toUpdatedSource := `
+resource "null_resource" "foo" {}
+resource "null_resource" "bar2" {}
+resource "null_resource" "qux" {}
+`
+	tfexec.UpdateTestAccSource(t, toTf, toBackend+toUpdatedSource)
+
+	fromChanged, err := fromTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
+	}
+	if fromChanged {
+		t.Fatalf("expect not to have changes in fromDir")
+	}
+
+	toChanged, err := toTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
+	}
+	if !toChanged {
+		t.Fatalf("expect to have changes in toDir")
+	}
+
+	// perform state migration
+	actions := []MultiStateAction{
+		NewMultiStateMvAction("null_resource.foo", "null_resource.foo"),
+		NewMultiStateMvAction("null_resource.bar", "null_resource.bar2"),
+	}
+	o := &MigratorOption{}
+	force := false
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, true, false)
+	err = m.Plan(ctx)
+	if err != nil {
+		t.Fatalf("failed to run migrator plan: %s", err)
+	}
+
+	err = m.Apply(ctx)
+	if err != nil {
+		t.Fatalf("failed to run migrator apply: %s", err)
+	}
+
+	// verify state migration results
+	fromGot, err := fromTf.StateList(ctx, nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list in fromDir: %s", err)
+	}
+	fromWant := []string{
+		"null_resource.baz",
+	}
+	sort.Strings(fromGot)
+	sort.Strings(fromWant)
+	if !reflect.DeepEqual(fromGot, fromWant) {
+		t.Errorf("got state: %v, want state: %v in fromDir", fromGot, fromWant)
+	}
+
+	toGot, err := toTf.StateList(ctx, nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list in toDir: %s", err)
+	}
+	toWant := []string{
+		"null_resource.foo",
+		"null_resource.bar2",
+		"null_resource.qux",
+	}
+	sort.Strings(toGot)
+	sort.Strings(toWant)
+	if !reflect.DeepEqual(toGot, toWant) {
+		t.Errorf("got state: %v, want state: %v in toDir", toGot, toWant)
+	}
+
+	fromChanged, err = fromTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
+	}
+	if !fromChanged {
+		t.Error("expect to have changes in fromDir")
+	}
+
+	toChanged, err = toTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
+	}
+	if toChanged {
+		t.Error("expect not to have changes in toDir")
+	}
+}
+
+func TestAccMultiStateMigratorApplyWithToSkipPlan(t *testing.T) {
+	tfexec.SkipUnlessAcceptanceTestEnabled(t)
+	ctx := context.Background()
+
+	// setup the initial files and states
+	fromBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/fromDir")
+	fromSource := `
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
+resource "null_resource" "baz" {}
+`
+	fromWorkspace := "default"
+	fromTf := tfexec.SetupTestAccWithApply(t, fromWorkspace, fromBackend+fromSource)
+
+	toBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/toDir")
+	toSource := `
+resource "null_resource" "qux" {}
+`
+	toWorkspace := "default"
+	toTf := tfexec.SetupTestAccWithApply(t, toWorkspace, toBackend+toSource)
+
+	// update terraform resource files for migration
+	fromUpdatedSource := `
+resource "null_resource" "baz" {}
+`
+	tfexec.UpdateTestAccSource(t, fromTf, fromBackend+fromUpdatedSource)
+
+	toUpdatedSource := toSource
+
+	tfexec.UpdateTestAccSource(t, toTf, toBackend+toUpdatedSource)
+
+	fromChanged, err := fromTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
+	}
+	if !fromChanged {
+		t.Fatalf("expect to have changes in fromDir")
+	}
+
+	toChanged, err := toTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
+	}
+	if toChanged {
+		t.Fatalf("expect not to have changes in toDir")
+	}
+
+	// perform state migration
+	actions := []MultiStateAction{
+		NewMultiStateMvAction("null_resource.foo", "null_resource.foo"),
+		NewMultiStateMvAction("null_resource.bar", "null_resource.bar2"),
+	}
+	o := &MigratorOption{}
+	force := false
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, false, true)
+	err = m.Plan(ctx)
+	if err != nil {
+		t.Fatalf("failed to run migrator plan: %s", err)
+	}
+
+	err = m.Apply(ctx)
+	if err != nil {
+		t.Fatalf("failed to run migrator apply: %s", err)
+	}
+
+	// verify state migration results
+	fromGot, err := fromTf.StateList(ctx, nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list in fromDir: %s", err)
+	}
+	fromWant := []string{
+		"null_resource.baz",
+	}
+	sort.Strings(fromGot)
+	sort.Strings(fromWant)
+	if !reflect.DeepEqual(fromGot, fromWant) {
+		t.Errorf("got state: %v, want state: %v in fromDir", fromGot, fromWant)
+	}
+
+	toGot, err := toTf.StateList(ctx, nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list in toDir: %s", err)
+	}
+	toWant := []string{
+		"null_resource.foo",
+		"null_resource.bar2",
+		"null_resource.qux",
+	}
+	sort.Strings(toGot)
+	sort.Strings(toWant)
+	if !reflect.DeepEqual(toGot, toWant) {
+		t.Errorf("got state: %v, want state: %v in toDir", toGot, toWant)
+	}
+
+	fromChanged, err = fromTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
+	}
+	if fromChanged {
+		t.Error("expect not to have changes in fromDir")
+	}
+
+	toChanged, err = toTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
+	}
+	if !toChanged {
+		t.Error("expect to have changes in toDir")
+	}
+}
+
+func TestAccMultiStateMigratorApplyWithSkipPlan(t *testing.T) {
+	tfexec.SkipUnlessAcceptanceTestEnabled(t)
+	ctx := context.Background()
+
+	// setup the initial files and states
+	fromBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/fromDir")
+	fromSource := `
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
+resource "null_resource" "baz" {}
+`
+	fromWorkspace := "default"
+	fromTf := tfexec.SetupTestAccWithApply(t, fromWorkspace, fromBackend+fromSource)
+
+	toBackend := tfexec.GetTestAccBackendS3Config(t.Name() + "/toDir")
+	toSource := `
+resource "null_resource" "qux" {}
+`
+	toWorkspace := "default"
+	toTf := tfexec.SetupTestAccWithApply(t, toWorkspace, toBackend+toSource)
+
+	// update terraform resource files for migration
+	fromUpdatedSource := fromSource
+
+	tfexec.UpdateTestAccSource(t, fromTf, fromBackend+fromUpdatedSource)
+
+	toUpdatedSource := toSource
+
+	tfexec.UpdateTestAccSource(t, toTf, toBackend+toUpdatedSource)
+
+	fromChanged, err := fromTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
+	}
+	if fromChanged {
+		t.Fatalf("expect not to have changes in fromDir")
+	}
+
+	toChanged, err := toTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
+	}
+	if toChanged {
+		t.Fatalf("expect not to have changes in toDir")
+	}
+
+	// perform state migration
+	actions := []MultiStateAction{
+		NewMultiStateMvAction("null_resource.foo", "null_resource.foo"),
+		NewMultiStateMvAction("null_resource.bar", "null_resource.bar2"),
+	}
+	o := &MigratorOption{}
+	force := false
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, true, true)
+	err = m.Plan(ctx)
+	if err != nil {
+		t.Fatalf("failed to run migrator plan: %s", err)
+	}
+
+	err = m.Apply(ctx)
+	if err != nil {
+		t.Fatalf("failed to run migrator apply: %s", err)
+	}
+
+	// verify state migration results
+	fromGot, err := fromTf.StateList(ctx, nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list in fromDir: %s", err)
+	}
+	fromWant := []string{
+		"null_resource.baz",
+	}
+	sort.Strings(fromGot)
+	sort.Strings(fromWant)
+	if !reflect.DeepEqual(fromGot, fromWant) {
+		t.Errorf("got state: %v, want state: %v in fromDir", fromGot, fromWant)
+	}
+
+	toGot, err := toTf.StateList(ctx, nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list in toDir: %s", err)
+	}
+	toWant := []string{
+		"null_resource.foo",
+		"null_resource.bar2",
+		"null_resource.qux",
+	}
+	sort.Strings(toGot)
+	sort.Strings(toWant)
+	if !reflect.DeepEqual(toGot, toWant) {
+		t.Errorf("got state: %v, want state: %v in toDir", toGot, toWant)
+	}
+
+	fromChanged, err = fromTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in fromDir: %s", err)
+	}
+	if !fromChanged {
+		t.Error("expect to have changes in fromDir")
+	}
+
+	toChanged, err = toTf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
+	}
+	if !toChanged {
+		t.Error("expect to have changes in toDir")
 	}
 }
 
@@ -281,7 +664,7 @@ resource "null_resource" "qux" {}
 	}
 	o := &MigratorOption{}
 	force := false
-	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force)
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, false, false)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
@@ -400,7 +783,7 @@ resource "null_resource" "qux2" {}
 	o := &MigratorOption{}
 	o.PlanOut = "foo.tfplan"
 	force := true
-	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force)
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, false, false)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
