@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/hashicorp/go-version"
 	"github.com/mattn/go-shellwords"
 )
 
@@ -56,8 +57,8 @@ func NewPlan(b []byte) *Plan {
 // As a result, the interface is opinionated and less flexible. For running arbitrary terraform commands
 // you can use Run(), which is a low-level generic method.
 type TerraformCLI interface {
-	// Version returns a version number of Terraform.
-	Version(ctx context.Context) (string, error)
+	// Version returns a Terraform version.
+	Version(ctx context.Context) (*version.Version, error)
 
 	// Init initializes the current work directory.
 	Init(ctx context.Context, opts ...string) error
@@ -77,6 +78,10 @@ type TerraformCLI interface {
 	// If a state is given, use it for the input state.
 	Import(ctx context.Context, state *State, address string, id string, opts ...string) (*State, error)
 
+	// Providers shows a tree of modules in the referenced configuration annotated with
+	// their provider requirements.
+	Providers(ctx context.Context) (string, error)
+
 	// StateList shows a list of resources.
 	// If a state is given, use it for the input state.
 	StateList(ctx context.Context, state *State, addresses []string, opts ...string) ([]string, error)
@@ -95,6 +100,13 @@ type TerraformCLI interface {
 	// Note that if the input state is not given, always return nil state,
 	// because the terraform state rm command doesn't have -state-out option.
 	StateRm(ctx context.Context, state *State, addresses []string, opts ...string) (*State, error)
+
+	// StateReplaceProvider replaces a provider from source to destination address.
+	// If a state argument is given, use it for the input state.
+	// It returns the given state.
+	// Unlike other state subcommands, the terraform state replace-provider
+	// command doesn't support a -state-out option; it only supports the -state option.
+	StateReplaceProvider(ctx context.Context, state *State, source string, destination string, opts ...string) (*State, error)
 
 	// StatePush pushes a given State to remote.
 	StatePush(ctx context.Context, state *State, opts ...string) error

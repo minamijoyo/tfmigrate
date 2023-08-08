@@ -308,14 +308,11 @@ func UpdateTestAccSource(t *testing.T, tf TerraformCLI, source string) {
 
 // MatchTerraformVersion returns true if terraform version matches a given constraints.
 func MatchTerraformVersion(ctx context.Context, tf TerraformCLI, constraints string) (bool, error) {
-	tfVersionRaw, err := tf.Version(ctx)
+	v, err := tf.Version(ctx)
 	if err != nil {
 		return false, fmt.Errorf("failed to get terraform version: %s", err)
 	}
-	v, err := version.NewVersion(tfVersionRaw)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse terraform version: %s", err)
-	}
+
 	c, err := version.NewConstraint(constraints)
 	if err != nil {
 		return false, fmt.Errorf("failed to new version constraint: %s", err)
@@ -325,13 +322,9 @@ func MatchTerraformVersion(ctx context.Context, tf TerraformCLI, constraints str
 
 // IsPreleaseTerraformVersion returns true if terraform version is a prelease.
 func IsPreleaseTerraformVersion(ctx context.Context, tf TerraformCLI) (bool, error) {
-	tfVersionRaw, err := tf.Version(ctx)
+	v, err := tf.Version(ctx)
 	if err != nil {
 		return false, fmt.Errorf("failed to get terraform version: %s", err)
-	}
-	v, err := version.NewVersion(tfVersionRaw)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse terraform version: %s", err)
 	}
 
 	if v.Prerelease() != "" {

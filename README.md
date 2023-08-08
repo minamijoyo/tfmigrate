@@ -32,6 +32,7 @@ A Terraform state migration tool for GitOps.
          * [state xmv](#state-xmv)
          * [state rm](#state-rm)
          * [state import](#state-import)
+         * [state replace-provider](#state-replace-provider)
       * [migration block (multi_state)](#migration-block-multi_state)
          * [multi_state mv](#multi_state-mv)
          * [multi_state xmv](#multi_state-xmv)
@@ -572,6 +573,7 @@ The `state` migration updates the state in a single directory. It has the follow
   - `"xmv <source> <destination>"`
   - `"rm <addresses>...`
   - `"import <address> <id>"`
+  - `"replace-provider <address> <address>"`
 - `force` (optional): Apply migrations even if plan show changes
 
 Note that `dir` is relative path to the current working directory where `tfmigrate` command is invoked.
@@ -629,6 +631,17 @@ migration "state" "test" {
   dir = "dir1"
   actions = [
     "import aws_security_group.qux qux",
+  ]
+}
+```
+
+#### state replace-provider
+
+```hcl
+migration "state" "test" {
+  dir = "dir1"
+  actions = [
+    "replace-provider registry.terraform.io/-/null registry.terraform.io/hashicorp/null",
   ]
 }
 ```

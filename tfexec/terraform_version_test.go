@@ -66,7 +66,7 @@ is 0.12.29. You can update by downloading from https://www.terraform.io/download
 			if !tc.ok && err == nil {
 				t.Fatalf("expected to return an error, but no error, got = %s", got)
 			}
-			if tc.ok && got != tc.want {
+			if tc.ok && got.String() != tc.want {
 				t.Errorf("got: %s, want: %s", got, tc.want)
 			}
 		})
@@ -82,7 +82,7 @@ func TestAccTerraformCLIVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to run terraform version: %s", err)
 	}
-	if got == "" {
+	if got.String() == "" {
 		t.Error("failed to parse terraform version")
 	}
 	fmt.Printf("got = %s\n", got)
