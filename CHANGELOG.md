@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.3.14 (2023/08/08)
+
 NEW FEATURES:
 
 * support conditionally disabling terraform plan-ing ([#143](https://github.com/minamijoyo/tfmigrate/pull/143))
