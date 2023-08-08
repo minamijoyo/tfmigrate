@@ -18,8 +18,8 @@ type MultiStateMigratorConfig struct {
 	FromSkipPlan bool `hcl:"from_skip_plan,optional"`
 	// ToDir is a working directory where states of resources move to.
 	ToDir string `hcl:"to_dir"`
-	// ToSkipPlan controls whether or not to and analyze Terraform plan within the
-	// to_dir.
+	// ToSkipPlan controls whether or not to run and analyze Terraform plan
+	// within the to_dir.
 	ToSkipPlan bool `hcl:"to_skip_plan,optional"`
 	// FromWorkspace is a workspace within FromDir
 	FromWorkspace string `hcl:"from_workspace,optional"`
