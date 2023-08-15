@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Merge tfmigrate-storage implementation into the tfmigrate repository ([#147](https://github.com/minamijoyo/tfmigrate/pull/147))
+
 ## 0.3.14 (2023/08/08)
 
 NEW FEATURES:
