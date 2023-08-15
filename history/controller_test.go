@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	storage "github.com/minamijoyo/tfmigrate-storage"
-	"github.com/minamijoyo/tfmigrate-storage/mock"
+	"github.com/minamijoyo/tfmigrate/storage"
+	"github.com/minamijoyo/tfmigrate/storage/mock"
 )
 
 func TestLoadMigrationFileNames(t *testing.T) {

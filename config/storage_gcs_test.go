@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	storage "github.com/minamijoyo/tfmigrate-storage"
-	"github.com/minamijoyo/tfmigrate-storage/gcs"
+	"github.com/minamijoyo/tfmigrate/storage"
+	"github.com/minamijoyo/tfmigrate/storage/gcs"
 )
 
 func TestParseGCSStorageBlock(t *testing.T) {

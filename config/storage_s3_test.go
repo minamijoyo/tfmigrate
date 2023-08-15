@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	storage "github.com/minamijoyo/tfmigrate-storage"
-	"github.com/minamijoyo/tfmigrate-storage/s3"
+	"github.com/minamijoyo/tfmigrate/storage"
+	"github.com/minamijoyo/tfmigrate/storage/s3"
 )
 
 func TestParseS3StorageBlock(t *testing.T) {
