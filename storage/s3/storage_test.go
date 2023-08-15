@@ -2,7 +2,7 @@ package s3
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"strings"
 	"testing"
 
@@ -98,7 +98,7 @@ func TestStorageRead(t *testing.T) {
 			},
 			client: &mockClient{
 				getOutput: &s3.GetObjectOutput{
-					Body: ioutil.NopCloser(strings.NewReader("foo")),
+					Body: io.NopCloser(strings.NewReader("foo")),
 				},
 				err: nil,
 			},

@@ -2,7 +2,6 @@ package local
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -35,7 +34,7 @@ func TestStorageWrite(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			localDir, err := ioutil.TempDir("", "localDir")
+			localDir, err := os.MkdirTemp("", "localDir")
 			if err != nil {
 				t.Fatalf("failed to craete temp dir: %s", err)
 			}
@@ -55,7 +54,7 @@ func TestStorageWrite(t *testing.T) {
 			}
 
 			if tc.ok {
-				got, err := ioutil.ReadFile(tc.config.Path)
+				got, err := os.ReadFile(tc.config.Path)
 				if err != nil {
 					t.Fatalf("failed to read contents: %s", err)
 				}
@@ -94,13 +93,13 @@ func TestStorageRead(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			localDir, err := ioutil.TempDir("", "localDir")
+			localDir, err := os.MkdirTemp("", "localDir")
 			if err != nil {
 				t.Fatalf("failed to craete temp dir: %s", err)
 			}
 			t.Cleanup(func() { os.RemoveAll(localDir) })
 
-			err = ioutil.WriteFile(filepath.Join(localDir, "history.json"), tc.contents, 0600)
+			err = os.WriteFile(filepath.Join(localDir, "history.json"), tc.contents, 0600)
 			if err != nil {
 				t.Fatalf("failed to write contents: %s", err)
 			}

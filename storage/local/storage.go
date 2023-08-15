@@ -2,7 +2,6 @@ package local
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 
 	"github.com/minamijoyo/tfmigrate/storage"
@@ -33,7 +32,7 @@ func (s *Storage) Write(ctx context.Context, b []byte) error {
 	// G306: Expect WriteFile permissions to be 0600 or less
 	// We ignore it because a history file doesn't contains sensitive data.
 	// Note that changing a permission to 0600 is breaking change.
-	return ioutil.WriteFile(s.config.Path, b, 0644)
+	return os.WriteFile(s.config.Path, b, 0644)
 }
 
 // Read reads migration history data from storage.
@@ -44,5 +43,5 @@ func (s *Storage) Read(ctx context.Context) ([]byte, error) {
 		// If the key does not exist
 		return []byte{}, nil
 	}
-	return ioutil.ReadFile(s.config.Path)
+	return os.ReadFile(s.config.Path)
 }
