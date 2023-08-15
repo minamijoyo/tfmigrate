@@ -4,7 +4,7 @@ import (
 	"context"
 
 	gcStorage "cloud.google.com/go/storage"
-	storage "github.com/minamijoyo/tfmigrate-storage"
+	"github.com/minamijoyo/tfmigrate/storage"
 )
 
 // An implementation of [storage.Storage] interface.

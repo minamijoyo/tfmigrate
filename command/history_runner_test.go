@@ -6,9 +6,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/minamijoyo/tfmigrate-storage/mock"
 	"github.com/minamijoyo/tfmigrate/config"
 	"github.com/minamijoyo/tfmigrate/history"
+	"github.com/minamijoyo/tfmigrate/storage/mock"
 )
 
 func TestHistoryRunnerPlan(t *testing.T) {

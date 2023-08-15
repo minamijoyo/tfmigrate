@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	storage "github.com/minamijoyo/tfmigrate-storage"
+	"github.com/minamijoyo/tfmigrate/storage"
 )
 
 // Storage is a storage.Storage implementation for local file.

@@ -1,6 +1,6 @@
 package gcs
 
-import storage "github.com/minamijoyo/tfmigrate-storage"
+import "github.com/minamijoyo/tfmigrate/storage"
 
 // Config is a config for Google Cloud Storage.
 // This is expected to have almost the same options as Terraform gcs backend.

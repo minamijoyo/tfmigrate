@@ -1,6 +1,6 @@
 package mock
 
-import storage "github.com/minamijoyo/tfmigrate-storage"
+import "github.com/minamijoyo/tfmigrate/storage"
 
 // Config is a config for mock storage.
 type Config struct {
