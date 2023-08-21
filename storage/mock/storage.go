@@ -33,7 +33,7 @@ func (s *Storage) Data() string {
 }
 
 // Write writes migration history data to storage.
-func (s *Storage) Write(ctx context.Context, b []byte) error {
+func (s *Storage) Write(_ context.Context, b []byte) error {
 	if s.config.WriteError {
 		return fmt.Errorf("failed to write mock storage: writeError = %t", s.config.WriteError)
 	}
@@ -42,7 +42,7 @@ func (s *Storage) Write(ctx context.Context, b []byte) error {
 }
 
 // Read reads migration history data from storage.
-func (s *Storage) Read(ctx context.Context) ([]byte, error) {
+func (s *Storage) Read(_ context.Context) ([]byte, error) {
 	if s.config.ReadError {
 		return nil, fmt.Errorf("failed to read mock storage: readError = %t", s.config.ReadError)
 	}

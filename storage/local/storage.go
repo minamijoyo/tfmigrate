@@ -27,7 +27,7 @@ func NewStorage(config *Config) (*Storage, error) {
 }
 
 // Write writes migration history data to storage.
-func (s *Storage) Write(ctx context.Context, b []byte) error {
+func (s *Storage) Write(_ context.Context, b []byte) error {
 	// nolint gosec
 	// G306: Expect WriteFile permissions to be 0600 or less
 	// We ignore it because a history file doesn't contains sensitive data.
@@ -38,7 +38,7 @@ func (s *Storage) Write(ctx context.Context, b []byte) error {
 // Read reads migration history data from storage.
 // If the key does not exist, it is assumed to be uninitialized and returns
 // an empty array instead of an error.
-func (s *Storage) Read(ctx context.Context) ([]byte, error) {
+func (s *Storage) Read(_ context.Context) ([]byte, error) {
 	if _, err := os.Stat(s.config.Path); os.IsNotExist(err) {
 		// If the key does not exist
 		return []byte{}, nil

@@ -276,7 +276,7 @@ https://github.com/minamijoyo/tfmigrate/releases
 
 ### Source
 
-If you have Go 1.20+ development environment:
+If you have Go 1.21+ development environment:
 
 ```
 $ git clone https://github.com/minamijoyo/tfmigrate
