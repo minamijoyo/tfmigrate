@@ -97,7 +97,7 @@ resource "null_resource" "bar" {}
 
 	got, err := terraformCLI.Providers(context.Background())
 	if err != nil {
-		t.Fatalf("failed to run terraform state list: %s", err)
+		t.Fatalf("failed to run terraform providers: %s", err)
 	}
 
 	v, err := terraformCLI.Version(context.Background())
