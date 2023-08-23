@@ -16,7 +16,7 @@ type StateReplaceProviderAction struct {
 	destination string
 }
 
-var _ StateAction = (*StateMvAction)(nil)
+var _ StateAction = (*StateReplaceProviderAction)(nil)
 
 // NewStateReplaceProviderAction returns a new StateReplaceProviderAction instance.
 func NewStateReplaceProviderAction(source string, destination string) *StateReplaceProviderAction {
