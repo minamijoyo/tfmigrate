@@ -540,12 +540,14 @@ func TestControllerAddRecord(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
+			currentTC := tc
+
 			c := &Controller{
 				migrations: tc.migrations,
 				history:    tc.history,
 			}
 
-			c.AddRecord(tc.filename, tc.migrationType, tc.name, &tc.appliedAt)
+			c.AddRecord(tc.filename, tc.migrationType, currentTC.name, &currentTC.appliedAt)
 			got := tc.history
 			if diff := cmp.Diff(got, tc.want, cmp.AllowUnexported(got)); diff != "" {
 				t.Errorf("got = %#v, want = %#v, diff = %s", got, tc.want, diff)

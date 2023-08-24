@@ -20,7 +20,7 @@ type MockMigratorConfig struct {
 var _ MigratorConfig = (*MockMigratorConfig)(nil)
 
 // NewMigrator returns a new instance of MockMigrator.
-func (c *MockMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, error) {
+func (c *MockMigratorConfig) NewMigrator(_ *MigratorOption) (Migrator, error) {
 	return NewMockMigrator(c.PlanError, c.ApplyError), nil
 }
 
@@ -45,7 +45,7 @@ func NewMockMigrator(planError bool, applyError bool) *MockMigrator {
 
 // plan computes a new state by applying state migration operations to a temporary state.
 // It does nothing, but can return an error.
-func (m *MockMigrator) plan(ctx context.Context) (*tfexec.State, error) {
+func (m *MockMigrator) plan(_ context.Context) (*tfexec.State, error) {
 	if m.planError {
 		return nil, fmt.Errorf("failed to plan mock migrator: planError = %t", m.planError)
 	}

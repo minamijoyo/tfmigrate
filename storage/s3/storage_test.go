@@ -20,12 +20,12 @@ type mockClient struct {
 }
 
 // PutObjectWithContext returns a mocked response.
-func (c *mockClient) PutObjectWithContext(ctx aws.Context, input *s3.PutObjectInput, opts ...request.Option) (*s3.PutObjectOutput, error) {
+func (c *mockClient) PutObjectWithContext(_ aws.Context, _ *s3.PutObjectInput, _ ...request.Option) (*s3.PutObjectOutput, error) {
 	return c.putOutput, c.err
 }
 
 // GetObjectWithContext returns a mocked response.
-func (c *mockClient) GetObjectWithContext(ctx aws.Context, input *s3.GetObjectInput, opts ...request.Option) (*s3.GetObjectOutput, error) {
+func (c *mockClient) GetObjectWithContext(_ aws.Context, _ *s3.GetObjectInput, _ ...request.Option) (*s3.GetObjectOutput, error) {
 	return c.getOutput, c.err
 }
 

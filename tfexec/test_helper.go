@@ -34,7 +34,7 @@ func NewMockExecutor(mockCommands []*mockCommand) Executor {
 }
 
 // NewCommandContext builds and returns an instance of Command.
-func (e *mockExecutor) NewCommandContext(ctx context.Context, name string, args ...string) (Command, error) {
+func (e *mockExecutor) NewCommandContext(_ context.Context, name string, args ...string) (Command, error) {
 	cmd := e.mockCommands[e.newCommnadContextCalls]
 	e.newCommnadContextCalls++
 	// store called args to pass runFunc callback.
@@ -70,7 +70,7 @@ func (e *mockExecutor) Dir() string {
 }
 
 // AppendEnv appends an environment variable.
-func (e *mockExecutor) AppendEnv(key string, value string) {
+func (e *mockExecutor) AppendEnv(_ string, _ string) {
 	// no op.
 }
 

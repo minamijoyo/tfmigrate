@@ -16,7 +16,7 @@ func mockEcho(args ...string) int {
 	return 0
 }
 
-func mockFalse(args ...string) int {
+func mockFalse(_ ...string) int {
 	return 1
 }
 

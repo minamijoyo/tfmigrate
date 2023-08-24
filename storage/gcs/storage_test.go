@@ -13,11 +13,11 @@ type mockClient struct {
 	err        error
 }
 
-func (c *mockClient) Read(ctx context.Context) ([]byte, error) {
+func (c *mockClient) Read(_ context.Context) ([]byte, error) {
 	return c.dataToRead, c.err
 }
 
-func (c *mockClient) Write(ctx context.Context, b []byte) error {
+func (c *mockClient) Write(_ context.Context, _ []byte) error {
 	return c.err
 }
 
