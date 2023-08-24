@@ -98,6 +98,23 @@ func TestTerraformCLIStateReplaceProvider(t *testing.T) {
 					argsRe:   regexp.MustCompile(`^terraform version$`),
 					runFunc:  versionRunFunc,
 					stdout:   "Terraform v0.12.99\n",
+					exitCode: 0,
+				},
+			},
+			state:        nil,
+			source:       "registry.terraform.io/-/null",
+			destination:  "registry.terraform.io/hashicorp/null",
+			updatedState: nil,
+			ok:           false,
+		},
+		{
+			desc: "when version check fails",
+			mockCommands: []*mockCommand{
+				{
+					args:     []string{"terraform", "version"},
+					argsRe:   regexp.MustCompile(`^terraform version$`),
+					runFunc:  versionRunFunc,
+					stdout:   "Terraform v1.4.7\n",
 					exitCode: 1,
 				},
 			},
