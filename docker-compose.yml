@@ -18,6 +18,7 @@ services:
       # From observation, although we don’t have complete confidence in the root cause,
       # it appears that localstack sometimes misses API requests when run in parallel.
       TF_CLI_ARGS_apply: "--parallelism=1"
+      TERRAFORM_VERSION: ${TERRAFORM_VERSION:-latest}
     depends_on:
       - localstack
       - fake-gcs-server

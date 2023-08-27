@@ -140,6 +140,10 @@ type TerraformCLI interface {
 
 	// PlanHasChange is a helper method which runs plan and return true if the plan has change.
 	PlanHasChange(ctx context.Context, state *State, opts ...string) (bool, error)
+
+	// SupportsStateReplaceProvider is a helper method used to determine whether or
+	// not the terraform version supports `state replace-provider`.
+	SupportsStateReplaceProvider(ctx context.Context) (bool, version.Constraints, error)
 }
 
 // terraformCLI implements the TerraformCLI interface.

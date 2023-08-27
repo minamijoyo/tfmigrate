@@ -14,22 +14,37 @@ const (
 	MinimumTerraformVersionForStateReplaceProvider = "0.13"
 )
 
-// StateReplaceProvider replaces providers from source to destination address.
-// If a state argument is given, use it for the input state.
-// It returns the given state.
-func (c *terraformCLI) StateReplaceProvider(ctx context.Context, state *State, source string, destination string, opts ...string) (*State, error) {
+// SupportsStateReplaceProvider returns true if the terraform version is greater
+// than or equal to 0.13.0 and therefore supports the state replace-provider command.
+func (c *terraformCLI) SupportsStateReplaceProvider(ctx context.Context) (bool, version.Constraints, error) {
 	constraints, err := version.NewConstraint(fmt.Sprintf(">= %s", MinimumTerraformVersionForStateReplaceProvider))
 	if err != nil {
-		return nil, err
+		return false, constraints, err
 	}
 
 	v, err := c.Version(ctx)
 	if err != nil {
-		return nil, err
+		return false, constraints, err
 	}
 
 	if !constraints.Check(v) {
-		return nil, fmt.Errorf("configuration uses Terraform version %s; replace-provider action requires Terraform version %s", v, constraints)
+		return false, constraints, nil
+	}
+
+	return true, constraints, nil
+}
+
+// StateReplaceProvider replaces providers from source to destination address.
+// If a state argument is given, use it for the input state.
+// It returns the given state.
+func (c *terraformCLI) StateReplaceProvider(ctx context.Context, state *State, source string, destination string, opts ...string) (*State, error) {
+	supports, constraints, err := c.SupportsStateReplaceProvider(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if !supports {
+		return nil, fmt.Errorf("replace-provider action requires Terraform version %s", constraints)
 	}
 
 	args := []string{"state", "replace-provider"}

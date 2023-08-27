@@ -2,14 +2,11 @@ package tfexec
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"reflect"
 	"regexp"
 	"strings"
 	"testing"
-
-	"github.com/hashicorp/go-version"
 )
 
 func TestTerraformCLIStateReplaceProvider(t *testing.T) {
@@ -224,8 +221,11 @@ func TestTerraformCLIStateReplaceProvider(t *testing.T) {
 	}
 }
 
-func TestAccTerraformCLIStateReplaceProvider(t *testing.T) {
-	SkipUnlessAcceptanceTestEnabled(t)
+func TestAccTerraformCLIStateReplaceProviderWithLegacyTerraform(t *testing.T) {
+	tfVersion := os.Getenv("TERRAFORM_VERSION")
+	if tfVersion != LegacyTerraformVersion {
+		t.Skipf("skip %s acceptance test for non-legacy Terraform version %s", t.Name(), tfVersion)
+	}
 
 	source := `
 resource "null_resource" "foo" {}
@@ -244,17 +244,63 @@ resource "null_resource" "bar" {}
 		t.Fatalf("failed to run terraform apply: %s", err)
 	}
 
-	v, err := terraformCLI.Version(context.Background())
+	state, err := terraformCLI.StatePull(context.Background())
 	if err != nil {
-		t.Fatalf("unexpected version error: %s", err)
+		t.Fatalf("failed to run terraform state pull: %s", err)
 	}
 
-	constraints, err := version.NewConstraint(fmt.Sprintf(">= %s", MinimumTerraformVersionForStateReplaceProvider))
-	if err != nil {
-		t.Fatalf("unexpected version constraint error: %s", err)
+	stateProvider := "provider.null"
+
+	if !strings.Contains(string(state.Bytes()), stateProvider) {
+		t.Errorf("state does not contain provider: %s", stateProvider)
 	}
 
-	isLegacyTFVersion := !constraints.Check(v)
+	gotProviders, err := terraformCLI.Providers(context.Background())
+	if err != nil {
+		t.Fatalf("failed to run terraform providers: %s", err)
+	}
+
+	wantProviders := legacyProvidersStdout
+
+	if gotProviders != wantProviders {
+		t.Errorf("got: %s, want: %s", gotProviders, wantProviders)
+	}
+
+	_, err = terraformCLI.StateReplaceProvider(context.Background(), state, "registry.terraform.io/hashicorp/null", "registry.tfmigrate.io/hashicorp/null", "-auto-approve")
+	if err == nil {
+		t.Fatalf("expected terraform state replace-provider to error")
+	}
+
+	expected := "replace-provider action requires Terraform version >= 0.13"
+	if err.Error() != expected {
+		t.Fatalf("expected terraform state replace-provider to error with %s; got %s", expected, err.Error())
+	}
+}
+
+func TestAccTerraformCLIStateReplaceProvider(t *testing.T) {
+	SkipUnlessAcceptanceTestEnabled(t)
+
+	tfVersion := os.Getenv("TERRAFORM_VERSION")
+	if tfVersion == LegacyTerraformVersion {
+		t.Skipf("skip %s acceptance test for legacy Terraform version %s", t.Name(), tfVersion)
+	}
+
+	source := `
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
+`
+	e := SetupTestAcc(t, source)
+	terraformCLI := NewTerraformCLI(e)
+
+	err := terraformCLI.Init(context.Background(), "-input=false", "-no-color")
+	if err != nil {
+		t.Fatalf("failed to run terraform init: %s", err)
+	}
+
+	err = terraformCLI.Apply(context.Background(), nil, "-input=false", "-no-color", "-auto-approve")
+	if err != nil {
+		t.Fatalf("failed to run terraform apply: %s", err)
+	}
 
 	state, err := terraformCLI.StatePull(context.Background())
 	if err != nil {
@@ -262,9 +308,6 @@ resource "null_resource" "bar" {}
 	}
 
 	stateProvider := "registry.terraform.io/hashicorp/null"
-	if isLegacyTFVersion {
-		stateProvider = "provider.null"
-	}
 
 	if !strings.Contains(string(state.Bytes()), stateProvider) {
 		t.Errorf("state does not contain provider: %s", stateProvider)
@@ -276,32 +319,21 @@ resource "null_resource" "bar" {}
 	}
 
 	wantProviders := providersStdout
-	if isLegacyTFVersion {
-		wantProviders = legacyProvidersStdout
-	}
 
 	if gotProviders != wantProviders {
 		t.Errorf("got: %s, want: %s", gotProviders, wantProviders)
 	}
 
 	updatedState, err := terraformCLI.StateReplaceProvider(context.Background(), state, "registry.terraform.io/hashicorp/null", "registry.tfmigrate.io/hashicorp/null", "-auto-approve")
-	if err != nil && !isLegacyTFVersion {
+	if err != nil {
 		t.Fatalf("failed to run terraform state replace-provider: %s", err)
 	}
 
-	if err == nil && isLegacyTFVersion {
-		t.Fatalf("expected state replace-provider error for legacy Terraform version: %s", v.String())
-	}
-
-	if isLegacyTFVersion && !strings.Contains(err.Error(), fmt.Sprintf("configuration uses Terraform version %s; replace-provider action requires Terraform version >= %s", v.String(), MinimumTerraformVersionForStateReplaceProvider)) {
-		t.Fatalf("expected state replace-provider error for legacy Terraform version: %s", v.String())
-	}
-
-	if !isLegacyTFVersion && !strings.Contains(string(updatedState.Bytes()), "registry.tfmigrate.io/hashicorp/null") {
+	if !strings.Contains(string(updatedState.Bytes()), "registry.tfmigrate.io/hashicorp/null") {
 		t.Errorf("state does not contain updated provider: %s", "registry.tfmigrate.io/hashicorp/null")
 	}
 
-	if !isLegacyTFVersion && strings.Contains(string(updatedState.Bytes()), "registry.terraform.io/hashicorp/null") {
+	if strings.Contains(string(updatedState.Bytes()), "registry.terraform.io/hashicorp/null") {
 		t.Errorf("state contains old provider: %s", "registry.terraform.io/hashicorp/null")
 	}
 }

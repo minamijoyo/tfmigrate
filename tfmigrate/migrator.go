@@ -3,6 +3,7 @@ package tfmigrate
 import (
 	"context"
 	"log"
+	"strings"
 
 	"github.com/minamijoyo/tfmigrate/tfexec"
 )
@@ -30,11 +31,21 @@ func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI, workspace string,
 	}
 	log.Printf("[INFO] [migrator@%s] terraform version: %s\n", tf.Dir(), version)
 
+	supportsStateReplaceProvider, constraints, err := tf.SupportsStateReplaceProvider(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	// init folder
 	log.Printf("[INFO] [migrator@%s] initialize work dir\n", tf.Dir())
 	err = tf.Init(ctx, "-input=false", "-no-color")
 	if err != nil {
-		return nil, nil, err
+		acceptable := "Error: Invalid legacy provider address"
+		if supportsStateReplaceProvider && strings.Contains(err.Error(), acceptable) {
+			log.Printf("[INFO] [migrator@%s] ignoring error '%s' initilizing work dir; the error is expected when using Terraform %s with a legacy Terraform state\n", tf.Dir(), acceptable, constraints)
+		} else {
+			return nil, nil, err
+		}
 	}
 
 	// check current workspace
