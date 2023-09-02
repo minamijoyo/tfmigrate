@@ -104,8 +104,20 @@ func NewStateMigrator(dir string, workspace string, actions []StateAction,
 // We intentionally keep this method private as to not expose internal states and unify
 // the Migrator interface between a single and multi state migrator.
 func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
+	ignoreLegacyStateInitErr := false
+	for _, action := range m.actions {
+		// When invoking `state replace-provider`, it's necessary to first
+		// invoke `terraform init`. However, when using a non-legacy Terraform CLI
+		// against a legacy Terraform state, `terraform init` returns an error.
+		// In this scenario, we can (and must) safely ignore the error.
+		if _, ok := action.(*StateReplaceProviderAction); ok {
+			ignoreLegacyStateInitErr = true
+			break
+		}
+	}
+
 	// setup work dir.
-	currentState, switchBackToRemoteFunc, err := setupWorkDir(ctx, m.tf, m.workspace, m.o.IsBackendTerraformCloud, m.o.BackendConfig)
+	currentState, switchBackToRemoteFunc, err := setupWorkDir(ctx, m.tf, m.workspace, m.o.IsBackendTerraformCloud, m.o.BackendConfig, ignoreLegacyStateInitErr)
 	if err != nil {
 		return nil, err
 	}

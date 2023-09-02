@@ -23,7 +23,7 @@ type Migrator interface {
 
 // setupWorkDir is a common helper function to set up work dir and returns the
 // current state and a switch back function.
-func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI, workspace string, isBackendTerraformCloud bool, backendConfig []string) (*tfexec.State, func(), error) {
+func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI, workspace string, isBackendTerraformCloud bool, backendConfig []string, ignoreLegacyStateInitErr bool) (*tfexec.State, func(), error) {
 	// check if terraform command is available.
 	version, err := tf.Version(ctx)
 	if err != nil {
@@ -40,7 +40,7 @@ func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI, workspace string,
 	log.Printf("[INFO] [migrator@%s] initialize work dir\n", tf.Dir())
 	err = tf.Init(ctx, "-input=false", "-no-color")
 	if err != nil {
-		if supportsStateReplaceProvider && strings.Contains(err.Error(), tfexec.AcceptableLegacyStateInitError) {
+		if supportsStateReplaceProvider && ignoreLegacyStateInitErr && strings.Contains(err.Error(), tfexec.AcceptableLegacyStateInitError) {
 			log.Printf("[INFO] [migrator@%s] ignoring error '%s' initilizing work dir; the error is expected when using Terraform %s with a legacy Terraform state\n", tf.Dir(), tfexec.AcceptableLegacyStateInitError, constraints)
 		} else {
 			return nil, nil, err
