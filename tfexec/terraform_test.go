@@ -126,7 +126,12 @@ resource "null_resource" "bar" {}
 		t.Fatalf("an override file already exists: %s", err)
 	}
 
-	switchBackToRemotekFunc, err := terraformCLI.OverrideBackendToLocal(context.Background(), filename, workspace, false, nil)
+	supportsStateReplaceProvider, _, err := terraformCLI.SupportsStateReplaceProvider(context.Background())
+	if err != nil {
+		t.Fatalf("failed to determine if Terraform version supports state replace-provider: %s", err)
+	}
+
+	switchBackToRemotekFunc, err := terraformCLI.OverrideBackendToLocal(context.Background(), filename, workspace, false, nil, supportsStateReplaceProvider)
 	if err != nil {
 		t.Fatalf("failed to run OverrideBackendToLocal: %s", err)
 	}
@@ -254,7 +259,12 @@ resource "null_resource" "bar" {}
 		t.Fatalf("an override file already exists: %s", err)
 	}
 
-	switchBackToRemotekFunc, err := terraformCLI.OverrideBackendToLocal(context.Background(), filename, workspace, false, backendConfig)
+	supportsStateReplaceProvider, _, err := terraformCLI.SupportsStateReplaceProvider(context.Background())
+	if err != nil {
+		t.Fatalf("failed to determine if Terraform version supports state replace-provider: %s", err)
+	}
+
+	switchBackToRemotekFunc, err := terraformCLI.OverrideBackendToLocal(context.Background(), filename, workspace, false, backendConfig, supportsStateReplaceProvider)
 	if err != nil {
 		t.Fatalf("failed to run OverrideBackendToLocal: %s", err)
 	}

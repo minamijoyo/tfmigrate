@@ -40,9 +40,8 @@ func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI, workspace string,
 	log.Printf("[INFO] [migrator@%s] initialize work dir\n", tf.Dir())
 	err = tf.Init(ctx, "-input=false", "-no-color")
 	if err != nil {
-		acceptable := "Error: Invalid legacy provider address"
-		if supportsStateReplaceProvider && strings.Contains(err.Error(), acceptable) {
-			log.Printf("[INFO] [migrator@%s] ignoring error '%s' initilizing work dir; the error is expected when using Terraform %s with a legacy Terraform state\n", tf.Dir(), acceptable, constraints)
+		if supportsStateReplaceProvider && strings.Contains(err.Error(), tfexec.AcceptableLegacyStateInitError) {
+			log.Printf("[INFO] [migrator@%s] ignoring error '%s' initilizing work dir; the error is expected when using Terraform %s with a legacy Terraform state\n", tf.Dir(), tfexec.AcceptableLegacyStateInitError, constraints)
 		} else {
 			return nil, nil, err
 		}
@@ -71,7 +70,7 @@ func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI, workspace string,
 	}
 	// override backend to local
 	log.Printf("[INFO] [migrator@%s] override backend to local\n", tf.Dir())
-	switchBackToRemoteFunc, err := tf.OverrideBackendToLocal(ctx, "_tfmigrate_override.tf", workspace, isBackendTerraformCloud, backendConfig)
+	switchBackToRemoteFunc, err := tf.OverrideBackendToLocal(ctx, "_tfmigrate_override.tf", workspace, isBackendTerraformCloud, backendConfig, supportsStateReplaceProvider)
 	if err != nil {
 		return nil, nil, err
 	}

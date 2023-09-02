@@ -12,6 +12,13 @@ const (
 	// MinimumTerraformVersionForStateReplaceProvider specifies the minimum
 	// supported Terraform version for StateReplaceProvider.
 	MinimumTerraformVersionForStateReplaceProvider = "0.13"
+
+	// AcceptableLegacyStateInitError is the error message returned by `terraform
+	// init` when a non-legacy Terraform CLI is used against a legacy Terraform state.
+	// When invoking `state replace-provider`, it's necessary to first
+	// invoke `terraform init`. However, when using a non-legacy Terraform CLI
+	// against a legacy Terraform state, this error is expected.
+	AcceptableLegacyStateInitError = "Error: Invalid legacy provider address"
 )
 
 // SupportsStateReplaceProvider returns true if the terraform version is greater

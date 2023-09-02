@@ -306,7 +306,7 @@ func SetupTestAccForStateReplaceProvider(t *testing.T, workspace string, source 
 
 	err := tf.Init(ctx, "-input=false", "-no-color")
 
-	if err != nil && !strings.Contains(err.Error(), "Error: Invalid legacy provider address") {
+	if err != nil && !strings.Contains(err.Error(), AcceptableLegacyStateInitError) {
 		t.Fatalf("failed to run terraform init: %s", err)
 	}
 
