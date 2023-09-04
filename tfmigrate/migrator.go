@@ -70,7 +70,7 @@ func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI, workspace string,
 	}
 	// override backend to local
 	log.Printf("[INFO] [migrator@%s] override backend to local\n", tf.Dir())
-	switchBackToRemoteFunc, err := tf.OverrideBackendToLocal(ctx, "_tfmigrate_override.tf", workspace, isBackendTerraformCloud, backendConfig, supportsStateReplaceProvider)
+	switchBackToRemoteFunc, err := tf.OverrideBackendToLocal(ctx, "_tfmigrate_override.tf", workspace, isBackendTerraformCloud, backendConfig, ignoreLegacyStateInitErr)
 	if err != nil {
 		return nil, nil, err
 	}
