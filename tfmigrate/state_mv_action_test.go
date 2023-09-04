@@ -48,4 +48,9 @@ resource "null_resource" "baz" {}
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
 	}
+
+	err = m.Apply(ctx)
+	if err != nil {
+		t.Fatalf("failed to run migrator apply: %s", err)
+	}
 }
