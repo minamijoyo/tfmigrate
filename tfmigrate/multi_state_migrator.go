@@ -2,6 +2,7 @@ package tfmigrate
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -117,21 +118,26 @@ func NewMultiStateMigrator(fromDir string, toDir string, fromWorkspace string, t
 // It will fail if terraform plan detects any diffs with at least one new state.
 // We intentionally make this method private to avoid exposing internal states and unify
 // the Migrator interface between a single and multi state migrator.
-func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.State, error) {
+func (m *MultiStateMigrator) plan(ctx context.Context) (fromCurrentState *tfexec.State, toCurrentState *tfexec.State, err error) {
 	// setup fromDir.
 	fromCurrentState, fromSwitchBackToRemoteFunc, err := setupWorkDir(ctx, m.fromTf, m.fromWorkspace, m.o.IsBackendTerraformCloud, m.o.BackendConfig, false)
 	if err != nil {
 		return nil, nil, err
 	}
 	// switch back it to remote on exit.
-	defer fromSwitchBackToRemoteFunc()
+	defer func() {
+		err = errors.Join(err, fromSwitchBackToRemoteFunc())
+	}()
+
 	// setup toDir.
 	toCurrentState, toSwitchBackToRemoteFunc, err := setupWorkDir(ctx, m.toTf, m.toWorkspace, m.o.IsBackendTerraformCloud, m.o.BackendConfig, false)
 	if err != nil {
 		return nil, nil, err
 	}
 	// switch back it to remote on exit.
-	defer toSwitchBackToRemoteFunc()
+	defer func() {
+		err = errors.Join(err, toSwitchBackToRemoteFunc())
+	}()
 
 	// computes new states by applying state migration operations to temporary states.
 	log.Printf("[INFO] [migrator] compute new states (%s => %s)\n", m.fromTf.Dir(), m.toTf.Dir())
@@ -182,14 +188,17 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (*tfexec.State, *tfexec.S
 					log.Printf("[ERROR] [migrator@%s] unexpected diffs\n", m.toTf.Dir())
 					return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs in %s to_dir: %s", m.toTf.Dir(), err)
 				}
+
 				log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true: %s", m.toTf.Dir(), err)
+				// reset err to nil to intentionally ignore unexpected diffs.
+				err = nil
 			} else {
 				return nil, nil, err
 			}
 		}
 	}
 
-	return fromCurrentState, toCurrentState, nil
+	return fromCurrentState, toCurrentState, err
 }
 
 // Plan computes new states by applying multi state migration operations to temporary states.
