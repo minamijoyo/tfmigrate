@@ -1,8 +1,13 @@
 ## master (Unreleased)
 
+NEW FEATURES:
+
+* add replace-provider capability ([#145](https://github.com/minamijoyo/tfmigrate/pull/145))
+
 ENHANCEMENTS:
 
 * Merge tfmigrate-storage implementation into the tfmigrate repository ([#147](https://github.com/minamijoyo/tfmigrate/pull/147))
+* deps: bump to use go1.21 and fix golangci-lint errors ([#148](https://github.com/minamijoyo/tfmigrate/pull/148))
 
 ## 0.3.14 (2023/08/08)
 
