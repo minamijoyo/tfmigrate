@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.3.15 (2023/09/04)
+
 NEW FEATURES:
 
 * add replace-provider capability ([#145](https://github.com/minamijoyo/tfmigrate/pull/145))
