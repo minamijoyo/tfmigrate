@@ -45,6 +45,14 @@ func NewStateActionFromString(cmdStr string) (StateAction, error) {
 		dst := args[2]
 		action = NewStateMvAction(src, dst)
 
+	case "replace-provider":
+		if len(args) != 3 {
+			return nil, fmt.Errorf("state replace-provider action is invalid: %s", cmdStr)
+		}
+		src := args[1]
+		dst := args[2]
+		action = NewStateReplaceProviderAction(src, dst)
+
 	case "xmv":
 		if len(args) != 3 {
 			return nil, fmt.Errorf("state xmv action is invalid: %s", cmdStr)

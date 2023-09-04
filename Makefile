@@ -32,3 +32,18 @@ testacc: build generate-plugin-cache
 
 .PHONY: check
 check: lint test
+
+.PHONY: legacy-tfstate
+legacy-tfstate:
+	# Generate a 0.12.31 tfstate file for use in replace-provider tests.
+	docker run \
+		--interactive \
+		--rm \
+		--tty \
+		--volume $(shell pwd):/src \
+		--workdir /src/test-fixtures/legacy-tfstate \
+		--entrypoint /bin/sh \
+		hashicorp/terraform:0.12.31 \
+			-c \
+				"terraform init && \
+				terraform apply -auto-approve"

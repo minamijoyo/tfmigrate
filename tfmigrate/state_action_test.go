@@ -40,6 +40,33 @@ func TestNewStateActionFromString(t *testing.T) {
 			ok:     false,
 		},
 		{
+			desc:   "replace-provider action (0 args)",
+			cmdStr: "replace-provider",
+			want:   nil,
+			ok:     false,
+		},
+		{
+			desc:   "replace-provider action (1 args)",
+			cmdStr: "replace-provider registry.terraform.io/hashicorp/null",
+			want:   nil,
+			ok:     false,
+		},
+		{
+			desc:   "replace-provider action (valid)",
+			cmdStr: "replace-provider registry.terraform.io/hashicorp/null registry.tfmigrate.io/hashicorp/null",
+			want: &StateReplaceProviderAction{
+				source:      "registry.terraform.io/hashicorp/null",
+				destination: "registry.tfmigrate.io/hashicorp/null",
+			},
+			ok: true,
+		},
+		{
+			desc:   "replace-provider action (3 args)",
+			cmdStr: "replace-provider registry.terraform.io/hashicorp/null registry.tfmigrate.io/hashicorp/null registry.tfmigrate.io/hashicorp/null",
+			want:   nil,
+			ok:     false,
+		},
+		{
 			desc:   "xmv action (valid)",
 			cmdStr: "xmv null_resource.* null_resource.$1",
 			want: &StateXmvAction{

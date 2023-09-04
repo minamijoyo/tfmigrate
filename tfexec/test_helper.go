@@ -14,6 +14,16 @@ import (
 	"github.com/hashicorp/go-version"
 )
 
+const (
+	TestS3Bucket    = "tfstate-test"
+	TestS3Region    = "ap-northeast-1"
+	TestS3AccessKey = "dummy"
+	TestS3SecretKey = "dummy"
+
+	// LegacyTerraformVersion is the legacy Terraform version used in acceptance testing.
+	LegacyTerraformVersion = "0.12.31"
+)
+
 // mockExecutor implements the Executor interface for testing.
 type mockExecutor struct {
 	// mockCommands is a sequence of mocked commands.
@@ -229,35 +239,94 @@ func setupTestPluginCacheDir(e Executor) error {
 	return nil
 }
 
-// GetTestAccBackendS3Config returns mocked backend s3 config for testing.
-// Its endpoint can be set via LOCALSTACK_ENDPOINT environment variable.
-// default to "http://localhost:4566"
-func GetTestAccBackendS3Config(dir string) string {
+// GetTestAccS3Endpoint returns the s3 endpoint to use in acceptance tests.
+func GetTestAccS3Endpoint() string {
 	endpoint := "http://localhost:4566"
 	localstackEndpoint := os.Getenv("LOCALSTACK_ENDPOINT")
 	if len(localstackEndpoint) > 0 {
 		endpoint = localstackEndpoint
 	}
 
+	return endpoint
+}
+
+// GetTestAccBackendS3Key returns the s3 key to use in acceptance tests' s3
+// backend.
+func GetTestAccBackendS3Key(dir string) string {
+	return fmt.Sprintf("%s/terraform.tfstate", dir)
+}
+
+// GetTestAccBackendS3Config returns mocked backend s3 config for testing.
+// Its endpoint can be set via LOCALSTACK_ENDPOINT environment variable.
+// default to "http://localhost:4566"
+func GetTestAccBackendS3Config(dir string) string {
+	endpoint := GetTestAccS3Endpoint()
+	key := GetTestAccBackendS3Key(dir)
+
 	backendConfig := fmt.Sprintf(`
 terraform {
   # https://www.terraform.io/docs/backends/types/s3.html
   backend "s3" {
-    region = "ap-northeast-1"
-    bucket = "tfstate-test"
-    key    = "%s/terraform.tfstate"
+    region = "%s"
+    bucket = "%s"
+    key    = "%s"
 
     # mock s3 endpoint with localstack
     endpoint                    = "%s"
-    access_key                  = "dummy"
-    secret_key                  = "dummy"
+    access_key                  = "%s"
+    secret_key                  = "%s"
     skip_credentials_validation = true
     skip_metadata_api_check     = true
     force_path_style            = true
   }
 }
-`, dir, endpoint)
+`, TestS3Region, TestS3Bucket, key, endpoint, TestS3AccessKey, TestS3SecretKey)
 	return backendConfig
+}
+
+// SetupTestAccForStateReplaceProvider is an acceptance test helper specifically
+// for initializing a temporary work directory with a given source for the
+// purposes of testing `state replace-provider` actions.
+//
+// Unlike other helpers such as SetupTestAccWithApply, SetupTestAccForStateReplaceProvider...
+//  1. Does not perform a `terraform apply`. Instead, the Terraform state is
+//     expected to be pre-seeded to the backend S3 bucket from the
+//     `text-fixtures` directory. This allows the testing of `state replace-provider`
+//     actions using a non-legacy Terraform CLI and a legacy Terraform state file.
+//  2. Permits `Error: Invalid legacy provider address` errors during `terraform
+//     init`. When invoking `state replace-provider`, it's necessary to first
+//     invoke `terraform init`. However, when using a non-legacy Terraform CLI
+//     against a legacy Terraform state, this error is expected.
+func SetupTestAccForStateReplaceProvider(t *testing.T, workspace string, source string) TerraformCLI {
+	t.Helper()
+
+	e := SetupTestAcc(t, source)
+	tf := NewTerraformCLI(e)
+	ctx := context.Background()
+
+	err := tf.Init(ctx, "-input=false", "-no-color")
+
+	if err != nil && !strings.Contains(err.Error(), AcceptableLegacyStateInitError) {
+		t.Fatalf("failed to run terraform init: %s", err)
+	}
+
+	//default workspace always exists so don't try to create it
+	if workspace != "default" {
+		err = tf.WorkspaceNew(ctx, workspace)
+		if err != nil {
+			t.Fatalf("failed to run terraform workspace new %s : %s", workspace, err)
+		}
+	}
+
+	// destroy resources after each test not to have any state.
+	t.Cleanup(func() {
+		err := tf.Destroy(ctx, "-input=false", "-no-color", "-auto-approve")
+		if err != nil {
+			t.Fatalf("failed to run terraform destroy: %s", err)
+		}
+	})
+
+	return tf
 }
 
 // SetupTestAccWithApply is an acceptance test helper for initializing a
@@ -308,14 +377,11 @@ func UpdateTestAccSource(t *testing.T, tf TerraformCLI, source string) {
 
 // MatchTerraformVersion returns true if terraform version matches a given constraints.
 func MatchTerraformVersion(ctx context.Context, tf TerraformCLI, constraints string) (bool, error) {
-	tfVersionRaw, err := tf.Version(ctx)
+	v, err := tf.Version(ctx)
 	if err != nil {
 		return false, fmt.Errorf("failed to get terraform version: %s", err)
 	}
-	v, err := version.NewVersion(tfVersionRaw)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse terraform version: %s", err)
-	}
+
 	c, err := version.NewConstraint(constraints)
 	if err != nil {
 		return false, fmt.Errorf("failed to new version constraint: %s", err)
@@ -325,13 +391,9 @@ func MatchTerraformVersion(ctx context.Context, tf TerraformCLI, constraints str
 
 // IsPreleaseTerraformVersion returns true if terraform version is a prelease.
 func IsPreleaseTerraformVersion(ctx context.Context, tf TerraformCLI) (bool, error) {
-	tfVersionRaw, err := tf.Version(ctx)
+	v, err := tf.Version(ctx)
 	if err != nil {
 		return false, fmt.Errorf("failed to get terraform version: %s", err)
-	}
-	v, err := version.NewVersion(tfVersionRaw)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse terraform version: %s", err)
 	}
 
 	if v.Prerelease() != "" {
