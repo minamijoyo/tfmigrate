@@ -331,14 +331,15 @@ func SetupTestAccForStateReplaceProvider(t *testing.T, workspace string, source 
 
 // SetupTestAccWithApply is an acceptance test helper for initializing a
 // temporary work directory and applying a given source.
-func SetupTestAccWithApply(t *testing.T, workspace string, source string) TerraformCLI {
+func SetupTestAccWithApply(t *testing.T, workspace string, source string, opts ...string) TerraformCLI {
 	t.Helper()
 
 	e := SetupTestAcc(t, source)
 	tf := NewTerraformCLI(e)
 	ctx := context.Background()
 
-	err := tf.Init(ctx, "-input=false", "-no-color")
+	opts = append(opts, "-input=false", "-no-color")
+	err := tf.Init(ctx, opts...)
 	if err != nil {
 		t.Fatalf("failed to run terraform init: %s", err)
 	}
@@ -358,7 +359,17 @@ func SetupTestAccWithApply(t *testing.T, workspace string, source string) Terraf
 
 	// destroy resources after each test not to have any state.
 	t.Cleanup(func() {
-		err := tf.Destroy(ctx, "-input=false", "-no-color", "-auto-approve")
+		cleanupOpts := append(opts, "-reconfigure")
+
+		// Re-run terraform init to accommodate any tests that applied the original
+		// configuration with extra terraform init opts, such as -backend-config.
+		err := tf.Init(ctx, cleanupOpts...)
+		if err != nil {
+			// init errors in Terraform 0.12.31, yet the error does not impede terraform destroy.
+			t.Logf("failed to re-run terraform init in preparation for destroy; ignoring error: %s", err)
+		}
+
+		err = tf.Destroy(ctx, "-input=false", "-no-color", "-auto-approve")
 		if err != nil {
 			t.Fatalf("failed to run terraform destroy: %s", err)
 		}
