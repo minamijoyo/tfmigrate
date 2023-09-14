@@ -136,7 +136,7 @@ type TerraformCLI interface {
 	// so we need to switch the backend to local for temporary state operations.
 	// The filename argument must meet constraints for override file.
 	// (e.g.) _tfexec_override.tf
-	OverrideBackendToLocal(ctx context.Context, filename string, workspace string, isBackendTerraformCloud bool, backendConfig []string, supportsStateReplaceProvider bool) (func(), error)
+	OverrideBackendToLocal(ctx context.Context, filename string, workspace string, isBackendTerraformCloud bool, backendConfig []string, supportsStateReplaceProvider bool) (func() error, error)
 
 	// PlanHasChange is a helper method which runs plan and return true if the plan has change.
 	PlanHasChange(ctx context.Context, state *State, opts ...string) (bool, error)
@@ -213,7 +213,7 @@ func (c *terraformCLI) SetExecPath(execPath string) {
 // The filename argument must meet constraints in order to override the file.
 // (e.g.) _tfexec_override.tf
 func (c *terraformCLI) OverrideBackendToLocal(ctx context.Context, filename string,
-	workspace string, isBackendTerraformCloud bool, backendConfig []string, supportsStateReplaceProvider bool) (func(), error) {
+	workspace string, isBackendTerraformCloud bool, backendConfig []string, supportsStateReplaceProvider bool) (func() error, error) {
 	// create local backend override file.
 	path := filepath.Join(c.Dir(), filename)
 	contents := `
@@ -245,27 +245,27 @@ terraform {
 		return nil, fmt.Errorf("failed to switch backend to local: %s", err)
 	}
 
-	switchBackToRemoteFunc := func() {
+	switchBackToRemoteFunc := func() error {
 		log.Printf("[INFO] [executor@%s] remove the override file\n", c.Dir())
 		err := os.Remove(path)
 		if err != nil {
-			// we cannot return error here.
 			log.Printf("[ERROR] [executor@%s] failed to remove the override file: %s\n", c.Dir(), err)
 			log.Printf("[ERROR] [executor@%s] please remove the override file(%s) and re-run terraform init -reconfigure\n", c.Dir(), path)
+			return err
 		}
 		// cleanup the local workspace directly used for local state
 		log.Printf("[INFO] [executor@%s] remove the workspace state folder\n", c.Dir())
 		err = os.Remove(workspaceStatePath)
 		if err != nil {
-			// we cannot return error here.
 			log.Printf("[ERROR] [executor@%s] failed to remove local workspace state directory: %s\n", c.Dir(), err)
 			log.Printf("[ERROR] [executor@%s] please remove the local workspace state directory(%s) and re-run terraform init -reconfigure\n", c.Dir(), workspaceStatePath)
+			return err
 		}
 		err = os.Remove(workspacePath)
 		if err != nil {
-			// we cannot return error here.
 			log.Printf("[ERROR] [executor@%s] failed to remove local workspace directory: %s\n", c.Dir(), err)
 			log.Printf("[ERROR] [executor@%s] please remove the local workspace directory(%s) and re-run terraform init -reconfigure\n", c.Dir(), workspacePath)
+			return err
 		}
 		log.Printf("[INFO] [executor@%s] switch back to remote\n", c.Dir())
 
@@ -283,11 +283,13 @@ terraform {
 			if supportsStateReplaceProvider && strings.Contains(err.Error(), AcceptableLegacyStateInitError) {
 				log.Printf("[INFO] [migrator@%s] ignoring error '%s'; the error is expected when using Terraform with a legacy Terraform state\n", c.Dir(), AcceptableLegacyStateInitError)
 			} else {
-				// we cannot return error here.
 				log.Printf("[ERROR] [executor@%s] failed to switch back to remote: %s\n", c.Dir(), err)
 				log.Printf("[ERROR] [executor@%s] please re-run terraform init -reconfigure\n", c.Dir())
+				return err
 			}
 		}
+
+		return nil
 	}
 
 	return switchBackToRemoteFunc, nil

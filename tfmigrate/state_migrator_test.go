@@ -2,10 +2,12 @@ package tfmigrate
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/minamijoyo/tfmigrate/tfexec"
@@ -403,5 +405,139 @@ resource "null_resource" "baz" {}
 	}
 	if changed {
 		t.Fatalf("expect not to have changes")
+	}
+}
+
+func TestAccStateMigratorPlanWithSwitchBackToRemoteFuncError(t *testing.T) {
+	tfexec.SkipUnlessAcceptanceTestEnabled(t)
+
+	backend := tfexec.GetTestAccBackendS3Config(t.Name())
+
+	// Intentionally remove the bucket key from Terraform backend configuration,
+	// to force an error when switching back to remote state.
+	backend = strings.ReplaceAll(backend, fmt.Sprintf("bucket = \"%s\"", tfexec.TestS3Bucket), "")
+
+	source := `
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
+`
+
+	workspace := "default"
+	// Explicitly pass a -backend-config=bucket= option to terraform init, such
+	// that the initial init/apply works.
+	tf := tfexec.SetupTestAccWithApply(t, workspace, backend+source, fmt.Sprintf("-backend-config=bucket=%s", tfexec.TestS3Bucket))
+	ctx := context.Background()
+
+	updatedSource := `
+resource "null_resource" "foo2" {}
+resource "null_resource" "bar" {}
+`
+
+	tfexec.UpdateTestAccSource(t, tf, backend+updatedSource)
+
+	actions := []StateAction{
+		NewStateMvAction("null_resource.foo", "null_resource.foo2"),
+	}
+
+	force := false
+	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, force)
+
+	err := m.Plan(ctx)
+	if err == nil {
+		t.Fatalf("expected migrator plan error")
+	}
+
+	expected := "Error: \"bucket\": required field is not set"
+	if !strings.Contains(err.Error(), expected) {
+		t.Fatalf("expected migrator plan error to contain %s, got: %s", expected, err.Error())
+	}
+}
+
+func TestAccStateMigratorPlanWithInvalidMigration(t *testing.T) {
+	tfexec.SkipUnlessAcceptanceTestEnabled(t)
+
+	backend := tfexec.GetTestAccBackendS3Config(t.Name())
+
+	source := `
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
+`
+
+	workspace := "default"
+	tf := tfexec.SetupTestAccWithApply(t, workspace, backend+source)
+	ctx := context.Background()
+
+	updatedSource := `
+resource "null_resource" "foo2" {}
+resource "null_resource" "bar" {}
+`
+
+	tfexec.UpdateTestAccSource(t, tf, backend+updatedSource)
+
+	actions := []StateAction{
+		NewStateMvAction("null_resource.doesnotexist", "null_resource.foo2"),
+	}
+
+	force := false
+	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, force)
+
+	err := m.Plan(ctx)
+	if err == nil {
+		t.Fatalf("expected migrator plan error")
+	}
+
+	expected := "Invalid source address"
+	if !strings.Contains(err.Error(), expected) {
+		t.Fatalf("expected migrator plan error to contain %s, got: %s", expected, err.Error())
+	}
+}
+
+func TestAccStateMigratorPlanWithInvalidMigrationAndSwitchBackToRemoteFuncError(t *testing.T) {
+	tfexec.SkipUnlessAcceptanceTestEnabled(t)
+
+	backend := tfexec.GetTestAccBackendS3Config(t.Name())
+
+	// Intentionally remove the bucket key from Terraform backend configuration,
+	// to force an error when switching back to remote state.
+	backend = strings.ReplaceAll(backend, fmt.Sprintf("bucket = \"%s\"", tfexec.TestS3Bucket), "")
+
+	source := `
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
+`
+
+	workspace := "default"
+	// Explicitly pass a -backend-config=bucket= option to terraform init, such
+	// that the initial init/apply works.
+	tf := tfexec.SetupTestAccWithApply(t, workspace, backend+source, fmt.Sprintf("-backend-config=bucket=%s", tfexec.TestS3Bucket))
+	ctx := context.Background()
+
+	updatedSource := `
+resource "null_resource" "foo2" {}
+resource "null_resource" "bar" {}
+`
+
+	tfexec.UpdateTestAccSource(t, tf, backend+updatedSource)
+
+	actions := []StateAction{
+		NewStateMvAction("null_resource.doesnotexist", "null_resource.foo2"),
+	}
+
+	force := false
+	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, force)
+
+	err := m.Plan(ctx)
+	if err == nil {
+		t.Fatalf("expected migrator plan error")
+	}
+
+	expected := "Invalid source address"
+	if !strings.Contains(err.Error(), expected) {
+		t.Fatalf("expected migrator plan error to contain %s, got: %s", expected, err.Error())
+	}
+
+	expected = "Error: \"bucket\": required field is not set"
+	if !strings.Contains(err.Error(), expected) {
+		t.Fatalf("expected migrator plan error to contain %s, got: %s", expected, err.Error())
 	}
 }

@@ -2,6 +2,7 @@ package tfmigrate
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -103,7 +104,7 @@ func NewStateMigrator(dir string, workspace string, actions []StateAction,
 // It will fail if terraform plan detects any diffs with the new state.
 // We intentionally keep this method private as to not expose internal states and unify
 // the Migrator interface between a single and multi state migrator.
-func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
+func (m *StateMigrator) plan(ctx context.Context) (currentState *tfexec.State, err error) {
 	ignoreLegacyStateInitErr := false
 	for _, action := range m.actions {
 		// When invoking `state replace-provider`, it's necessary to first
@@ -121,8 +122,11 @@ func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	// switch back it to remote on exit.
-	defer switchBackToRemoteFunc()
+	defer func() {
+		err = errors.Join(err, switchBackToRemoteFunc())
+	}()
 
 	// computes a new state by applying state migration operations to a temporary state.
 	log.Printf("[INFO] [migrator@%s] compute a new state\n", m.tf.Dir())
@@ -150,12 +154,14 @@ func (m *StateMigrator) plan(ctx context.Context) (*tfexec.State, error) {
 				return nil, fmt.Errorf("terraform plan command returns unexpected diffs: %s", err)
 			}
 			log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true: %s", m.tf.Dir(), err)
+			// reset err to nil to intentionally ignore unexpected diffs.
+			err = nil
 		} else {
 			return nil, err
 		}
 	}
 
-	return currentState, nil
+	return currentState, err
 }
 
 // Plan computes a new state by applying state migration operations to a temporary state.
