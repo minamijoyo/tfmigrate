@@ -39,7 +39,7 @@ resource "null_resource" "bar2" {}
 		NewStateXmvAction("null_resource.*", "null_resource.${1}2"),
 	}
 
-	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, false)
+	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, false, false)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)

@@ -104,6 +104,21 @@ func TestStateMigratorConfigNewMigrator(t *testing.T) {
 			o:  nil,
 			ok: true,
 		},
+		{
+			desc: "with skip_plan true",
+			config: &StateMigratorConfig{
+				Dir: "dir1",
+				Actions: []string{
+					"mv null_resource.foo null_resource.foo2",
+					"mv null_resource.bar null_resource.bar2",
+					"rm time_static.baz",
+					"import time_static.qux 2006-01-02T15:04:05Z",
+				},
+				SkipPlan: true,
+			},
+			o:  nil,
+			ok: true,
+		},
 	}
 
 	for _, tc := range cases {
@@ -166,7 +181,7 @@ resource "time_static" "qux" { triggers = {} }
 	}
 
 	force := false
-	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, force)
+	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, force, false)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
@@ -236,7 +251,7 @@ resource "null_resource" "bar" {}
 	}
 
 	force := false
-	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, force)
+	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, force, false)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
@@ -308,7 +323,7 @@ resource "null_resource" "baz" {}
 	o := &MigratorOption{}
 	o.PlanOut = "foo.tfplan"
 	force := true
-	m := NewStateMigrator(tf.Dir(), workspace, actions, o, force)
+	m := NewStateMigrator(tf.Dir(), workspace, actions, o, force, false)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
@@ -408,6 +423,73 @@ resource "null_resource" "baz" {}
 	}
 }
 
+func TestAccStateMigratorApplyWithSkipPlan(t *testing.T) {
+	tfexec.SkipUnlessAcceptanceTestEnabled(t)
+
+	backend := tfexec.GetTestAccBackendS3Config(t.Name())
+
+	source := `
+resource "null_resource" "foo" {}
+resource "null_resource" "bar" {}
+`
+
+	workspace := "default"
+	tf := tfexec.SetupTestAccWithApply(t, workspace, backend+source)
+	ctx := context.Background()
+
+	updatedSource := source
+
+	tfexec.UpdateTestAccSource(t, tf, backend+updatedSource)
+
+	changed, err := tf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange: %s", err)
+	}
+	if changed {
+		t.Fatalf("expect not to have changes")
+	}
+
+	actions := []StateAction{
+		NewStateMvAction("null_resource.foo", "null_resource.foo2"),
+	}
+
+	force := false
+	skipPlan := true
+	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, force, skipPlan)
+	err = m.Plan(ctx)
+	if err != nil {
+		t.Fatalf("failed to run migrator plan: %s", err)
+	}
+
+	err = m.Apply(ctx)
+	if err != nil {
+		t.Fatalf("failed to run migrator apply: %s", err)
+	}
+
+	got, err := tf.StateList(ctx, nil, nil)
+	if err != nil {
+		t.Fatalf("failed to run terraform state list: %s", err)
+	}
+
+	want := []string{
+		"null_resource.foo2",
+		"null_resource.bar",
+	}
+	sort.Strings(got)
+	sort.Strings(want)
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got state: %v, want state: %v", got, want)
+	}
+
+	changed, err = tf.PlanHasChange(ctx, nil)
+	if err != nil {
+		t.Fatalf("failed to run PlanHasChange: %s", err)
+	}
+	if !changed {
+		t.Fatalf("expect to have changes")
+	}
+}
+
 func TestAccStateMigratorPlanWithSwitchBackToRemoteFuncError(t *testing.T) {
 	tfexec.SkipUnlessAcceptanceTestEnabled(t)
 
@@ -440,7 +522,7 @@ resource "null_resource" "bar" {}
 	}
 
 	force := false
-	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, force)
+	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, force, false)
 
 	err := m.Plan(ctx)
 	if err == nil {
@@ -479,7 +561,7 @@ resource "null_resource" "bar" {}
 	}
 
 	force := false
-	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, force)
+	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, force, false)
 
 	err := m.Plan(ctx)
 	if err == nil {
@@ -524,7 +606,7 @@ resource "null_resource" "bar" {}
 	}
 
 	force := false
-	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, force)
+	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, force, false)
 
 	err := m.Plan(ctx)
 	if err == nil {

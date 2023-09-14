@@ -575,6 +575,7 @@ The `state` migration updates the state in a single directory. It has the follow
   - `"import <address> <id>"`
   - `"replace-provider <address> <address>"`
 - `force` (optional): Apply migrations even if plan show changes
+- `skip_plan` (optional): If true, `tfmigrate` will not perform and analyze a `terraform plan`.
 
 Note that `dir` is relative path to the current working directory where `tfmigrate` command is invoked.
 

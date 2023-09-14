@@ -42,7 +42,7 @@ resource "null_resource" "baz" {}
 		NewStateRmAction([]string{"null_resource.qux"}),
 	}
 
-	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, false)
+	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, false, false)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
