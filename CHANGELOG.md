@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.3.16 (2023/09/05)
+
 BUG FIXES:
 
 * avoid suppressing errors in deferred funcs ([#150](https://github.com/minamijoyo/tfmigrate/pull/150))
