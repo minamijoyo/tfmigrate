@@ -36,7 +36,7 @@ resource "null_resource" "foo" {}
 	}
 
 	expected := "replace-provider action requires Terraform version >= 0.13.0"
-	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, false)
+	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, false, false)
 	err := m.Plan(ctx)
 	if err == nil || strings.Contains(err.Error(), expected) {
 		t.Fatalf("expected to receive '%s' error using legacy Terraform; got: %s", expected, err)
@@ -96,7 +96,7 @@ func TestAccStateReplaceProviderAction(t *testing.T) {
 		NewStateReplaceProviderAction("registry.terraform.io/-/null", "registry.terraform.io/hashicorp/null"),
 	}
 
-	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, false)
+	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, false, false)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)

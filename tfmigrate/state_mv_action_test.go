@@ -43,7 +43,7 @@ resource "null_resource" "baz" {}
 		NewStateMvAction("null_resource.bar", "null_resource.bar2"),
 	}
 
-	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, false)
+	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, false, false)
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
