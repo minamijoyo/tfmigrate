@@ -2,11 +2,11 @@ package tfmigrate
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"os"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/minamijoyo/tfmigrate/tfexec"
 )
 
@@ -126,7 +126,7 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (fromCurrentState *tfexec
 	}
 	// switch back it to remote on exit.
 	defer func() {
-		err = errors.Join(err, fromSwitchBackToRemoteFunc())
+		err = multierror.Append(err, fromSwitchBackToRemoteFunc())
 	}()
 
 	// setup toDir.
@@ -136,7 +136,7 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (fromCurrentState *tfexec
 	}
 	// switch back it to remote on exit.
 	defer func() {
-		err = errors.Join(err, toSwitchBackToRemoteFunc())
+		err = multierror.Append(err, toSwitchBackToRemoteFunc())
 	}()
 
 	// computes new states by applying state migration operations to temporary states.
