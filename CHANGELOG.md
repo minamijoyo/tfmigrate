@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.3.17 (2023/10/02)
+
 NEW FEATURES:
 
 * add skip_plan option to state migrator ([#152](https://github.com/minamijoyo/tfmigrate/pull/152))
