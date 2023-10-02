@@ -1,5 +1,14 @@
 ## master (Unreleased)
 
+NEW FEATURES:
+
+* add skip_plan option to state migrator ([#152](https://github.com/minamijoyo/tfmigrate/pull/152))
+
+ENHANCEMENTS:
+
+* Update actions/checkout to v4 ([#155](https://github.com/minamijoyo/tfmigrate/pull/155))
+* Update test matrix to use latest minor releases of Terraform ([#156](https://github.com/minamijoyo/tfmigrate/pull/156))
+
 ## 0.3.16 (2023/09/05)
 
 BUG FIXES:
