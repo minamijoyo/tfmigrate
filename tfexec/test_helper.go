@@ -271,8 +271,9 @@ terraform {
     bucket = "%s"
     key    = "%s"
 
-    # mock s3 endpoint with localstack
+    # mock s3/iam endpoint with localstack
     endpoint                    = "%s"
+    iam_endpoint                = "%s"
     access_key                  = "%s"
     secret_key                  = "%s"
     skip_credentials_validation = true
@@ -280,7 +281,7 @@ terraform {
     force_path_style            = true
   }
 }
-`, TestS3Region, TestS3Bucket, key, endpoint, TestS3AccessKey, TestS3SecretKey)
+`, TestS3Region, TestS3Bucket, key, endpoint, endpoint, TestS3AccessKey, TestS3SecretKey)
 	return backendConfig
 }
 

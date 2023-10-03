@@ -188,8 +188,9 @@ terraform {
     # bucket = "tfstate-test"
     key    = "%s/terraform.tfstate"
 
-    # mock s3 endpoint with localstack
+    # mock s3/iam endpoint with localstack
     endpoint                    = "%s"
+    iam_endpoint                = "%s"
     access_key                  = "dummy"
     secret_key                  = "dummy"
     skip_credentials_validation = true
@@ -197,7 +198,7 @@ terraform {
     force_path_style            = true
   }
 }
-`, t.Name(), endpoint)
+`, t.Name(), endpoint, endpoint)
 	source := `
 resource "null_resource" "foo" {}
 resource "null_resource" "bar" {}

@@ -5,8 +5,9 @@ terraform {
     bucket = "tfstate-test"
     key    = "test/terraform.tfstate"
 
-    # mock s3 endpoint with localstack
+    # mock s3/iam endpoint with localstack
     endpoint                    = "http://localstack:4566"
+    iam_endpoint                = "http://localstack:4566"
     access_key                  = "dummy"
     secret_key                  = "dummy"
     skip_credentials_validation = true
