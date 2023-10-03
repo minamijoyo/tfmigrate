@@ -123,7 +123,8 @@ func (m *StateMigrator) plan(ctx context.Context) (currentState *tfexec.State, e
 	}
 
 	// setup work dir.
-	currentState, switchBackToRemoteFunc, err := setupWorkDir(ctx, m.tf, m.workspace, m.o.IsBackendTerraformCloud, m.o.BackendConfig, ignoreLegacyStateInitErr)
+	// TODO: implement isLocal suport
+	currentState, switchBackToRemoteFunc, err := setupWorkDir(ctx, m.tf, m.workspace, m.o.IsBackendTerraformCloud, m.o.BackendConfig, ignoreLegacyStateInitErr, false)
 	if err != nil {
 		return nil, err
 	}

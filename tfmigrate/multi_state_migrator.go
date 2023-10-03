@@ -17,11 +17,15 @@ type MultiStateMigratorConfig struct {
 	// FromSkipPlan controls whether or not to run and analyze Terraform plan
 	// within the from_dir.
 	FromSkipPlan bool `hcl:"from_skip_plan,optional"`
+	// FromIsLocal controls whether or not fromDir is a local state.
+	FromIsLocal bool `hcl:"from_is_local,optional"`
 	// ToDir is a working directory where states of resources move to.
 	ToDir string `hcl:"to_dir"`
 	// ToSkipPlan controls whether or not to run and analyze Terraform plan
 	// within the to_dir.
 	ToSkipPlan bool `hcl:"to_skip_plan,optional"`
+	// ToIsLocal controls whether or not toDir is a local state.
+	ToIsLocal bool `hcl:"to_is_local,optional"`
 	// FromWorkspace is a workspace within FromDir
 	FromWorkspace string `hcl:"from_workspace,optional"`
 	// ToWorkspace is a workspace within ToDir
@@ -63,7 +67,7 @@ func (c *MultiStateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, err
 		c.ToWorkspace = "default"
 	}
 
-	return NewMultiStateMigrator(c.FromDir, c.ToDir, c.FromWorkspace, c.ToWorkspace, actions, o, c.Force, c.FromSkipPlan, c.ToSkipPlan), nil
+	return NewMultiStateMigrator(c.FromDir, c.ToDir, c.FromWorkspace, c.ToWorkspace, actions, o, c.Force, c.FromSkipPlan, c.ToSkipPlan, c.FromIsLocal, c.ToIsLocal), nil
 }
 
 // MultiStateMigrator implements the Migrator interface.
@@ -72,10 +76,14 @@ type MultiStateMigrator struct {
 	fromTf tfexec.TerraformCLI
 	// fromSkipPlan disables the running of Terraform plan in fromDir.
 	fromSkipPlan bool
+	// fromIsLocal is true if fromDir is a local state.
+	fromIsLocal bool
 	// fromTf is an instance of TerraformCLI which executes terraform command in a toDir.
 	toTf tfexec.TerraformCLI
 	// toSkipPlan disables the running of Terraform plan in toDir.
 	toSkipPlan bool
+	// toIsLocal is true if toDir is a local state.
+	toIsLocal bool
 	//fromWorkspace is the workspace from which the resource will be migrated
 	fromWorkspace string
 	//toWorkspace is the workspace to which the resource will be migrated
@@ -93,7 +101,7 @@ var _ Migrator = (*MultiStateMigrator)(nil)
 
 // NewMultiStateMigrator returns a new MultiStateMigrator instance.
 func NewMultiStateMigrator(fromDir string, toDir string, fromWorkspace string, toWorkspace string,
-	actions []MultiStateAction, o *MigratorOption, force bool, fromSkipPlan bool, toSkipPlan bool) *MultiStateMigrator {
+	actions []MultiStateAction, o *MigratorOption, force bool, fromSkipPlan bool, toSkipPlan bool, fromIsLocal bool, toIsLocal bool) *MultiStateMigrator {
 	fromTf := tfexec.NewTerraformCLI(tfexec.NewExecutor(fromDir, os.Environ()))
 	toTf := tfexec.NewTerraformCLI(tfexec.NewExecutor(toDir, os.Environ()))
 	if o != nil && len(o.ExecPath) > 0 {
@@ -104,8 +112,10 @@ func NewMultiStateMigrator(fromDir string, toDir string, fromWorkspace string, t
 	return &MultiStateMigrator{
 		fromTf:        fromTf,
 		fromSkipPlan:  fromSkipPlan,
+		fromIsLocal:   fromIsLocal,
 		toTf:          toTf,
 		toSkipPlan:    toSkipPlan,
+		toIsLocal:     toIsLocal,
 		fromWorkspace: fromWorkspace,
 		toWorkspace:   toWorkspace,
 		actions:       actions,
@@ -120,7 +130,7 @@ func NewMultiStateMigrator(fromDir string, toDir string, fromWorkspace string, t
 // the Migrator interface between a single and multi state migrator.
 func (m *MultiStateMigrator) plan(ctx context.Context) (fromCurrentState *tfexec.State, toCurrentState *tfexec.State, err error) {
 	// setup fromDir.
-	fromCurrentState, fromSwitchBackToRemoteFunc, err := setupWorkDir(ctx, m.fromTf, m.fromWorkspace, m.o.IsBackendTerraformCloud, m.o.BackendConfig, false)
+	fromCurrentState, fromSwitchBackToRemoteFunc, err := setupWorkDir(ctx, m.fromTf, m.fromWorkspace, m.o.IsBackendTerraformCloud, m.o.BackendConfig, false, m.fromIsLocal)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -130,7 +140,7 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (fromCurrentState *tfexec
 	}()
 
 	// setup toDir.
-	toCurrentState, toSwitchBackToRemoteFunc, err := setupWorkDir(ctx, m.toTf, m.toWorkspace, m.o.IsBackendTerraformCloud, m.o.BackendConfig, false)
+	toCurrentState, toSwitchBackToRemoteFunc, err := setupWorkDir(ctx, m.toTf, m.toWorkspace, m.o.IsBackendTerraformCloud, m.o.BackendConfig, false, m.toIsLocal)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -231,15 +241,31 @@ func (m *MultiStateMigrator) Apply(ctx context.Context) error {
 	// We push toState before fromState, because when moving resources across
 	// states, write them to new state first and then remove them from old one.
 	log.Printf("[INFO] [migrator] start multi state migrator apply phase\n")
-	log.Printf("[INFO] [migrator@%s] push the new state to remote\n", m.toTf.Dir())
-	err = m.toTf.StatePush(ctx, toState)
-	if err != nil {
-		return err
+	if m.toIsLocal {
+		log.Printf("[INFO] [migrator@%s] save the new local state \n", m.toTf.Dir())
+		err = m.toTf.StateWriteLocal(ctx, toState)
+		if err != nil {
+			return err
+		}
+	} else {
+		log.Printf("[INFO] [migrator@%s] push the new state to remote\n", m.toTf.Dir())
+		err = m.toTf.StatePush(ctx, toState)
+		if err != nil {
+			return err
+		}
 	}
-	log.Printf("[INFO] [migrator@%s] push the new state to remote\n", m.fromTf.Dir())
-	err = m.fromTf.StatePush(ctx, fromState)
-	if err != nil {
-		return err
+	if m.fromIsLocal {
+		log.Printf("[INFO] [migrator@%s] save the new local state \n", m.fromTf.Dir())
+		err = m.fromTf.StateWriteLocal(ctx, fromState)
+		if err != nil {
+			return err
+		}
+	} else {
+		log.Printf("[INFO] [migrator@%s] push the new state to remote\n", m.fromTf.Dir())
+		err = m.fromTf.StatePush(ctx, fromState)
+		if err != nil {
+			return err
+		}
 	}
 	log.Printf("[INFO] [migrator] multi state migrator apply success!\n")
 	return nil

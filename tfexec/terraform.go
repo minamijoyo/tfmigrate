@@ -111,6 +111,9 @@ type TerraformCLI interface {
 	// StatePush pushes a given State to remote.
 	StatePush(ctx context.Context, state *State, opts ...string) error
 
+	// StateWriteLocal saves the new state to a local state file.
+	StateWriteLocal(ctx context.Context, state *State) error
+
 	// WorkspaceNew creates a new workspace with name "workspace".
 	WorkspaceNew(ctx context.Context, workspace string, opts ...string) error
 
