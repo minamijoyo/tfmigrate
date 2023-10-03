@@ -529,9 +529,8 @@ resource "null_resource" "bar" {}
 		t.Fatalf("expected migrator plan error")
 	}
 
-	expected := "Error: \"bucket\": required field is not set"
-	if !strings.Contains(err.Error(), expected) {
-		t.Fatalf("expected migrator plan error to contain %s, got: %s", expected, err.Error())
+	if !containsBucketRequiredError(err) {
+		t.Fatalf("expected migrator plan error to contain bucket required error: %s", err.Error())
 	}
 }
 
@@ -618,8 +617,7 @@ resource "null_resource" "bar" {}
 		t.Fatalf("expected migrator plan error to contain %s, got: %s", expected, err.Error())
 	}
 
-	expected = "Error: \"bucket\": required field is not set"
-	if !strings.Contains(err.Error(), expected) {
-		t.Fatalf("expected migrator plan error to contain %s, got: %s", expected, err.Error())
+	if !containsBucketRequiredError(err) {
+		t.Fatalf("expected migrator plan error to contain bucket required error: %s", err.Error())
 	}
 }
