@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Add support for Terraform v1.6 ([#157](https://github.com/minamijoyo/tfmigrate/pull/157))
+
 ## 0.3.17 (2023/10/02)
 
 NEW FEATURES:
