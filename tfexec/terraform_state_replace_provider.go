@@ -34,7 +34,12 @@ func (c *terraformCLI) SupportsStateReplaceProvider(ctx context.Context) (bool, 
 		return false, constraints, err
 	}
 
-	if !constraints.Check(v) {
+	ver, err := truncatePreReleaseVersion(v)
+	if err != nil {
+		return false, constraints, err
+	}
+
+	if !constraints.Check(ver) {
 		return false, constraints, nil
 	}
 

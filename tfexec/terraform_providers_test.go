@@ -2,11 +2,8 @@ package tfexec
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 	"testing"
-
-	"github.com/hashicorp/go-version"
 )
 
 var providersStdout = `
@@ -100,18 +97,13 @@ resource "null_resource" "bar" {}
 		t.Fatalf("failed to run terraform providers: %s", err)
 	}
 
-	v, err := terraformCLI.Version(context.Background())
+	supportsStateReplaceProvider, _, err := terraformCLI.SupportsStateReplaceProvider(context.Background())
 	if err != nil {
-		t.Fatalf("unexpected version error: %s", err)
-	}
-
-	constraints, err := version.NewConstraint(fmt.Sprintf(">= %s", MinimumTerraformVersionForStateReplaceProvider))
-	if err != nil {
-		t.Fatalf("unexpected version constraint error: %s", err)
+		t.Fatalf("failed to determine if Terraform version supports state replace-provider: %s", err)
 	}
 
 	want := providersStdout
-	if !constraints.Check(v) {
+	if !supportsStateReplaceProvider {
 		want = legacyProvidersStdout
 	}
 
