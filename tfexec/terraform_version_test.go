@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"testing"
+
+	"github.com/hashicorp/go-version"
 )
 
 func TestTerraformCLIVersion(t *testing.T) {
@@ -86,4 +88,45 @@ func TestAccTerraformCLIVersion(t *testing.T) {
 		t.Error("failed to parse terraform version")
 	}
 	fmt.Printf("got = %s\n", got)
+}
+
+func TestTruncatePreReleaseVersion(t *testing.T) {
+	cases := []struct {
+		desc string
+		v    string
+		want string
+		ok   bool
+	}{
+		{
+			desc: "pre-release",
+			v:    "1.6.0-rc1",
+			want: "1.6.0",
+			ok:   true,
+		},
+		{
+			desc: "not pre-release",
+			v:    "1.6.0",
+			want: "1.6.0",
+			ok:   true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			v, err := version.NewVersion(tc.v)
+			if err != nil {
+				t.Fatalf("failed to parse version: %s", err)
+			}
+			got, err := truncatePreReleaseVersion(v)
+			if tc.ok && err != nil {
+				t.Fatalf("unexpected err: %s", err)
+			}
+			if !tc.ok && err == nil {
+				t.Fatalf("expected to return an error, but no error, got = %s", got)
+			}
+			if tc.ok && got.String() != tc.want {
+				t.Errorf("got: %s, want: %s", got, tc.want)
+			}
+		})
+	}
 }
