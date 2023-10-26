@@ -10,7 +10,7 @@ import (
 )
 
 // tfVersionRe is a pattern to parse outputs from terraform version.
-var tfVersionRe = regexp.MustCompile(`^Terraform v(.+)\s*\n`)
+var tfVersionRe = regexp.MustCompile(`^(Terraform|OpenTofu) v(.+)\s*\n`)
 
 // Version returns a version number of Terraform.
 func (c *terraformCLI) Version(ctx context.Context) (*version.Version, error) {
@@ -20,10 +20,10 @@ func (c *terraformCLI) Version(ctx context.Context) (*version.Version, error) {
 	}
 
 	matched := tfVersionRe.FindStringSubmatch(stdout)
-	if len(matched) != 2 {
+	if len(matched) != 3 {
 		return nil, fmt.Errorf("failed to parse terraform version: %s", stdout)
 	}
-	version, err := version.NewVersion(matched[1])
+	version, err := version.NewVersion(matched[2])
 	if err != nil {
 		return nil, err
 	}

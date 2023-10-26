@@ -358,7 +358,7 @@ Options:
 You can customize the behavior by setting environment variables.
 
 - `TFMIGRATE_LOG`: A log level. Valid values are `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`. Default to `INFO`.
-- `TFMIGRATE_EXEC_PATH`: A string how terraform command is executed. Default to `terraform`. It's intended to inject a wrapper command such as direnv. e.g.) `direnv exec . terraform`.
+- `TFMIGRATE_EXEC_PATH`: A string how terraform command is executed. Default to `terraform`. It's intended to inject a wrapper command such as direnv. e.g.) `direnv exec . terraform`. To use OpenTofu, set this to `tofu`.
 
 Some history storage implementations may read additional cloud provider-specific environment variables. For details, refer to a configuration file section for storage block described below.
 

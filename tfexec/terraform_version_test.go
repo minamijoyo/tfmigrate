@@ -13,20 +13,35 @@ func TestTerraformCLIVersion(t *testing.T) {
 	cases := []struct {
 		desc         string
 		mockCommands []*mockCommand
+		execPath     string
 		want         string
 		ok           bool
 	}{
 		{
-			desc: "parse outputs of terraform version",
+			desc: "terraform version",
 			mockCommands: []*mockCommand{
 				{
 					args:     []string{"terraform", "version"},
-					stdout:   "Terraform v0.12.28\n",
+					stdout:   "Terraform v1.6.2\n",
 					exitCode: 0,
 				},
 			},
-			want: "0.12.28",
-			ok:   true,
+			execPath: "terraform",
+			want:     "1.6.2",
+			ok:       true,
+		},
+		{
+			desc: "tofu version",
+			mockCommands: []*mockCommand{
+				{
+					args:     []string{"tofu", "version"},
+					stdout:   "OpenTofu v1.6.0-alpha3\n",
+					exitCode: 0,
+				},
+			},
+			execPath: "tofu",
+			want:     "1.6.0-alpha3",
+			ok:       true,
 		},
 		{
 			desc: "failed to run terraform version",
@@ -36,8 +51,9 @@ func TestTerraformCLIVersion(t *testing.T) {
 					exitCode: 1,
 				},
 			},
-			want: "",
-			ok:   false,
+			execPath: "terraform",
+			want:     "",
+			ok:       false,
 		},
 		{
 			desc: "with check point warning",
@@ -52,8 +68,9 @@ is 0.12.29. You can update by downloading from https://www.terraform.io/download
 					exitCode: 0,
 				},
 			},
-			want: "0.12.28",
-			ok:   true,
+			execPath: "terraform",
+			want:     "0.12.28",
+			ok:       true,
 		},
 	}
 
@@ -61,6 +78,7 @@ is 0.12.29. You can update by downloading from https://www.terraform.io/download
 		t.Run(tc.desc, func(t *testing.T) {
 			e := NewMockExecutor(tc.mockCommands)
 			terraformCLI := NewTerraformCLI(e)
+			terraformCLI.SetExecPath(tc.execPath)
 			got, err := terraformCLI.Version(context.Background())
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
