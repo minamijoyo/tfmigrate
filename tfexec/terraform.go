@@ -57,8 +57,9 @@ func NewPlan(b []byte) *Plan {
 // As a result, the interface is opinionated and less flexible. For running arbitrary terraform commands
 // you can use Run(), which is a low-level generic method.
 type TerraformCLI interface {
-	// Version returns a Terraform version.
-	Version(ctx context.Context) (*version.Version, error)
+	// Version returns the Terraform execType and version number.
+	// The execType can be either terraform or opentofu.
+	Version(ctx context.Context) (string, *version.Version, error)
 
 	// Init initializes the current work directory.
 	Init(ctx context.Context, opts ...string) error

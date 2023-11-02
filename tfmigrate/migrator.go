@@ -25,11 +25,11 @@ type Migrator interface {
 // current state and a switch back function.
 func setupWorkDir(ctx context.Context, tf tfexec.TerraformCLI, workspace string, isBackendTerraformCloud bool, backendConfig []string, ignoreLegacyStateInitErr bool) (*tfexec.State, func() error, error) {
 	// check if terraform command is available.
-	version, err := tf.Version(ctx)
+	execType, version, err := tf.Version(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
-	log.Printf("[INFO] [migrator@%s] terraform version: %s\n", tf.Dir(), version)
+	log.Printf("[INFO] [migrator@%s] %s version: %s\n", tf.Dir(), execType, version)
 
 	supportsStateReplaceProvider, constraints, err := tf.SupportsStateReplaceProvider(ctx)
 	if err != nil {

@@ -12,23 +12,35 @@ import (
 // tfVersionRe is a pattern to parse outputs from terraform version.
 var tfVersionRe = regexp.MustCompile(`^(Terraform|OpenTofu) v(.+)\s*\n`)
 
-// Version returns a version number of Terraform.
-func (c *terraformCLI) Version(ctx context.Context) (*version.Version, error) {
+// Version returns the Terraform execType and version number.
+// The execType can be either terraform or opentofu.
+func (c *terraformCLI) Version(ctx context.Context) (string, *version.Version, error) {
 	stdout, _, err := c.Run(ctx, "version")
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	matched := tfVersionRe.FindStringSubmatch(stdout)
 	if len(matched) != 3 {
-		return nil, fmt.Errorf("failed to parse terraform version: %s", stdout)
-	}
-	version, err := version.NewVersion(matched[2])
-	if err != nil {
-		return nil, err
+		return "", nil, fmt.Errorf("failed to parse terraform version: %s", stdout)
 	}
 
-	return version, nil
+	execType := ""
+	switch matched[1] {
+	case "Terraform":
+		execType = "terraform"
+	case "OpenTofu":
+		execType = "opentofu"
+	default:
+		return "", nil, fmt.Errorf("unknown execType: %s", matched[1])
+	}
+
+	version, err := version.NewVersion(matched[2])
+	if err != nil {
+		return "", nil, err
+	}
+
+	return execType, version, nil
 }
 
 // truncatePreReleaseVersion is a helper function that removes
