@@ -261,7 +261,7 @@ resource "null_resource" "bar" {}
 		t.Fatalf("failed to run terraform providers: %s", err)
 	}
 
-	wantProviders := legacyProvidersStdout
+	wantProviders := legacyTerraformProvidersStdout
 
 	if gotProviders != wantProviders {
 		t.Errorf("got: %s, want: %s", gotProviders, wantProviders)
@@ -319,7 +319,17 @@ resource "null_resource" "bar" {}
 		t.Fatalf("failed to run terraform providers: %s", err)
 	}
 
-	wantProviders := providersStdout
+	execType, _, err := terraformCLI.Version(context.Background())
+	if err != nil {
+		t.Fatalf("failed to detect execType: %s", err)
+	}
+	wantProviders := ""
+	switch execType {
+	case "terraform":
+		wantProviders = terraformProvidersStdout
+	case "opentofu":
+		wantProviders = opentofuProvidersStdout
+	}
 
 	if gotProviders != wantProviders {
 		t.Errorf("got: %s, want: %s", gotProviders, wantProviders)
