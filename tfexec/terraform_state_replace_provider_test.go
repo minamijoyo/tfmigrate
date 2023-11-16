@@ -199,6 +199,7 @@ func TestTerraformCLIStateReplaceProvider(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			e := NewMockExecutor(tc.mockCommands)
 			terraformCLI := NewTerraformCLI(e)
+			terraformCLI.SetExecPath("terraform")
 			gotState, err := terraformCLI.StateReplaceProvider(context.Background(), tc.state, tc.source, tc.destination, tc.opts...)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)

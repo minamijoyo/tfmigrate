@@ -49,6 +49,7 @@ func TestTerraformCLIWorkspaceSelect(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			e := NewMockExecutor(tc.mockCommands)
 			terraformCLI := NewTerraformCLI(e)
+			terraformCLI.SetExecPath("terraform")
 			err := terraformCLI.WorkspaceSelect(context.Background(), tc.workspace)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)

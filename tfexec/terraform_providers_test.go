@@ -58,6 +58,7 @@ func TestTerraformCLIProviders(t *testing.T) {
 			tc.mockCommands[0].args = []string{"terraform", "providers"}
 			e := NewMockExecutor(tc.mockCommands)
 			terraformCLI := NewTerraformCLI(e)
+			terraformCLI.SetExecPath("terraform")
 			got, err := terraformCLI.Providers(context.Background())
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
