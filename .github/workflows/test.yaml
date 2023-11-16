@@ -65,7 +65,7 @@ jobs:
       fail-fast: false
       matrix:
         opentofu:
-        - 1.6.0-alpha3
+        - 1.6.0-alpha5
     env:
       OPENTOFU_VERSION: ${{ matrix.opentofu }}
       TFMIGRATE_EXEC_PATH: tofu
