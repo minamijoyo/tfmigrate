@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Allow use of OpenTofu by setting TFMIGRATE_EXEC_PATH to tofu ([#164](https://github.com/minamijoyo/tfmigrate/pull/164))
+
 ## 0.3.18 (2023/10/05)
 
 ENHANCEMENTS:
