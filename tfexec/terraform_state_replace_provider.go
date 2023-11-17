@@ -29,7 +29,7 @@ func (c *terraformCLI) SupportsStateReplaceProvider(ctx context.Context) (bool, 
 		return false, constraints, err
 	}
 
-	v, err := c.Version(ctx)
+	_, v, err := c.Version(ctx)
 	if err != nil {
 		return false, constraints, err
 	}

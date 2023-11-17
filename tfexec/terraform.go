@@ -57,8 +57,9 @@ func NewPlan(b []byte) *Plan {
 // As a result, the interface is opinionated and less flexible. For running arbitrary terraform commands
 // you can use Run(), which is a low-level generic method.
 type TerraformCLI interface {
-	// Version returns a Terraform version.
-	Version(ctx context.Context) (*version.Version, error)
+	// Version returns the Terraform execType and version number.
+	// The execType can be either terraform or opentofu.
+	Version(ctx context.Context) (string, *version.Version, error)
 
 	// Init initializes the current work directory.
 	Init(ctx context.Context, opts ...string) error
@@ -152,25 +153,33 @@ type terraformCLI struct {
 	Executor
 
 	// execPath is a string which executes the terraform command.
-	// If empty, default to terraform.
+	// Default to terraform. To use OpenTofu, set this to `tofu`.
 	execPath string
 }
 
 var _ TerraformCLI = (*terraformCLI)(nil)
 
 // NewTerraformCLI returns an implementation of the TerraformCLI interface.
+// This function reads the environment variable TFMIGRATE_EXEC_PATH and sets it
+// to execPath.
 func NewTerraformCLI(e Executor) TerraformCLI {
+	execPath := os.Getenv("TFMIGRATE_EXEC_PATH")
+	if len(execPath) == 0 {
+		// The default binary path is `terraform`.
+		execPath = "terraform"
+	}
+
 	return &terraformCLI{
 		Executor: e,
+		execPath: execPath,
 	}
 }
 
 // Run is a low-level generic method for running an arbitrary terraform command.
 func (c *terraformCLI) Run(ctx context.Context, args ...string) (string, string, error) {
-	// The default binary path is `terraform`.
-	name := "terraform"
+	name := c.execPath
 	// If execPath is customized
-	if len(c.execPath) > 0 {
+	if name != "terraform" {
 		// execPath may contain spaces and environment variables, so we parse it.
 		// e.g.) "direnv exec . terraform" => ["direnv", "exec", ".", "terraform"]
 		parts, err := shellwords.Parse(c.execPath)

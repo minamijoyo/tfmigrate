@@ -5,6 +5,7 @@ services:
       context: .
       args:
         TERRAFORM_VERSION: ${TERRAFORM_VERSION:-latest}
+        OPENTOFU_VERSION: ${OPENTOFU_VERSION:-latest}
     volumes:
       - ".:/work"
     environment:
@@ -19,6 +20,8 @@ services:
       # it appears that localstack sometimes misses API requests when run in parallel.
       TF_CLI_ARGS_apply: "--parallelism=1"
       TERRAFORM_VERSION: ${TERRAFORM_VERSION:-latest}
+      OPENTOFU_VERSION: ${OPENTOFU_VERSION:-latest}
+      TFMIGRATE_EXEC_PATH:
     depends_on:
       - localstack
       - fake-gcs-server

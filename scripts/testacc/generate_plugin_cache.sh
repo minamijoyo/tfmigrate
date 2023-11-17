@@ -2,6 +2,9 @@
 
 set -eo pipefail
 
+# TFMIGRATE_EXEC_PATH can be set to tofu or terraform.
+TFMIGRATE_EXEC_PATH=${TFMIGRATE_EXEC_PATH:-terraform}
+
 # When using TF_PLUGIN_CACHE_DIR, terraform init is not concurrency safe.
 # https://github.com/hashicorp/terraform/issues/25849
 # Download the providers and generate a cache once before testing.
@@ -28,11 +31,11 @@ EOF
 # available in Terraform v0.13+, but it is hard to compare versions in bash,
 # so we use the mirror unless v0.x.
 # https://developer.hashicorp.com/terraform/cli/config/config-file#implied-local-mirror-directories
-if terraform -v | grep 'Terraform v0\.'; then
+if "$TFMIGRATE_EXEC_PATH" -v | grep 'Terraform v0\.'; then
   echo "skip creating an implied local mirror"
 else
   FS_MIRROR="/tmp/plugin-mirror"
-  terraform providers mirror "${FS_MIRROR}"
+  "$TFMIGRATE_EXEC_PATH" providers mirror "${FS_MIRROR}"
 
   cat << EOF > "$HOME/.terraformrc"
 provider_installation {
@@ -43,7 +46,7 @@ provider_installation {
 EOF
 fi
 
-terraform init -input=false -no-color
+"$TFMIGRATE_EXEC_PATH" init -input=false -no-color
 
 popd
 rm -rf "$WORK_DIR"

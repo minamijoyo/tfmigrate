@@ -26,9 +26,10 @@ func TestTerraformCLIRun(t *testing.T) {
 					exitCode: 0,
 				},
 			},
-			args: []string{"version"},
-			want: "Terraform v0.12.28\n",
-			ok:   true,
+			args:     []string{"version"},
+			execPath: "terraform",
+			want:     "Terraform v0.12.28\n",
+			ok:       true,
 		},
 		{
 			desc: "failed to run terraform version",
@@ -38,9 +39,10 @@ func TestTerraformCLIRun(t *testing.T) {
 					exitCode: 1,
 				},
 			},
-			args: []string{"version"},
-			want: "",
-			ok:   false,
+			args:     []string{"version"},
+			execPath: "terraform",
+			want:     "",
+			ok:       false,
 		},
 		{
 			desc: "with execPath (no space)",
@@ -68,6 +70,20 @@ func TestTerraformCLIRun(t *testing.T) {
 			args:     []string{"version"},
 			execPath: "direnv exec . terraform",
 			want:     "Terraform v0.12.28\n",
+			ok:       true,
+		},
+		{
+			desc: "with execPath (tofu)",
+			mockCommands: []*mockCommand{
+				{
+					args:     []string{"tofu", "version"},
+					stdout:   "OpenTofu v1.6.0-alpha3\n",
+					exitCode: 0,
+				},
+			},
+			args:     []string{"version"},
+			execPath: "tofu",
+			want:     "OpenTofu v1.6.0-alpha3\n",
 			ok:       true,
 		},
 	}

@@ -6,7 +6,12 @@ import (
 	"testing"
 )
 
-var providersStdout = `
+var legacyTerraformProvidersStdout = `.
+└── provider.null
+
+`
+
+var terraformProvidersStdout = `
 Providers required by configuration:
 .
 └── provider[registry.terraform.io/hashicorp/null]
@@ -17,8 +22,14 @@ Providers required by state:
 
 `
 
-var legacyProvidersStdout = `.
-└── provider.null
+var opentofuProvidersStdout = `
+Providers required by configuration:
+.
+└── provider[registry.opentofu.org/hashicorp/null]
+
+Providers required by state:
+
+    provider[registry.opentofu.org/hashicorp/null]
 
 `
 
@@ -34,11 +45,11 @@ func TestTerraformCLIProviders(t *testing.T) {
 			desc: "basic invocation",
 			mockCommands: []*mockCommand{
 				{
-					stdout:   providersStdout,
+					stdout:   terraformProvidersStdout,
 					exitCode: 0,
 				},
 			},
-			want: providersStdout,
+			want: terraformProvidersStdout,
 			ok:   true,
 		},
 		{
@@ -58,6 +69,7 @@ func TestTerraformCLIProviders(t *testing.T) {
 			tc.mockCommands[0].args = []string{"terraform", "providers"}
 			e := NewMockExecutor(tc.mockCommands)
 			terraformCLI := NewTerraformCLI(e)
+			terraformCLI.SetExecPath("terraform")
 			got, err := terraformCLI.Providers(context.Background())
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
@@ -102,9 +114,20 @@ resource "null_resource" "bar" {}
 		t.Fatalf("failed to determine if Terraform version supports state replace-provider: %s", err)
 	}
 
-	want := providersStdout
-	if !supportsStateReplaceProvider {
-		want = legacyProvidersStdout
+	execType, _, err := terraformCLI.Version(context.Background())
+	if err != nil {
+		t.Fatalf("failed to detect execType: %s", err)
+	}
+	want := ""
+	switch execType {
+	case "terraform":
+		if !supportsStateReplaceProvider {
+			want = legacyTerraformProvidersStdout
+		} else {
+			want = terraformProvidersStdout
+		}
+	case "opentofu":
+		want = opentofuProvidersStdout
 	}
 
 	if got != want {

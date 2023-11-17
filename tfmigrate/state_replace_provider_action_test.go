@@ -92,8 +92,17 @@ func TestAccStateReplaceProviderAction(t *testing.T) {
 	tf := tfexec.SetupTestAccForStateReplaceProvider(t, workspace, backend+source)
 	ctx := context.Background()
 
+	registry := "registry.terraform.io"
+	tfExecType, _, err := tf.Version(ctx)
+	if err != nil {
+		t.Fatalf("failed to get tfExecType: %s", err)
+	}
+	if tfExecType == "opentofu" {
+		registry = "registry.opentofu.org"
+	}
+
 	actions := []StateAction{
-		NewStateReplaceProviderAction("registry.terraform.io/-/null", "registry.terraform.io/hashicorp/null"),
+		NewStateReplaceProviderAction(registry+"/-/null", registry+"/hashicorp/null"),
 	}
 
 	m := NewStateMigrator(tf.Dir(), workspace, actions, &MigratorOption{}, false, false)

@@ -199,6 +199,7 @@ func TestTerraformCLIStateReplaceProvider(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			e := NewMockExecutor(tc.mockCommands)
 			terraformCLI := NewTerraformCLI(e)
+			terraformCLI.SetExecPath("terraform")
 			gotState, err := terraformCLI.StateReplaceProvider(context.Background(), tc.state, tc.source, tc.destination, tc.opts...)
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
@@ -260,7 +261,7 @@ resource "null_resource" "bar" {}
 		t.Fatalf("failed to run terraform providers: %s", err)
 	}
 
-	wantProviders := legacyProvidersStdout
+	wantProviders := legacyTerraformProvidersStdout
 
 	if gotProviders != wantProviders {
 		t.Errorf("got: %s, want: %s", gotProviders, wantProviders)
@@ -307,10 +308,20 @@ resource "null_resource" "bar" {}
 		t.Fatalf("failed to run terraform state pull: %s", err)
 	}
 
-	stateProvider := "registry.terraform.io/hashicorp/null"
+	execType, _, err := terraformCLI.Version(context.Background())
+	if err != nil {
+		t.Fatalf("failed to detect execType: %s", err)
+	}
+	fromProviderFQN := ""
+	switch execType {
+	case "terraform":
+		fromProviderFQN = "registry.terraform.io/hashicorp/null"
+	case "opentofu":
+		fromProviderFQN = "registry.opentofu.org/hashicorp/null"
+	}
 
-	if !strings.Contains(string(state.Bytes()), stateProvider) {
-		t.Errorf("state does not contain provider: %s", stateProvider)
+	if !strings.Contains(string(state.Bytes()), fromProviderFQN) {
+		t.Errorf("state does not contain provider: %s", fromProviderFQN)
 	}
 
 	gotProviders, err := terraformCLI.Providers(context.Background())
@@ -318,13 +329,19 @@ resource "null_resource" "bar" {}
 		t.Fatalf("failed to run terraform providers: %s", err)
 	}
 
-	wantProviders := providersStdout
+	wantProviders := ""
+	switch execType {
+	case "terraform":
+		wantProviders = terraformProvidersStdout
+	case "opentofu":
+		wantProviders = opentofuProvidersStdout
+	}
 
 	if gotProviders != wantProviders {
 		t.Errorf("got: %s, want: %s", gotProviders, wantProviders)
 	}
 
-	updatedState, err := terraformCLI.StateReplaceProvider(context.Background(), state, "registry.terraform.io/hashicorp/null", "registry.tfmigrate.io/hashicorp/null", "-auto-approve")
+	updatedState, err := terraformCLI.StateReplaceProvider(context.Background(), state, fromProviderFQN, "registry.tfmigrate.io/hashicorp/null", "-auto-approve")
 	if err != nil {
 		t.Fatalf("failed to run terraform state replace-provider: %s", err)
 	}
@@ -333,7 +350,7 @@ resource "null_resource" "bar" {}
 		t.Errorf("state does not contain updated provider: %s", "registry.tfmigrate.io/hashicorp/null")
 	}
 
-	if strings.Contains(string(updatedState.Bytes()), "registry.terraform.io/hashicorp/null") {
-		t.Errorf("state contains old provider: %s", "registry.terraform.io/hashicorp/null")
+	if strings.Contains(string(updatedState.Bytes()), fromProviderFQN) {
+		t.Errorf("state contains old provider: %s", fromProviderFQN)
 	}
 }

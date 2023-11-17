@@ -97,6 +97,8 @@ func NewMultiStateMigrator(fromDir string, toDir string, fromWorkspace string, t
 	fromTf := tfexec.NewTerraformCLI(tfexec.NewExecutor(fromDir, os.Environ()))
 	toTf := tfexec.NewTerraformCLI(tfexec.NewExecutor(toDir, os.Environ()))
 	if o != nil && len(o.ExecPath) > 0 {
+		// While NewTerraformCLI reads the environment variable TFMIGRATE_EXEC_PATH
+		// at initialization, the MigratorOption takes precedence over it.
 		fromTf.SetExecPath(o.ExecPath)
 		toTf.SetExecPath(o.ExecPath)
 	}

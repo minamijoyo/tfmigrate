@@ -23,6 +23,7 @@ type MigratorOption struct {
 	// ExecPath is a string how terraform command is executed. Default to terraform.
 	// It's intended to inject a wrapper command such as direnv.
 	// e.g.) direnv exec . terraform
+	// To use OpenTofu, set this to `tofu`.
 	ExecPath string
 
 	// PlanOut is a path to plan file to be saved.

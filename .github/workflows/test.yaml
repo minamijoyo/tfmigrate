@@ -32,14 +32,14 @@ jobs:
         go-version-file: '.go-version'
     - name: test
       run: make test
-  testacc:
+  testacc_terraform:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
         terraform:
-        - 1.6.0
+        - 1.6.4
         - 1.5.7
         - 1.4.7
         - 0.12.31
@@ -56,5 +56,29 @@ jobs:
         docker-compose exec -T localstack /etc/localstack/init/wait_s3_bucket_exists.sh
     - name: terraform --version
       run: docker-compose run --rm tfmigrate terraform --version
+    - name: testacc
+      run: docker-compose run --rm tfmigrate make testacc
+  testacc_opentofu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        opentofu:
+        - 1.6.0-alpha5
+    env:
+      OPENTOFU_VERSION: ${{ matrix.opentofu }}
+      TFMIGRATE_EXEC_PATH: tofu
+    steps:
+    - uses: actions/checkout@v4
+    - name: docker build
+      run: docker-compose build
+    - name: start localstack
+      run: |
+        docker-compose up -d localstack
+        docker-compose run --rm dockerize -wait tcp://localstack:4566 -timeout 60s
+        docker-compose exec -T localstack /etc/localstack/init/wait_s3_bucket_exists.sh
+    - name: tofu --version
+      run: docker-compose run --rm tfmigrate tofu --version
     - name: testacc
       run: docker-compose run --rm tfmigrate make testacc
