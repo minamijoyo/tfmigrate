@@ -3,7 +3,7 @@
 [![GitHub release](https://img.shields.io/github/release/minamijoyo/tfmigrate.svg)](https://github.com/minamijoyo/tfmigrate/releases/latest)
 [![GoDoc](https://godoc.org/github.com/minamijoyo/tfmigrate/tfmigrate?status.svg)](https://godoc.org/github.com/minamijoyo/tfmigrate)
 
-A Terraform state migration tool for GitOps.
+A Terraform / OpenTofu state migration tool for GitOps.
 
 ## Table of content
 <!--ts-->
@@ -81,9 +81,17 @@ This brings us to a new paradigm, that is to say, Terraform state operation as C
 
 ## Requirements
 
-The tfmigrate invokes `terraform` command under the hood. This is because we want to support multiple terraform versions in a stable way.
+The tfmigrate invokes `terraform` or `tofu` command under the hood. This is because we want to support multiple Terraform / OpenTofu versions in a stable way.
 
-The minimum requirement is Terraform v0.12 or higher, but we recommend the Terraform v1.x.
+### Terraform
+
+The minimum required version is Terraform v0.12 or higher, but we recommend the Terraform v1.x.
+
+### OpenTofu
+
+If you want to use OpenTofu, a community fork of Terraform, you need to set the environment variable `TFMIGRATE_EXEC_PATH` to `tofu`.
+
+The minimum required version is OpenTofu v1.6 or higher.
 
 ## Getting Started
 
