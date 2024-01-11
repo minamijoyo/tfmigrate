@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.3.20 (2024/01/11)
+
 ENHANCEMENTS:
 
 * Add support for OpenTofu v1.6 ([#165](https://github.com/minamijoyo/tfmigrate/pull/165))
