@@ -1,5 +1,11 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Add support for OpenTofu v1.6 ([#165](https://github.com/minamijoyo/tfmigrate/pull/165))
+
+Note: If you want to use OpenTofu, a community fork of Terraform, you need to set the environment variable `TFMIGRATE_EXEC_PATH` to `tofu`.
+
 ## 0.3.19 (2023/11/17)
 
 ENHANCEMENTS:
