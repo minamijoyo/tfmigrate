@@ -562,6 +562,20 @@ migration "state" "test" {
 }
 ```
 
+### Environment Variables
+
+Environment variables can be accessed in migration files via the `env` variable:
+
+```hcl
+migration "state" "test" {
+  dir = "dir1"
+  workspace = env.TFMIGRATE_WORKSPACE
+  actions = [
+    "mv aws_security_group.foo aws_security_group.foo2"
+  ]
+}
+```
+
 ### migration block
 
 - The file must contain exactly one `migration` block.
