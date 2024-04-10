@@ -2,10 +2,14 @@ package config
 
 import (
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclsimple"
+	"github.com/zclconf/go-cty/cty"
+
 	"github.com/minamijoyo/tfmigrate/tfmigrate"
 )
 
@@ -30,18 +34,35 @@ type MigrationBlock struct {
 	Remain hcl.Body `hcl:",remain"`
 }
 
+// Return a map of environment variables.
+func envVarMap() cty.Value {
+	envMap := make(map[string]cty.Value)
+	for _, env := range os.Environ() {
+		pair := strings.SplitN(env, "=", 2)
+		envMap[pair[0]] = cty.StringVal(pair[1])
+	}
+	return cty.MapVal(envMap)
+}
+
 // ParseMigrationFile parses a given source of migration file and returns a *tfmigrate.MigrationConfig.
 // Note that this method does not read a file and you should pass source of config in bytes.
 // The filename is used for error message and selecting HCL syntax (.hcl and .json).
 func ParseMigrationFile(filename string, source []byte) (*tfmigrate.MigrationConfig, error) {
 	// Decode migration block header.
 	var f MigrationFile
-	err := hclsimple.Decode(filename, source, nil, &f)
+
+	ctx := &hcl.EvalContext{
+		Variables: map[string]cty.Value{
+			"env": envVarMap(),
+		},
+	}
+
+	err := hclsimple.Decode(filename, source, ctx, &f)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode migration file: %s, err: %s", filename, err)
 	}
 
-	migrator, err := parseMigrationBlock(f.Migration)
+	migrator, err := parseMigrationBlock(f.Migration, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -56,16 +77,16 @@ func ParseMigrationFile(filename string, source []byte) (*tfmigrate.MigrationCon
 }
 
 // parseMigrationBlock parses a migration block and returns a tfmigrate.MigratorConfig.
-func parseMigrationBlock(b MigrationBlock) (tfmigrate.MigratorConfig, error) {
+func parseMigrationBlock(b MigrationBlock, ctx *hcl.EvalContext) (tfmigrate.MigratorConfig, error) {
 	switch b.Type {
 	case "mock": // only for testing
-		return parseMockMigrationBlock(b)
+		return parseMockMigrationBlock(b, ctx)
 
 	case "state":
-		return parseStateMigrationBlock(b)
+		return parseStateMigrationBlock(b, ctx)
 
 	case "multi_state":
-		return parseMultiStateMigrationBlock(b)
+		return parseMultiStateMigrationBlock(b, ctx)
 
 	default:
 		return nil, fmt.Errorf("unknown migration type: %s", b.Type)
@@ -73,9 +94,9 @@ func parseMigrationBlock(b MigrationBlock) (tfmigrate.MigratorConfig, error) {
 }
 
 // parseMockMigrationBlock parses a migration block for mock and returns a tfmigrate.MigratorConfig.
-func parseMockMigrationBlock(b MigrationBlock) (tfmigrate.MigratorConfig, error) {
+func parseMockMigrationBlock(b MigrationBlock, ctx *hcl.EvalContext) (tfmigrate.MigratorConfig, error) {
 	var config tfmigrate.MockMigratorConfig
-	diags := gohcl.DecodeBody(b.Remain, nil, &config)
+	diags := gohcl.DecodeBody(b.Remain, ctx, &config)
 	if diags.HasErrors() {
 		return nil, diags
 	}
@@ -84,9 +105,9 @@ func parseMockMigrationBlock(b MigrationBlock) (tfmigrate.MigratorConfig, error)
 }
 
 // parseStateMigrationBlock parses a migration block for state and returns a tfmigrate.MigratorConfig.
-func parseStateMigrationBlock(b MigrationBlock) (tfmigrate.MigratorConfig, error) {
+func parseStateMigrationBlock(b MigrationBlock, ctx *hcl.EvalContext) (tfmigrate.MigratorConfig, error) {
 	var config tfmigrate.StateMigratorConfig
-	diags := gohcl.DecodeBody(b.Remain, nil, &config)
+	diags := gohcl.DecodeBody(b.Remain, ctx, &config)
 	if diags.HasErrors() {
 		return nil, diags
 	}
@@ -96,9 +117,9 @@ func parseStateMigrationBlock(b MigrationBlock) (tfmigrate.MigratorConfig, error
 
 // parseMultiStateMigrationBlock parses a migration block for multi_state and
 // returns a tfmigrate.MigratorConfig.
-func parseMultiStateMigrationBlock(b MigrationBlock) (tfmigrate.MigratorConfig, error) {
+func parseMultiStateMigrationBlock(b MigrationBlock, ctx *hcl.EvalContext) (tfmigrate.MigratorConfig, error) {
 	var config tfmigrate.MultiStateMigratorConfig
-	diags := gohcl.DecodeBody(b.Remain, nil, &config)
+	diags := gohcl.DecodeBody(b.Remain, ctx, &config)
 	if diags.HasErrors() {
 		return nil, diags
 	}

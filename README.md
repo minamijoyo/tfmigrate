@@ -26,6 +26,7 @@ A Terraform / OpenTofu state migration tool for GitOps.
          * [storage block (s3)](#storage-block-s3)
          * [storage block (gcs)](#storage-block-gcs)
    * [Migration file](#migration-file)
+      * [Environment Variables](#environment-variables-1)
       * [migration block](#migration-block)
       * [migration block (state)](#migration-block-state)
          * [state mv](#state-mv)
@@ -558,6 +559,20 @@ migration "state" "test" {
   dir = "dir1"
   actions = [
     "mv aws_security_group.foo[0] 'aws_security_group.foo[\"baz\"]'",
+  ]
+}
+```
+
+### Environment Variables
+
+Environment variables can be accessed in migration files via the `env` variable:
+
+```hcl
+migration "state" "test" {
+  dir = "dir1"
+  workspace = env.TFMIGRATE_WORKSPACE
+  actions = [
+    "mv aws_security_group.foo aws_security_group.foo2"
   ]
 }
 ```

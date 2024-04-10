@@ -10,6 +10,7 @@ import (
 func TestParseMigrationFileWithNativeSyntax(t *testing.T) {
 	cases := []struct {
 		desc   string
+		env    map[string]string
 		source string
 		want   *tfmigrate.MigrationConfig
 		ok     bool
@@ -342,10 +343,32 @@ foo "bar" "baz" {}
 			want:   nil,
 			ok:     false,
 		},
+		{
+			desc: "envirionment variable",
+			env:  map[string]string{"TFMIGRATE_TEST_WORKSPACE": "test-workspace"},
+			source: `
+migration "state" "test" {
+	workspace = env.TFMIGRATE_TEST_WORKSPACE
+	actions = []
+}
+`,
+			want: &tfmigrate.MigrationConfig{
+				Type: "state",
+				Name: "test",
+				Migrator: &tfmigrate.StateMigratorConfig{
+					Actions:   []string{},
+					Workspace: "test-workspace",
+				},
+			},
+			ok: true,
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
+			for k, v := range tc.env {
+				t.Setenv(k, v)
+			}
 			got, err := ParseMigrationFile("test.hcl", []byte(tc.source))
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
