@@ -25,6 +25,7 @@ A Terraform / OpenTofu state migration tool for GitOps.
          * [storage block (local)](#storage-block-local)
          * [storage block (s3)](#storage-block-s3)
          * [storage block (gcs)](#storage-block-gcs)
+         * [storage block (azure)](#storage-block-azure)
    * [Migration file](#migration-file)
       * [Environment Variables](#environment-variables-1)
       * [migration block](#migration-block)
