@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.3.21 (2024/04/11)
+
 NEW FEATURES:
 
 * Pass environment variables as "env" ([#171](https://github.com/minamijoyo/tfmigrate/pull/171))
