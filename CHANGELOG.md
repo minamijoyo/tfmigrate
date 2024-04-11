@@ -1,8 +1,14 @@
 ## master (Unreleased)
 
+NEW FEATURES:
+
+* Pass environment variables as "env" ([#171](https://github.com/minamijoyo/tfmigrate/pull/171))
+
 ENHANCEMENTS:
 
 * Add support for Terraform v1.7 ([#166](https://github.com/minamijoyo/tfmigrate/pull/166))
+* Add support for Terraform v1.8 ([#172](https://github.com/minamijoyo/tfmigrate/pull/172))
+* build: use go1.22 ([#169](https://github.com/minamijoyo/tfmigrate/pull/169))
 
 ## 0.3.20 (2024/01/11)
 
