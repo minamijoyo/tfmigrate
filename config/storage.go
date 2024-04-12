@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/minamijoyo/tfmigrate/storage"
+	"github.com/minamijoyo/tfmigrate/storage/azure"
 	"github.com/minamijoyo/tfmigrate/storage/gcs"
 	"github.com/minamijoyo/tfmigrate/storage/local"
 	"github.com/minamijoyo/tfmigrate/storage/mock"
@@ -35,6 +36,9 @@ func parseStorageBlock(b StorageBlock) (storage.Config, error) {
 	case "local":
 		return parseLocalStorageBlock(b)
 
+	case "azure":
+		return parseAzureStorageBlock(b)
+
 	case "s3":
 		return parseS3StorageBlock(b)
 
@@ -60,6 +64,17 @@ func parseMockStorageBlock(b StorageBlock) (storage.Config, error) {
 // parseLocalStorageBlock parses a storage block for local and returns a storage.Config.
 func parseLocalStorageBlock(b StorageBlock) (storage.Config, error) {
 	var config local.Config
+	diags := gohcl.DecodeBody(b.Remain, nil, &config)
+	if diags.HasErrors() {
+		return nil, diags
+	}
+
+	return &config, nil
+}
+
+// parseAzureStorageBlock parses a storage block for azure and returns a storage.Config.
+func parseAzureStorageBlock(b StorageBlock) (storage.Config, error) {
+	var config azure.Config
 	diags := gohcl.DecodeBody(b.Remain, nil, &config)
 	if diags.HasErrors() {
 		return nil, diags
