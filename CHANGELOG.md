@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* chore: Update golang.org/x/net to v0.0.0-20220906165146-f3363e06e74c to fix vulnerability ([#176](https://github.com/minamijoyo/tfmigrate/pull/176))
+
 ## 0.3.21 (2024/04/11)
 
 NEW FEATURES:
