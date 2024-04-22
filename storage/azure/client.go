@@ -25,7 +25,7 @@ type client struct {
 func newClient(config *Config) (Client, error) {
 	// If the access key isn't defined in the configuration, try to read it from the environment.
 	if config.AccessKey == "" {
-		config.AccessKey = os.Getenv("TFMIGRATE_AZURE_STORAGE_ACCESS_KEY")
+		config.AccessKey = os.Getenv("TFMIGRATE_AZURERM_STORAGE_ACCESS_KEY")
 	}
 
 	cred, err := azblob.NewSharedKeyCredential(config.AccountName, config.AccessKey)

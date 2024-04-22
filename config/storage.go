@@ -36,7 +36,7 @@ func parseStorageBlock(b StorageBlock) (storage.Config, error) {
 	case "local":
 		return parseLocalStorageBlock(b)
 
-	case "azure":
+	case "azurerm":
 		return parseAzureStorageBlock(b)
 
 	case "s3":

@@ -25,7 +25,7 @@ A Terraform / OpenTofu state migration tool for GitOps.
          * [storage block (local)](#storage-block-local)
          * [storage block (s3)](#storage-block-s3)
          * [storage block (gcs)](#storage-block-gcs)
-         * [storage block (azure)](#storage-block-azure)
+         * [storage block (azurerm)](#storage-block-azurerm)
    * [Migration file](#migration-file)
       * [Environment Variables](#environment-variables-1)
       * [migration block](#migration-block)
@@ -430,7 +430,7 @@ The storage block has one label, which is a type of storage. Valid types are as 
 - `local`: Save a history file to local filesystem.
 - `s3`: Save a history file to AWS S3.
 - `gcs`: Save a history file to GCS (Google Cloud Storage).
-- `azure`: Save a history file to Azure Blob storage.
+- `azurerm`: Save a history file to Azure Blob storage.
 
 If your cloud provider has not been supported yet, as a workaround, you can use `local` storage and synchronize a history file to your cloud storage with a wrapper script.
 
@@ -514,16 +514,16 @@ tfmigrate {
 
 If you want to connect to an emulator instead of GCS, set the `STORAGE_EMULATOR_HOST` environment variable as required by the [Go library for GCS](https://pkg.go.dev/cloud.google.com/go/storage).
 
-#### storage block (azure)
+#### storage block (azurerm)
 
-The `azure` storage has the following attributes:
+The `azurerm` storage has the following attributes:
 
-- `access_key` (optional): Access key for the blob storage container. If omitted, this value is read from the `TFMIGRATE_AZURE_STORAGE_ACCESS_KEY` environment variable.
+- `access_key` (optional): Access key for the blob storage container. If omitted, this value is read from the `TFMIGRATE_AZURERM_STORAGE_ACCESS_KEY` environment variable.
 - `account_name` (required): Name of the storage account.
 - `container_name` (required): Name of the storage container.
 - `blob_name` (optional): Name of the migration history file. Defaults to `history.json` if omitted.
 
-Note that the `azure` backend expects that the storage account, container and blob already exist.
+Note that the `azurerm` backend expects that the storage account, container and blob already exist.
 
 An example of configuration file is as follows.
 
@@ -531,7 +531,7 @@ An example of configuration file is as follows.
 tfmigrate {
   migration_dir = "./tfmigrate"
   history {
-    storage "azure" {
+    storage "azurerm" {
       access_key = "<storage access key>"
       account_name = "storage"
       container_name = "tfmigrate-test"
