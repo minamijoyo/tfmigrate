@@ -19,10 +19,6 @@ var _ storage.Storage = (*Storage)(nil)
 
 // NewStorage returns a new instance of Storage.
 func NewStorage(config *Config, client Client) (*Storage, error) {
-	if config.Key == "" {
-		config.Key = "history.json"
-	}
-
 	if client == nil {
 		var err error
 		client, err = newClient(config)
