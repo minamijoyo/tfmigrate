@@ -519,7 +519,7 @@ If you want to connect to an emulator instead of GCS, set the `STORAGE_EMULATOR_
 The `azurerm` storage has the following attributes:
 
 - `access_key` (optional): Access key for the blob storage container. If omitted, this value is read from the `TFMIGRATE_AZURERM_STORAGE_ACCESS_KEY` environment variable.
-- `account_name` (required): Name of the storage account.
+- `storage_account_name` (required): Name of the storage account.
 - `container_name` (required): Name of the storage container.
 - `blob_name` (optional): Name of the migration history file. Defaults to `history.json` if omitted.
 
@@ -533,7 +533,7 @@ tfmigrate {
   history {
     storage "azurerm" {
       access_key = "<storage access key>"
-      account_name = "storage"
+      storage_account_name = "storage"
       container_name = "tfmigrate-test"
       blob_name = "tfmigrate-history.json"
     }

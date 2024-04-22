@@ -4,7 +4,7 @@ import "github.com/minamijoyo/tfmigrate/storage"
 
 type Config struct {
 	AccessKey     string `hcl:"access_key,optional"`
-	AccountName   string `hcl:"account_name"`
+	AccountName   string `hcl:"storage_account_name"`
 	ContainerName string `hcl:"container_name"`
 	BlobName      string `hcl:"blob_name,optional"`
 }
