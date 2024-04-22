@@ -6,7 +6,7 @@ type Config struct {
 	AccessKey     string `hcl:"access_key,optional"`
 	AccountName   string `hcl:"storage_account_name"`
 	ContainerName string `hcl:"container_name"`
-	BlobName      string `hcl:"blob_name,optional"`
+	Key           string `hcl:"key,optional"`
 }
 
 // Config implements a storage.Config.

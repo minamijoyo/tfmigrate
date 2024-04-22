@@ -19,8 +19,8 @@ var _ storage.Storage = (*Storage)(nil)
 
 // NewStorage returns a new instance of Storage.
 func NewStorage(config *Config, client Client) (*Storage, error) {
-	if config.BlobName == "" {
-		config.BlobName = "history.json"
+	if config.Key == "" {
+		config.Key = "history.json"
 	}
 
 	if client == nil {
@@ -41,10 +41,10 @@ func NewStorage(config *Config, client Client) (*Storage, error) {
 
 // Write writes migration history data to storage.
 func (s *Storage) Write(ctx context.Context, b []byte) error {
-	return s.client.Write(ctx, s.config.ContainerName, s.config.BlobName, b)
+	return s.client.Write(ctx, s.config.ContainerName, s.config.Key, b)
 }
 
 // Read reads migration history data from storage.
 func (s *Storage) Read(ctx context.Context) ([]byte, error) {
-	return s.client.Read(ctx, s.config.ContainerName, s.config.BlobName)
+	return s.client.Read(ctx, s.config.ContainerName, s.config.Key)
 }

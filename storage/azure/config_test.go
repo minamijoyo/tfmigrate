@@ -13,7 +13,7 @@ func TestConfigNewStorage(t *testing.T) {
 			config: &Config{
 				AccountName:   "tfmigrate-test",
 				ContainerName: "tfmigrate",
-				BlobName:      "history.json",
+				Key:           "history.json",
 			},
 			ok: true,
 		},
@@ -23,7 +23,7 @@ func TestConfigNewStorage(t *testing.T) {
 				AccessKey:     "ZHVtbXkK", // expected to be a base64-encoded string
 				AccountName:   "tfmigrate-test",
 				ContainerName: "tfmigrate",
-				BlobName:      "history.json",
+				Key:           "history.json",
 			},
 			ok: true,
 		},

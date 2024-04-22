@@ -32,7 +32,7 @@ func TestStorageWrite(t *testing.T) {
 			config: &Config{
 				AccountName:   "tfmigrate-test",
 				ContainerName: "tfmigrate",
-				BlobName:      "history.json",
+				Key:           "history.json",
 			},
 			client: &mockClient{
 				err: nil,
@@ -72,7 +72,7 @@ func TestStorageRead(t *testing.T) {
 			config: &Config{
 				AccountName:   "tfmigrate-test",
 				ContainerName: "tfmigrate",
-				BlobName:      "history.json",
+				Key:           "history.json",
 			},
 			client: &mockClient{
 				dataToRead: []byte("foo"),
