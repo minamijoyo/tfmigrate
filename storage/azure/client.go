@@ -3,9 +3,11 @@ package azure
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 )
 
@@ -43,7 +45,15 @@ func newClient(config *Config) (Client, error) {
 func (c *client) Read(ctx context.Context, container, blob string) ([]byte, error) {
 	resp, err := c.BlobAPI.DownloadStream(ctx, container, blob, nil)
 	if err != nil {
-		return nil, err
+		var responseError *azcore.ResponseError
+		if errors.As(err, &responseError) {
+			if responseError.StatusCode == 404 {
+				val := []byte{}
+				return val, c.Write(ctx, container, blob, val)
+			}
+
+			return nil, err
+		}
 	}
 
 	bs := bytes.Buffer{}

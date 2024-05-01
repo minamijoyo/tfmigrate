@@ -523,7 +523,7 @@ The `azurerm` storage has the following attributes:
 - `container_name` (required): Name of the storage container.
 - `key` (required): Name of the migration history file.
 
-Note that the `azurerm` backend expects that the storage account, container and blob already exist.
+Note that the `azurerm` backend expects that the storage account and container already exist. The blob will be created if missing.
 
 An example of configuration file is as follows.
 
