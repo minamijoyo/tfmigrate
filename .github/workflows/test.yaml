@@ -54,6 +54,11 @@ jobs:
         docker-compose up -d localstack
         docker-compose run --rm dockerize -wait tcp://localstack:4566 -timeout 60s
         docker-compose exec -T localstack /etc/localstack/init/wait_s3_bucket_exists.sh
+    - name: start azurite
+      run: |
+        docker-compose up -d azurite
+        docker-compose run --rm dockerize -wait tcp://azurite:10000 -timeout 60s
+        docker-compose run --rm az az storage container create --name testcontainer
     - name: terraform --version
       run: docker-compose run --rm tfmigrate terraform --version
     - name: testacc
@@ -78,6 +83,11 @@ jobs:
         docker-compose up -d localstack
         docker-compose run --rm dockerize -wait tcp://localstack:4566 -timeout 60s
         docker-compose exec -T localstack /etc/localstack/init/wait_s3_bucket_exists.sh
+    - name: start azurite
+      run: |
+        docker-compose up -d azurite
+        docker-compose run --rm dockerize -wait tcp://azurite:10000 -timeout 60s
+        docker-compose run --rm az az storage container create --name testcontainer
     - name: tofu --version
       run: docker-compose run --rm tfmigrate tofu --version
     - name: testacc

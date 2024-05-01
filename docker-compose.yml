@@ -23,8 +23,20 @@ services:
       OPENTOFU_VERSION: ${OPENTOFU_VERSION:-latest}
       TFMIGRATE_EXEC_PATH:
     depends_on:
+      - azurite
       - localstack
       - fake-gcs-server
+
+  az:
+    image: mcr.microsoft.com/azure-cli:2.60.0
+    environment:
+      AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:3.30.0
+    command: ["azurite-blob", "--blobHost", "0.0.0.0", "--inMemoryPersistence"]
+    ports:
+      - "10000:10000"
 
   localstack:
     image: localstack/localstack:2.0.2
