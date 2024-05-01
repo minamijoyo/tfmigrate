@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.3.23 (2024/05/01)
+
 ENHANCEMENTS:
 
 * chore: Upgrade golang libs with vulnerabilities ([#177](https://github.com/minamijoyo/tfmigrate/pull/177))
