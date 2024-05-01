@@ -521,7 +521,7 @@ The `azurerm` storage has the following attributes:
 - `access_key` (optional): Access key for the blob storage container. If omitted, this value is read from the `ARM_ACCESS_KEY` environment variable.
 - `storage_account_name` (required): Name of the storage account.
 - `container_name` (required): Name of the storage container.
-- `blob_name` (optional): Name of the migration history file. Defaults to `history.json` if omitted.
+- `key` (required): Name of the migration history file.
 
 Note that the `azurerm` backend expects that the storage account, container and blob already exist.
 
@@ -535,7 +535,7 @@ tfmigrate {
       access_key = "<storage access key>"
       storage_account_name = "storage"
       container_name = "tfmigrate-test"
-      blob_name = "tfmigrate-history.json"
+      key = "tfmigrate-history.json"
     }
   }
 }
