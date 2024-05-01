@@ -1,5 +1,10 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* chore: Upgrade golang libs with vulnerabilities ([#177](https://github.com/minamijoyo/tfmigrate/pull/177))
+* Add support for OpenTofu v1.7 ([#178](https://github.com/minamijoyo/tfmigrate/pull/178))
+
 ## 0.3.22 (2024/04/16)
 
 ENHANCEMENTS:
