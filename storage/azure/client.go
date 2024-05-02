@@ -48,8 +48,7 @@ func (c *client) Read(ctx context.Context, container, blob string) ([]byte, erro
 		var responseError *azcore.ResponseError
 		if errors.As(err, &responseError) {
 			if responseError.StatusCode == 404 {
-				val := []byte{}
-				return val, c.Write(ctx, container, blob, val)
+				return []byte{}, nil
 			}
 
 			return nil, err
