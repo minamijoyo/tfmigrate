@@ -98,13 +98,13 @@ The minimum required version is OpenTofu v1.6 or higher.
 
 As you know, terraform state operations are dangerous if you don't understand what you are actually doing. If I were you, I wouldn't use a new tool in production from the start. So, we recommend you to play an example sandbox environment first, which is safe to run terraform state command without any credentials. The sandbox environment mocks the AWS API with `localstack` and doesn't actually create any resources. So you can safely run the `tfmigrate` and `terraform` commands, and easily understand how the tfmigrate works.
 
-Build a sandbox environment with docker-compose and run bash:
+Build a sandbox environment with docker compose and run bash:
 
 ```
 $ git clone https://github.com/minamijoyo/tfmigrate
 $ cd tfmigrate/
-$ docker-compose build
-$ docker-compose run --rm tfmigrate /bin/bash
+$ docker compose build
+$ docker compose run --rm tfmigrate /bin/bash
 ```
 
 In the sandbox environment, create and initialize a working directory from test fixtures:
