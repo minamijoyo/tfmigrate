@@ -27,7 +27,7 @@ func TestTerraformCLIStateReplaceProvider(t *testing.T) {
 		return nil
 	}
 
-	versionRunFunc := func(args ...string) error {
+	versionRunFunc := func(_ ...string) error {
 		return nil
 	}
 
