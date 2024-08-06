@@ -13,7 +13,7 @@ import (
 )
 
 // Version is a version number.
-var version = "0.3.23"
+var version = "0.3.24"
 
 func main() {
 	log.SetOutput(logOutput())
