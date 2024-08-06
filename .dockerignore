@@ -2,3 +2,4 @@
 .terraform/
 bin/
 tmp/
+dist/

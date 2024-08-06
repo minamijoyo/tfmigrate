@@ -28,10 +28,10 @@ jobs:
         private_key: ${{ secrets.APP_PRIVATE_KEY }}
         repository: minamijoyo/homebrew-tfmigrate
     - name: Run GoReleaser
-      uses: goreleaser/goreleaser-action@v4
+      uses: goreleaser/goreleaser-action@v6
       with:
-        version: latest
-        args: release --rm-dist
+        version: "~> v2"
+        args: release --clean
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         HOMEBREW_TAP_GITHUB_TOKEN: ${{ steps.generate_github_app_token.outputs.token }}

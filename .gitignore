@@ -2,4 +2,5 @@
 .terraform/
 bin/
 tmp/
+dist/
 .idea/
