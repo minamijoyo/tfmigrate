@@ -21,12 +21,13 @@ jobs:
       with:
         go-version-file: '.go-version'
     - name: Generate github app token
-      id: generate_github_app_token
-      uses: tibdex/github-app-token@f717b5ecd4534d3c4df4ce9b5c1c2214f0f7cd06  # v1.6.0
+      uses: actions/create-github-app-token@31c86eb3b33c9b601a1f60f98dcbfd1d70f379b4  # v1.10.3
+      id: app-token
       with:
-        app_id: ${{ secrets.APP_ID }}
-        private_key: ${{ secrets.APP_PRIVATE_KEY }}
-        repository: minamijoyo/homebrew-tfmigrate
+        app-id: ${{ secrets.APP_ID }}
+        private-key: ${{ secrets.APP_PRIVATE_KEY }}
+        owner: ${{ github.repository_owner }}
+        repositories: homebrew-tfmigrate
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v6
       with:
@@ -34,4 +35,4 @@ jobs:
         args: release --clean
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        HOMEBREW_TAP_GITHUB_TOKEN: ${{ steps.generate_github_app_token.outputs.token }}
+        HOMEBREW_TAP_GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
