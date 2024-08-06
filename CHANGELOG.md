@@ -3,6 +3,13 @@
 ENHANCEMENTS:
 
 * Add support for Terraform v1.9 ([#179](https://github.com/minamijoyo/tfmigrate/pull/179))
+* Use docker compose command instead of docker-compose ([#180](https://github.com/minamijoyo/tfmigrate/pull/180))
+* Update alpine to v3.20 ([#181](https://github.com/minamijoyo/tfmigrate/pull/181))
+* Update golangci lint to v1.59.1 ([#182](https://github.com/minamijoyo/tfmigrate/pull/182))
+* Update setup-go to v5 ([#183](https://github.com/minamijoyo/tfmigrate/pull/183))
+* Add support for OpenTofu 1.8 ([#184](https://github.com/minamijoyo/tfmigrate/pull/184))
+* Update goreleaser to v2 ([#185](https://github.com/minamijoyo/tfmigrate/pull/185))
+* Switch to the official action for creating GitHub App token ([#186](https://github.com/minamijoyo/tfmigrate/pull/186))
 
 ## 0.3.23 (2024/05/01)
 
