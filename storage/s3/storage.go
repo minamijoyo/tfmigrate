@@ -3,10 +3,12 @@ package s3
 import (
 	"bytes"
 	"context"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/minamijoyo/tfmigrate/storage"
 )
 
@@ -66,6 +68,8 @@ func (s *Storage) Read(ctx context.Context) ([]byte, error) {
 	}
 
 	output, err := s.client.GetObjectWithContext(ctx, input)
+	log.Printf("[TRACE] [storage] output: %#v\n", output)
+	log.Printf("[TRACE] [storage] err: %#v\n", spew.Sdump(err))
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "NoSuchKey" {
 			// If the key does not exist

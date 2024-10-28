@@ -50,6 +50,7 @@ func (c *ListCommand) Run(args []string) int {
 	ctx := context.Background()
 	out, err := listMigrations(ctx, c.config, c.status)
 	if err != nil {
+		log.Printf("[TRACE] [command] err: %#v\n", err)
 		c.UI.Error(err.Error())
 		return 1
 	}

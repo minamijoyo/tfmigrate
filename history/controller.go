@@ -89,9 +89,10 @@ func loadHistory(ctx context.Context, c storage.Config) (*History, error) {
 		return nil, err
 	}
 
-	log.Printf("[DEBUG] [history] read storage %#v\n", s)
+	log.Printf("[DEBUG] [history] read storage!!! %#v\n", s)
 	b, err := s.Read(ctx)
 	if err != nil {
+		log.Printf("[TRACE] [history] err: %#v\n", err)
 		return nil, err
 	}
 	log.Printf("[TRACE] [history] read history file: %#v\n", b)
