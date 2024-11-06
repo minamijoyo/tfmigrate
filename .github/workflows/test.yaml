@@ -39,7 +39,7 @@ jobs:
       fail-fast: false
       matrix:
         terraform:
-        - 1.9.0
+        - 1.9.8
         - 1.8.5
         - 0.12.31
     env:
@@ -65,8 +65,8 @@ jobs:
       matrix:
         opentofu:
         - 1.6.3
-        - 1.7.3
-        - 1.8.0
+        - 1.7.5
+        - 1.8.5
     env:
       OPENTOFU_VERSION: ${{ matrix.opentofu }}
       TFMIGRATE_EXEC_PATH: tofu
