@@ -1,5 +1,11 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* fix(deps): upgrade aws-sdk-go to v1.55.5 to use aws sso shared config ([#188](https://github.com/minamijoyo/tfmigrate/pull/188))
+* Rename docker-compose.yml to compose.yaml ([#189](https://github.com/minamijoyo/tfmigrate/pull/189))
+* Update test matrix to latest ([#190](https://github.com/minamijoyo/tfmigrate/pull/190))
+
 ## 0.3.24 (2024/08/06)
 
 ENHANCEMENTS:
