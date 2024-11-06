@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.3.25 (2024/11/06)
+
 ENHANCEMENTS:
 
 * fix(deps): upgrade aws-sdk-go to v1.55.5 to use aws sso shared config ([#188](https://github.com/minamijoyo/tfmigrate/pull/188))
