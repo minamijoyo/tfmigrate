@@ -3,10 +3,11 @@ package s3
 import (
 	"bytes"
 	"context"
+	"errors"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/minamijoyo/tfmigrate/storage"
 )
 
@@ -48,10 +49,10 @@ func (s *Storage) Write(ctx context.Context, b []byte) error {
 	}
 	if s.config.KmsKeyID != "" {
 		input.SSEKMSKeyId = &s.config.KmsKeyID
-		input.ServerSideEncryption = aws.String("aws:kms")
+		input.ServerSideEncryption = types.ServerSideEncryptionAwsKms
 	}
 
-	_, err := s.client.PutObjectWithContext(ctx, input)
+	_, err := s.client.PutObject(ctx, input)
 
 	return err
 }
@@ -65,9 +66,10 @@ func (s *Storage) Read(ctx context.Context) ([]byte, error) {
 		Key:    aws.String(s.config.Key),
 	}
 
-	output, err := s.client.GetObjectWithContext(ctx, input)
+	output, err := s.client.GetObject(ctx, input)
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "NoSuchKey" {
+		var nsk *types.NoSuchKey
+		if errors.As(err, &nsk) {
 			// If the key does not exist
 			return []byte{}, nil
 		}

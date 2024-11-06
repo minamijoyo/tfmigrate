@@ -6,10 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
 // mockClient is a mock implementation for testing.
@@ -20,12 +19,12 @@ type mockClient struct {
 }
 
 // PutObjectWithContext returns a mocked response.
-func (c *mockClient) PutObjectWithContext(_ aws.Context, _ *s3.PutObjectInput, _ ...request.Option) (*s3.PutObjectOutput, error) {
+func (c *mockClient) PutObject(_ context.Context, _ *s3.PutObjectInput, _ ...func(*s3.Options)) (*s3.PutObjectOutput, error) {
 	return c.putOutput, c.err
 }
 
 // GetObjectWithContext returns a mocked response.
-func (c *mockClient) GetObjectWithContext(_ aws.Context, _ *s3.GetObjectInput, _ ...request.Option) (*s3.GetObjectOutput, error) {
+func (c *mockClient) GetObject(_ context.Context, _ *s3.GetObjectInput, _ ...func(*s3.Options)) (*s3.GetObjectOutput, error) {
 	return c.getOutput, c.err
 }
 
@@ -58,7 +57,7 @@ func TestStorageWrite(t *testing.T) {
 			},
 			client: &mockClient{
 				putOutput: nil,
-				err:       awserr.New("NoSuchBucket", "The specified bucket does not exist.", nil),
+				err:       &types.NoSuchBucket{Message: aws.String("The specified bucket does not exist.")},
 			},
 			contents: []byte("foo"),
 			ok:       false,
@@ -113,7 +112,7 @@ func TestStorageRead(t *testing.T) {
 			},
 			client: &mockClient{
 				getOutput: nil,
-				err:       awserr.New("NoSuchBucket", "The specified bucket does not exist.", nil),
+				err:       &types.NoSuchBucket{Message: aws.String("The specified bucket does not exist.")},
 			},
 			contents: nil,
 			ok:       false,
@@ -126,7 +125,7 @@ func TestStorageRead(t *testing.T) {
 			},
 			client: &mockClient{
 				getOutput: nil,
-				err:       awserr.New("NoSuchKey", "The specified key does not exist.", nil),
+				err:       &types.NoSuchKey{Message: aws.String("The specified key does not exist.")},
 			},
 			contents: []byte{},
 			ok:       true,
