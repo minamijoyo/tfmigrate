@@ -11,13 +11,15 @@ func TestConfigNewStorage(t *testing.T) {
 		{
 			desc: "valid",
 			config: &Config{
-				Bucket:                    "tfmigrate-test",
-				Key:                       "tfmigrate/history.json",
-				Region:                    "ap-northeast-1",
-				Endpoint:                  "http://localstack:4566",
-				AccessKey:                 "dummy",
-				SecretKey:                 "dummy",
-				Profile:                   "dev",
+				Bucket:    "tfmigrate-test",
+				Key:       "tfmigrate/history.json",
+				Region:    "ap-northeast-1",
+				Endpoint:  "http://localstack:4566",
+				AccessKey: "dummy",
+				SecretKey: "dummy",
+				// aws-sdk-go-v2 will cause an error if it reads an invalid profile,
+				// so comment it out in the test.
+				// Profile:                   "dev",
 				SkipCredentialsValidation: true,
 				SkipMetadataAPICheck:      true,
 				ForcePathStyle:            true,

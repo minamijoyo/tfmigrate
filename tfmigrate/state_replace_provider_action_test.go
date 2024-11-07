@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/minamijoyo/tfmigrate/tfexec"
 )
 
@@ -69,17 +70,24 @@ func TestAccStateReplaceProviderAction(t *testing.T) {
 		t.Fatalf("error opening tfstate fixture: %s", err)
 	}
 	defer stateFile.Close()
+	ctx := context.Background()
 
-	sess, _ := session.NewSession(&aws.Config{
-		Region:           aws.String(tfexec.TestS3Region),
-		Credentials:      credentials.NewStaticCredentials(tfexec.TestS3AccessKey, tfexec.TestS3SecretKey, ""),
-		S3ForcePathStyle: aws.Bool(true),
-		Endpoint:         aws.String(tfexec.GetTestAccS3Endpoint()),
+	cfg, err := config.LoadDefaultConfig(
+		ctx,
+		config.WithRegion(tfexec.TestS3Region),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(tfexec.TestS3AccessKey, tfexec.TestS3SecretKey, "")),
+	)
+	if err != nil {
+		t.Fatalf("failed to load aws config: %s", err)
+	}
+	s3Client := s3.NewFromConfig(cfg, func(options *s3.Options) {
+		options.BaseEndpoint = aws.String(tfexec.GetTestAccS3Endpoint())
+		options.UsePathStyle = true
 	})
 
 	// Upload the legacy state file to S3 to pre-seed the backend S3 bucket.
-	uploader := s3manager.NewUploader(sess)
-	_, err = uploader.Upload(&s3manager.UploadInput{
+	uploader := manager.NewUploader(s3Client)
+	_, err = uploader.Upload(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(tfexec.TestS3Bucket),
 		Key:    aws.String(tfexec.GetTestAccBackendS3Key(t.Name())),
 		Body:   stateFile,
@@ -90,7 +98,6 @@ func TestAccStateReplaceProviderAction(t *testing.T) {
 
 	workspace := "default"
 	tf := tfexec.SetupTestAccForStateReplaceProvider(t, workspace, backend+source)
-	ctx := context.Background()
 
 	registry := "registry.terraform.io"
 	tfExecType, _, err := tf.Version(ctx)
