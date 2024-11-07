@@ -1,5 +1,11 @@
 ## master (Unreleased)
 
+BREAKING CHANGES:
+
+* Upgrade AWS SDK Go to v2 ([#191](https://github.com/minamijoyo/tfmigrate/pull/191))
+
+Starting from tfmigrate v0.4, we use aws-sdk-go-v2 for s3 history storage implementation. From the tfmigrate user's perspective, there are no breaking changes at the configuration file level. Still, it should be noted that AWS credentials have higher precedence in profiles than in environment variables. This is a breaking change, but the goal is to align with the behavior of Terraform / OpenTofu v1.6 and later, so if you are affected, please adjust your AWS authentication settings.
+
 ## 0.3.25 (2024/11/06)
 
 ENHANCEMENTS:
