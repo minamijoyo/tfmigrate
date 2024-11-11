@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.4.0 (2024/11/11)
+
 BREAKING CHANGES:
 
 * Upgrade AWS SDK Go to v2 ([#191](https://github.com/minamijoyo/tfmigrate/pull/191))
