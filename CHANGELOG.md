@@ -1,5 +1,18 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Add support for Terraform v1.10 ([#196](https://github.com/minamijoyo/tfmigrate/pull/196))
+
+BUG FIXES:
+
+* Corrected the key name used for SkipPlan in state migration from "to_skip_plan" to "skip_plan" ([#193](https://github.com/minamijoyo/tfmigrate/pull/193))
+* Restore and deprecate the to_skip_plan in a single-state migration ([#195](https://github.com/minamijoyo/tfmigrate/pull/195))
+
+NOTE:
+
+The `to_skip_plan` attribute in a single-state migration is deprecated. Use `skip_plan` instead.
+
 ## 0.4.0 (2024/11/11)
 
 BREAKING CHANGES:
