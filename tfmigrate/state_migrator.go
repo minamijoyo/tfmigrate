@@ -29,7 +29,7 @@ type StateMigratorConfig struct {
 	// When set forces applying even if plan shows diff.
 	Force bool `hcl:"force,optional"`
 	// SkipPlan controls whether or not to run and analyze Terraform plan.
-	SkipPlan bool `hcl:"to_skip_plan,optional"`
+	SkipPlan bool `hcl:"skip_plan,optional"`
 	// Workspace is the state workspace which the migration works with.
 	Workspace string `hcl:"workspace,optional"`
 }
