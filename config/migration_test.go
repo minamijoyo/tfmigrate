@@ -171,6 +171,52 @@ migration "state" "test" {
 			ok: true,
 		},
 		{
+			desc: "state with skip_plan",
+			source: `
+migration "state" "test" {
+	skip_plan = true
+	actions = [
+		"mv null_resource.foo null_resource.foo2",
+	]
+}
+`,
+			want: &tfmigrate.MigrationConfig{
+				Type: "state",
+				Name: "test",
+				Migrator: &tfmigrate.StateMigratorConfig{
+					Dir: "",
+					Actions: []string{
+						"mv null_resource.foo null_resource.foo2",
+					},
+					SkipPlan: true,
+				},
+			},
+			ok: true,
+		},
+		{
+			desc: "state with to_skip_plan",
+			source: `
+migration "state" "test" {
+	to_skip_plan = true
+	actions = [
+		"mv null_resource.foo null_resource.foo2",
+	]
+}
+`,
+			want: &tfmigrate.MigrationConfig{
+				Type: "state",
+				Name: "test",
+				Migrator: &tfmigrate.StateMigratorConfig{
+					Dir: "",
+					Actions: []string{
+						"mv null_resource.foo null_resource.foo2",
+					},
+					ToSkipPlan: true,
+				},
+			},
+			ok: true,
+		},
+		{
 			desc: "multi state with from_dir and to_dir",
 			source: `
 migration "multi_state" "mv_dir1_dir2" {

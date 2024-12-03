@@ -110,11 +110,20 @@ func TestStateMigratorConfigNewMigrator(t *testing.T) {
 				Dir: "dir1",
 				Actions: []string{
 					"mv null_resource.foo null_resource.foo2",
-					"mv null_resource.bar null_resource.bar2",
-					"rm time_static.baz",
-					"import time_static.qux 2006-01-02T15:04:05Z",
 				},
 				SkipPlan: true,
+			},
+			o:  nil,
+			ok: true,
+		},
+		{
+			desc: "with to_skip_plan true",
+			config: &StateMigratorConfig{
+				Dir: "dir1",
+				Actions: []string{
+					"mv null_resource.foo null_resource.foo2",
+				},
+				ToSkipPlan: true,
 			},
 			o:  nil,
 			ok: true,
