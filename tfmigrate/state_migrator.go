@@ -30,6 +30,10 @@ type StateMigratorConfig struct {
 	Force bool `hcl:"force,optional"`
 	// SkipPlan controls whether or not to run and analyze Terraform plan.
 	SkipPlan bool `hcl:"skip_plan,optional"`
+	// ToSkipPlan controls whether or not to run and analyze Terraform plan.
+	// Note: This variable exists only to maintain compatibility with an old bug
+	// but is deprecated. It will be removed in a future version.
+	ToSkipPlan bool `hcl:"to_skip_plan,optional"`
 	// Workspace is the state workspace which the migration works with.
 	Workspace string `hcl:"workspace,optional"`
 }
@@ -64,7 +68,13 @@ func (c *StateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, error) {
 		c.Workspace = "default"
 	}
 
-	return NewStateMigrator(dir, c.Workspace, actions, o, c.Force, c.SkipPlan), nil
+	// This logic remains to maintain compatibility with an old bug but will be
+	// removed in a future version.
+	skipPlan := c.SkipPlan || c.ToSkipPlan
+	if c.ToSkipPlan {
+		log.Printf("[WARN] [migrator@%s] `to_skip_plan` is deprecated. Use `skip_plan` instead.", dir)
+	}
+	return NewStateMigrator(dir, c.Workspace, actions, o, c.Force, skipPlan), nil
 }
 
 // StateMigrator implements the Migrator interface.
