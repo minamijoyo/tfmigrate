@@ -734,7 +734,8 @@ migration "multi_state" "merge_dir1_to_dir2" {
 
 You can integrate tfmigrate with your favorite CI/CD services. Examples are as follows:
 
-- Atlantis: [minamijoyo/tfmigrate-atlantis-example](https://github.com/minamijoyo/tfmigrate-atlantis-example)
+- [Atlantis](https://github.com/runatlantis/atlantis): [minamijoyo/tfmigrate-atlantis-example](https://github.com/minamijoyo/tfmigrate-atlantis-example)
+- [Digger](https://github.com/diggerhq/digger): [minamijoyo/tfmigrate-digger-example](https://github.com/minamijoyo/tfmigrate-digger-example)
 
 ## License
 
