@@ -98,7 +98,7 @@ The minimum required version is OpenTofu v1.6 or higher.
 
 #### Without dynamic state
 
-If you are not leveraging `terragrunt`s [dynamic state generations](https://terragrunt.gruntwork.io/docs/reference/config-blocks-and-attributes/#remote_state) the environment variable `TF_MIGRATE_EXEC_PATH` must be set to `terragrunt`.
+If you are not leveraging `terragrunt`s [dynamic state generation](https://terragrunt.gruntwork.io/docs/reference/config-blocks-and-attributes/#remote_state) the environment variable `TF_MIGRATE_EXEC_PATH` must be set to `terragrunt`.
 
 ```shell
 # As part of the command or via exporting the variable to your shell. 
@@ -107,7 +107,9 @@ TFMIGRATE_EXEC_PATH=terragrunt tfmigrate $OTHEROPTIONS
 
 #### With dynamic state
 
-If you are leveraging `terragrunt`s [dynamic state generations](https://terragrunt.gruntwork.io/docs/reference/config-blocks-and-attributes/#remote_state) you must utilize a `generate` block within the `remote_state` block to ensure that `terragrunt` doesn't utilize command line flags for remote state configuration that are incompatible with the local backend, which is utilized by `tfmigrate` for planning.
+If you are leveraging `terragrunt`s [dynamic state generation](https://terragrunt.gruntwork.io/docs/reference/config-blocks-and-attributes/#remote_state), the `remote_state` block must include a `generate` block.
+
+This ensures that that `terragrunt` doesn't utilize command line flags for remote state configuration that are incompatible with the local backend, which is utilized by `tfmigrate` for planning.
 
 ```
 remote_state {
