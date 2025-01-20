@@ -107,9 +107,7 @@ TFMIGRATE_EXEC_PATH=terragrunt tfmigrate $OTHEROPTIONS
 
 #### With dynamic state
 
-If you are leveraging `terragrunt`s [dynamic state generation](https://terragrunt.gruntwork.io/docs/reference/config-blocks-and-attributes/#remote_state), the `remote_state` block must include a `generate` block.
-
-This ensures that that `terragrunt` doesn't utilize command line flags for remote state configuration that are incompatible with the local backend, which is utilized by `tfmigrate` for planning.
+As tfmigrate uses the local backend for planning, some command line flags for the remote state backend cannot be used. If you are leveraging terragrunt's [dynamic state generation](https://terragrunt.gruntwork.io/docs/reference/config-blocks-and-attributes/#remote_state), the `remote_state` block must include a `generate` block.```
 
 ```hcl
 remote_state {
