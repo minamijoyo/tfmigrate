@@ -111,7 +111,7 @@ If you are leveraging `terragrunt`s [dynamic state generation](https://terragrun
 
 This ensures that that `terragrunt` doesn't utilize command line flags for remote state configuration that are incompatible with the local backend, which is utilized by `tfmigrate` for planning.
 
-```
+```hcl
 remote_state {
   backend = "s3"
 
