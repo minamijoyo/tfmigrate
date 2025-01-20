@@ -94,6 +94,38 @@ If you want to use OpenTofu, a community fork of Terraform, you need to set the 
 
 The minimum required version is OpenTofu v1.6 or higher.
 
+### Terragrunt
+
+#### Without dynamic state
+
+If you are not leveraging terragrunt's [dynamic state generation](https://terragrunt.gruntwork.io/docs/reference/config-blocks-and-attributes/#remote_state) the environment variable `TF_MIGRATE_EXEC_PATH` must be set to `terragrunt`.
+
+```shell
+# As part of the command or via exporting the variable to your shell. 
+TFMIGRATE_EXEC_PATH=terragrunt tfmigrate $OTHEROPTIONS
+```
+
+#### With dynamic state
+
+As tfmigrate uses the local backend for planning, some command line flags for the remote state backend cannot be used. If you are leveraging terragrunt's [dynamic state generation](https://terragrunt.gruntwork.io/docs/reference/config-blocks-and-attributes/#remote_state), the `remote_state` block must include a `generate` block.```
+
+```hcl
+remote_state {
+  backend = "s3"
+
+  config = {
+    bucket         = "highway-terraform-state"
+    # Other config here
+  }
+  # This ensures that a file instead of command line flags are used.
+  # allowing tfmigrate to work as expected.  
+  generate = {
+    path      = "backend.tf"
+    if_exists = "overwrite_terragrunt"
+  }
+}
+```
+
 ## Getting Started
 
 As you know, terraform state operations are dangerous if you don't understand what you are actually doing. If I were you, I wouldn't use a new tool in production from the start. So, we recommend you to play an example sandbox environment first, which is safe to run terraform state command without any credentials. The sandbox environment mocks the AWS API with `localstack` and doesn't actually create any resources. So you can safely run the `tfmigrate` and `terraform` commands, and easily understand how the tfmigrate works.
