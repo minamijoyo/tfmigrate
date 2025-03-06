@@ -10,7 +10,7 @@ import (
 )
 
 // tfVersionRe is a pattern to parse outputs from terraform version.
-var tfVersionRe = regexp.MustCompile(`^(Terraform|OpenTofu) v(.+)\s*\n`)
+var tfVersionRe = regexp.MustCompile(`^(Terraform|OpenTofu|terragrunt)(?: version)? v(.+)\s*\n`)
 
 // Version returns the Terraform execType and version number.
 // The execType can be either terraform or opentofu.
@@ -31,6 +31,8 @@ func (c *terraformCLI) Version(ctx context.Context) (string, *version.Version, e
 		execType = "terraform"
 	case "OpenTofu":
 		execType = "opentofu"
+	case "terragrunt":
+		execType = "terragrunt"
 	default:
 		return "", nil, fmt.Errorf("unknown execType: %s", matched[1])
 	}
