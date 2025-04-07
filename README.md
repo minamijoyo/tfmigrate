@@ -98,11 +98,17 @@ The minimum required version is OpenTofu v1.6 or higher.
 
 #### Without dynamic state
 
-If you are not leveraging terragrunt's [dynamic state generation](https://terragrunt.gruntwork.io/docs/reference/config-blocks-and-attributes/#remote_state) the environment variable `TF_MIGRATE_EXEC_PATH` must be set to `terragrunt`.
+If you are not leveraging terragrunt's [dynamic state generation](https://terragrunt.gruntwork.io/docs/reference/config-blocks-and-attributes/#remote_state), the environment variable `TF_MIGRATE_EXEC_PATH` must be set based on your Terragrunt version.
 
+- For Terragrunt < v0.73.0:
 ```shell
 # As part of the command or via exporting the variable to your shell. 
 TFMIGRATE_EXEC_PATH=terragrunt tfmigrate $OTHEROPTIONS
+```
+- For Terragrunt ≥ v0.73.0 (due to the CLI redesign):
+```shell
+# As part of the command or via exporting the variable to your shell. 
+TFMIGRATE_EXEC_PATH="terragrunt run --" tfmigrate $OTHEROPTIONS
 ```
 
 #### With dynamic state
