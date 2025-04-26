@@ -2,8 +2,6 @@ package config
 
 import (
 	"fmt"
-	"os"
-	"strings"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/gohcl"
@@ -32,16 +30,6 @@ type MigrationBlock struct {
 	// We first decode only a block header and then decode schema depending on
 	// its type label.
 	Remain hcl.Body `hcl:",remain"`
-}
-
-// Return a map of environment variables.
-func envVarMap() cty.Value {
-	envMap := make(map[string]cty.Value)
-	for _, env := range os.Environ() {
-		pair := strings.SplitN(env, "=", 2)
-		envMap[pair[0]] = cty.StringVal(pair[1])
-	}
-	return cty.MapVal(envMap)
 }
 
 // ParseMigrationFile parses a given source of migration file and returns a *tfmigrate.MigrationConfig.

@@ -3,8 +3,12 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsimple"
+	"github.com/zclconf/go-cty/cty"
+
 	"github.com/minamijoyo/tfmigrate/history"
 )
 
@@ -51,6 +55,16 @@ func LoadConfigurationFile(filename string) (*TfmigrateConfig, error) {
 	return ParseConfigurationFile(filename, source)
 }
 
+// envVarMap returns a map of environment variables.
+func envVarMap() cty.Value {
+	envMap := make(map[string]cty.Value)
+	for _, env := range os.Environ() {
+		pair := strings.SplitN(env, "=", 2)
+		envMap[pair[0]] = cty.StringVal(pair[1])
+	}
+	return cty.MapVal(envMap)
+}
+
 // ParseConfigurationFile parses a given source of configuration file and
 // returns a TfmigrateConfig.
 // Note that this method does not read a file and you should pass source of config in bytes.
@@ -58,7 +72,12 @@ func LoadConfigurationFile(filename string) (*TfmigrateConfig, error) {
 func ParseConfigurationFile(filename string, source []byte) (*TfmigrateConfig, error) {
 	// Decode tfmigrate block.
 	var f ConfigurationFile
-	err := hclsimple.Decode(filename, source, nil, &f)
+	ctx := &hcl.EvalContext{
+		Variables: map[string]cty.Value{
+			"env": envVarMap(),
+		},
+	}
+	err := hclsimple.Decode(filename, source, ctx, &f)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode setting file: %s, err: %s", filename, err)
 	}
@@ -72,7 +91,7 @@ func ParseConfigurationFile(filename string, source []byte) (*TfmigrateConfig, e
 	}
 
 	if f.Tfmigrate.History != nil {
-		history, err := parseHistoryBlock(*f.Tfmigrate.History)
+		history, err := parseHistoryBlock(*f.Tfmigrate.History, ctx)
 		if err != nil {
 			return nil, err
 		}

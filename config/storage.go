@@ -27,19 +27,19 @@ type StorageBlock struct {
 }
 
 // parseStorageBlock parses a storage block and returns a storage.Config.
-func parseStorageBlock(b StorageBlock) (storage.Config, error) {
+func parseStorageBlock(b StorageBlock, ctx *hcl.EvalContext) (storage.Config, error) {
 	switch b.Type {
 	case "mock": // only for testing
-		return parseMockStorageBlock(b)
+		return parseMockStorageBlock(b, ctx)
 
 	case "local":
-		return parseLocalStorageBlock(b)
+		return parseLocalStorageBlock(b, ctx)
 
 	case "s3":
-		return parseS3StorageBlock(b)
+		return parseS3StorageBlock(b, ctx)
 
 	case "gcs":
-		return parseGCSStorageBlock(b)
+		return parseGCSStorageBlock(b, ctx)
 
 	default:
 		return nil, fmt.Errorf("unknown history storage type: %s", b.Type)
@@ -47,9 +47,9 @@ func parseStorageBlock(b StorageBlock) (storage.Config, error) {
 }
 
 // parseMockStorageBlock parses a storage block for mock and returns a storage.Config.
-func parseMockStorageBlock(b StorageBlock) (storage.Config, error) {
+func parseMockStorageBlock(b StorageBlock, ctx *hcl.EvalContext) (storage.Config, error) {
 	var config mock.Config
-	diags := gohcl.DecodeBody(b.Remain, nil, &config)
+	diags := gohcl.DecodeBody(b.Remain, ctx, &config)
 	if diags.HasErrors() {
 		return nil, diags
 	}
@@ -58,9 +58,9 @@ func parseMockStorageBlock(b StorageBlock) (storage.Config, error) {
 }
 
 // parseLocalStorageBlock parses a storage block for local and returns a storage.Config.
-func parseLocalStorageBlock(b StorageBlock) (storage.Config, error) {
+func parseLocalStorageBlock(b StorageBlock, ctx *hcl.EvalContext) (storage.Config, error) {
 	var config local.Config
-	diags := gohcl.DecodeBody(b.Remain, nil, &config)
+	diags := gohcl.DecodeBody(b.Remain, ctx, &config)
 	if diags.HasErrors() {
 		return nil, diags
 	}
@@ -69,9 +69,9 @@ func parseLocalStorageBlock(b StorageBlock) (storage.Config, error) {
 }
 
 // parseS3StorageBlock parses a storage block for s3 and returns a storage.Config.
-func parseS3StorageBlock(b StorageBlock) (storage.Config, error) {
+func parseS3StorageBlock(b StorageBlock, ctx *hcl.EvalContext) (storage.Config, error) {
 	var config s3.Config
-	diags := gohcl.DecodeBody(b.Remain, nil, &config)
+	diags := gohcl.DecodeBody(b.Remain, ctx, &config)
 	if diags.HasErrors() {
 		return nil, diags
 	}
@@ -79,9 +79,9 @@ func parseS3StorageBlock(b StorageBlock) (storage.Config, error) {
 	return &config, nil
 }
 
-func parseGCSStorageBlock(b StorageBlock) (storage.Config, error) {
+func parseGCSStorageBlock(b StorageBlock, ctx *hcl.EvalContext) (storage.Config, error) {
 	var config gcs.Config
-	diags := gohcl.DecodeBody(b.Remain, nil, &config)
+	diags := gohcl.DecodeBody(b.Remain, ctx, &config)
 	if diags.HasErrors() {
 		return nil, diags
 	}

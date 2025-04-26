@@ -11,12 +11,14 @@ import (
 func TestParseConfigurationFile(t *testing.T) {
 	cases := []struct {
 		desc   string
+		env    map[string]string
 		source string
 		want   *TfmigrateConfig
 		ok     bool
 	}{
 		{
 			desc: "valid",
+			env:  nil,
 			source: `
 tfmigrate {
   migration_dir = "tfmigrate"
@@ -39,6 +41,7 @@ tfmigrate {
 		},
 		{
 			desc: "default migration_dir",
+			env:  nil,
 			source: `
 tfmigrate {
   history {
@@ -59,7 +62,33 @@ tfmigrate {
 			ok: true,
 		},
 		{
+			desc: "env vars",
+			env: map[string]string{
+				"VAR_NAME": "env1",
+			},
+			source: `
+tfmigrate {
+  migration_dir = "tfmigrate/${env.VAR_NAME}"
+  history {
+    storage "local" {
+      path = "tmp/${env.VAR_NAME}/history.json"
+    }
+  }
+}
+`,
+			want: &TfmigrateConfig{
+				MigrationDir: "tfmigrate/env1",
+				History: &history.Config{
+					Storage: &local.Config{
+						Path: "tmp/env1/history.json",
+					},
+				},
+			},
+			ok: true,
+		},
+		{
 			desc: "missing block (history)",
+			env:  nil,
 			source: `
 tfmigrate {
 }
@@ -72,6 +101,7 @@ tfmigrate {
 		},
 		{
 			desc: "unknown block",
+			env:  nil,
 			source: `
 foo {
 }
@@ -81,6 +111,7 @@ foo {
 		},
 		{
 			desc:   "empty file",
+			env:    nil,
 			source: ``,
 			want:   nil,
 			ok:     false,
@@ -89,6 +120,9 @@ foo {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
+			for k, v := range tc.env {
+				t.Setenv(k, v)
+			}
 			got, err := ParseConfigurationFile("test.hcl", []byte(tc.source))
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
