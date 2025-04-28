@@ -28,17 +28,28 @@ type Meta struct {
 	Option *tfmigrate.MigratorOption
 }
 
+// newConfig loads the configuration file.
 func newConfig(filename string) (*config.TfmigrateConfig, error) {
+	pathToLoad := filename // Start with the provided filename
+
+	// If the provided filename is the default, check the environment variable.
 	if filename == defaultConfigFile {
-		if _, err := os.Stat(defaultConfigFile); os.IsNotExist(err) {
-			// If defaultConfigFile doesn't exist,
-			// Ignore the error and just return a default config.
-			return config.NewDefaultConfig(), nil
+		envConfig := os.Getenv("TFMIGRATE_CONFIG")
+		if envConfig != "" {
+			// If TFMIGRATE_CONFIG is set, use its value.
+			pathToLoad = envConfig
+		} else {
+			// If TFMIGRATE_CONFIG is not set, check if the default file exists.
+			if _, err := os.Stat(defaultConfigFile); os.IsNotExist(err) {
+				// If defaultConfigFile doesn't exist, return a default config.
+				return config.NewDefaultConfig(), nil
+			}
+			// If defaultConfigFile exists, pathToLoad remains defaultConfigFile.
 		}
 	}
 
-	log.Printf("[DEBUG] [command] load configuration file: %s\n", filename)
-	return config.LoadConfigurationFile(filename)
+	log.Printf("[DEBUG] [command] load configuration file: %s\n", pathToLoad)
+	return config.LoadConfigurationFile(pathToLoad)
 }
 
 func newOption() *tfmigrate.MigratorOption {
