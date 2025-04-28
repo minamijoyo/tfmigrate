@@ -1,5 +1,18 @@
 ## master (Unreleased)
 
+NEW FEATURES:
+
+* Allow environment variables to be injected into .tfmigrate.hcl ([#207](https://github.com/minamijoyo/tfmigrate/pull/207))
+* Allow setting --config via the environment variable TFMIGRATE_CONFIG ([#208](https://github.com/minamijoyo/tfmigrate/pull/208))
+
+ENHANCEMENTS:
+
+* Fix the problem that "TFMIGRATE_EXEC_PATH=terragrunt" raise parse error due to CLI redesign of terragrunt v0.73.0. ([#205](https://github.com/minamijoyo/tfmigrate/pull/205))
+* Pin all GitHub Actions ([#206](https://github.com/minamijoyo/tfmigrate/pull/206))
+* Update Go to v1.24 ([#209](https://github.com/minamijoyo/tfmigrate/pull/209))
+* Add support for Terraform v1.11 ([#210](https://github.com/minamijoyo/tfmigrate/pull/210))
+* Add support for OpenTofu v1.9  ([#211](https://github.com/minamijoyo/tfmigrate/pull/211))
+
 ## 0.4.1 (2024/12/03)
 
 ENHANCEMENTS:
