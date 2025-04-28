@@ -435,6 +435,21 @@ tfmigrate {
 }
 ```
 
+Environment variables can be accessed in the configuration file via the `env` variable:
+
+```hcl
+tfmigrate {
+  migration_dir = "./tfmigrate"
+  is_backend_terraform_cloud = true
+  history {
+    storage "s3" {
+      bucket = "tfmigrate-test"
+      key    = "tfmigrate/${env.VAR_NAME}/history.json"
+    }
+  }
+}
+```
+
 #### is_backend_terraform_cloud
 Whether the remote backend specified in Terraform files references a
 [terraform cloud remote backend](https://www.terraform.io/language/settings/terraform-cloud),

@@ -1,6 +1,9 @@
 package config
 
-import "github.com/minamijoyo/tfmigrate/history"
+import (
+	"github.com/hashicorp/hcl/v2"
+	"github.com/minamijoyo/tfmigrate/history"
+)
 
 // HistoryBlock represents a block for migration history management in HCL.
 type HistoryBlock struct {
@@ -9,8 +12,8 @@ type HistoryBlock struct {
 }
 
 // parseHistoryBlock parses a history block and returns a *history.Config.
-func parseHistoryBlock(b HistoryBlock) (*history.Config, error) {
-	storage, err := parseStorageBlock(b.Storage)
+func parseHistoryBlock(b HistoryBlock, ctx *hcl.EvalContext) (*history.Config, error) {
+	storage, err := parseStorageBlock(b.Storage, ctx)
 	if err != nil {
 		return nil, err
 	}

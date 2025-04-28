@@ -11,6 +11,7 @@ import (
 func TestParseGCSStorageBlock(t *testing.T) {
 	cases := []struct {
 		desc   string
+		env    map[string]string
 		source string
 		want   storage.Config
 		ok     bool
@@ -30,6 +31,27 @@ tfmigrate {
 			want: &gcs.Config{
 				Bucket: "tfmigrate-test",
 				Name:   "tfmigrate/history.json",
+			},
+			ok: true,
+		},
+		{
+			desc: "env vars",
+			env: map[string]string{
+				"VAR_NAME": "env1",
+			},
+			source: `
+tfmigrate {
+  history {
+    storage "gcs" {
+      bucket = "tfmigrate-test"
+      name   = "tfmigrate/${env.VAR_NAME}/history.json"
+    }
+  }
+}
+`,
+			want: &gcs.Config{
+				Bucket: "tfmigrate-test",
+				Name:   "tfmigrate/env1/history.json",
 			},
 			ok: true,
 		},
@@ -65,6 +87,9 @@ tfmigrate {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
+			for k, v := range tc.env {
+				t.Setenv(k, v)
+			}
 			config, err := ParseConfigurationFile("test.hcl", []byte(tc.source))
 			if tc.ok && err != nil {
 				t.Fatalf("unexpected err: %s", err)
