@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.4.2 (2025/04/28)
+
 NEW FEATURES:
 
 * Allow environment variables to be injected into .tfmigrate.hcl ([#207](https://github.com/minamijoyo/tfmigrate/pull/207))
