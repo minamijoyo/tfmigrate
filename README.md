@@ -105,7 +105,7 @@ If you are not leveraging terragrunt's [dynamic state generation](https://terrag
 # As part of the command or via exporting the variable to your shell.
 TFMIGRATE_EXEC_PATH=terragrunt tfmigrate $OTHEROPTIONS
 ```
-- For Terragrunt ≥ v0.73.0 (due to the CLI redesign):
+- For Terragrunt >= v0.73.0 (due to the CLI redesign):
 ```shell
 # As part of the command or via exporting the variable to your shell.
 TFMIGRATE_EXEC_PATH="terragrunt run --" tfmigrate $OTHEROPTIONS
