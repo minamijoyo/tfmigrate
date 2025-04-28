@@ -102,12 +102,12 @@ If you are not leveraging terragrunt's [dynamic state generation](https://terrag
 
 - For Terragrunt < v0.73.0:
 ```shell
-# As part of the command or via exporting the variable to your shell. 
+# As part of the command or via exporting the variable to your shell.
 TFMIGRATE_EXEC_PATH=terragrunt tfmigrate $OTHEROPTIONS
 ```
 - For Terragrunt ≥ v0.73.0 (due to the CLI redesign):
 ```shell
-# As part of the command or via exporting the variable to your shell. 
+# As part of the command or via exporting the variable to your shell.
 TFMIGRATE_EXEC_PATH="terragrunt run --" tfmigrate $OTHEROPTIONS
 ```
 
@@ -124,7 +124,7 @@ remote_state {
     # Other config here
   }
   # This ensures that a file instead of command line flags are used.
-  # allowing tfmigrate to work as expected.  
+  # allowing tfmigrate to work as expected.
   generate = {
     path      = "backend.tf"
     if_exists = "overwrite_terragrunt"
