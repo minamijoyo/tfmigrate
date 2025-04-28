@@ -1,6 +1,6 @@
 module github.com/minamijoyo/tfmigrate
 
-go 1.22
+go 1.24
 
 require (
 	cloud.google.com/go/storage v1.36.0
