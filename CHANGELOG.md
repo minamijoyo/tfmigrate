@@ -1,5 +1,10 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Add support for Terraform v1.12 ([#212](https://github.com/minamijoyo/tfmigrate/pull/212))
+* Use the OpenTofu installer instead of Docker image on test setup ([#213](https://github.com/minamijoyo/tfmigrate/pull/213))
+
 ## 0.4.2 (2025/04/28)
 
 NEW FEATURES:
