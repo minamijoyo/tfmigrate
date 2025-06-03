@@ -131,6 +131,10 @@ type TerraformCLI interface {
 	// It's intended to inject a wrapper command such as direnv.
 	SetExecPath(execPath string)
 
+	// ExecPath returns the current execution path for the terraform CLI.
+	// This is primarily used for testing.
+	ExecPath() string
+
 	// OverrideBackendToLocal switches the backend to local and returns a function
 	// to switch it back to remote with defer.
 	// The -state flag for terraform command is not valid for remote state,
@@ -213,6 +217,12 @@ func (c *terraformCLI) Dir() string {
 // It's intended to inject a wrapper command such as direnv.
 func (c *terraformCLI) SetExecPath(execPath string) {
 	c.execPath = execPath
+}
+
+// ExecPath returns the current execution path for the terraform CLI.
+// This is primarily used for testing.
+func (c *terraformCLI) ExecPath() string {
+	return c.execPath
 }
 
 // OverrideBackendToLocal switches the backend to local and returns a function

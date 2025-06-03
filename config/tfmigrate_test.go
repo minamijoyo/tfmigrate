@@ -30,6 +30,7 @@ tfmigrate {
 }
 `,
 			want: &TfmigrateConfig{
+				ExecPath:     "terraform",
 				MigrationDir: "tfmigrate",
 				History: &history.Config{
 					Storage: &local.Config{
@@ -52,6 +53,7 @@ tfmigrate {
 }
 `,
 			want: &TfmigrateConfig{
+				ExecPath:     "terraform",
 				MigrationDir: ".",
 				History: &history.Config{
 					Storage: &local.Config{
@@ -77,6 +79,7 @@ tfmigrate {
 }
 `,
 			want: &TfmigrateConfig{
+				ExecPath:     "terraform",
 				MigrationDir: "tfmigrate/env1",
 				History: &history.Config{
 					Storage: &local.Config{
@@ -94,6 +97,7 @@ tfmigrate {
 }
 `,
 			want: &TfmigrateConfig{
+				ExecPath:     "terraform",
 				MigrationDir: ".",
 				History:      nil,
 			},

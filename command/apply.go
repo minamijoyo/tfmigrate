@@ -33,7 +33,7 @@ func (c *ApplyCommand) Run(args []string) int {
 	}
 	log.Printf("[DEBUG] [command] config: %#v\n", c.config)
 
-	c.Option = newOption()
+	c.Option = newOption(c.config)
 	c.Option.BackendConfig = c.backendConfig
 	// The option may contain sensitive values such as environment variables.
 	// So logging the option set log level to DEBUG instead of INFO.

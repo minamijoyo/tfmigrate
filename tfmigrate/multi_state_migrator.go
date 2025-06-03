@@ -63,6 +63,11 @@ func (c *MultiStateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, err
 		c.ToWorkspace = "default"
 	}
 
+	// If source and destination exec paths are configured, copy them to the migrator options
+	if o == nil {
+		o = &MigratorOption{}
+	}
+
 	return NewMultiStateMigrator(c.FromDir, c.ToDir, c.FromWorkspace, c.ToWorkspace, actions, o, c.Force, c.FromSkipPlan, c.ToSkipPlan), nil
 }
 
@@ -96,11 +101,23 @@ func NewMultiStateMigrator(fromDir string, toDir string, fromWorkspace string, t
 	actions []MultiStateAction, o *MigratorOption, force bool, fromSkipPlan bool, toSkipPlan bool) *MultiStateMigrator {
 	fromTf := tfexec.NewTerraformCLI(tfexec.NewExecutor(fromDir, os.Environ()))
 	toTf := tfexec.NewTerraformCLI(tfexec.NewExecutor(toDir, os.Environ()))
-	if o != nil && len(o.ExecPath) > 0 {
-		// While NewTerraformCLI reads the environment variable TFMIGRATE_EXEC_PATH
-		// at initialization, the MigratorOption takes precedence over it.
-		fromTf.SetExecPath(o.ExecPath)
-		toTf.SetExecPath(o.ExecPath)
+	if o != nil {
+		// Set the exec paths based on the options provided
+		if len(o.SourceExecPath) > 0 {
+			// If source exec path is specified, use it for the from directory
+			fromTf.SetExecPath(o.SourceExecPath)
+		} else if len(o.ExecPath) > 0 {
+			// Otherwise, fall back to the common exec path if provided
+			fromTf.SetExecPath(o.ExecPath)
+		}
+
+		if len(o.DestinationExecPath) > 0 {
+			// If destination exec path is specified, use it for the to directory
+			toTf.SetExecPath(o.DestinationExecPath)
+		} else if len(o.ExecPath) > 0 {
+			// Otherwise, fall back to the common exec path if provided
+			toTf.SetExecPath(o.ExecPath)
+		}
 	}
 
 	return &MultiStateMigrator{

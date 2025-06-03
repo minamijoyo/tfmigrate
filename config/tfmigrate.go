@@ -27,6 +27,15 @@ type TfmigrateBlock struct {
 	// IsBackendTerraformCloud is a boolean indicating whether a backend is
 	// stored remotely in Terraform Cloud. Defaults to false.
 	IsBackendTerraformCloud bool `hcl:"is_backend_terraform_cloud,optional"`
+	// ExecPath is a string indicating how terraform command is executed.
+	// Default to `terraform`.
+	ExecPath string `hcl:"exec_path,optional"`
+	// FromTfExecPath is a string indicating how terraform command is executed for the source directory.
+	// Overrides ExecPath for the source directory when specified.
+	FromTfExecPath string `hcl:"from_tf_exec_path,optional"`
+	// ToTfExecPath is a string indicating how terraform command is executed for the destination directory.
+	// Overrides ExecPath for the destination directory when specified.
+	ToTfExecPath string `hcl:"to_tf_exec_path,optional"`
 	// History is a block for migration history management.
 	History *HistoryBlock `hcl:"history,block"`
 }
@@ -41,6 +50,15 @@ type TfmigrateConfig struct {
 	// IsBackendTerraformCloud is a boolean representing whether the remote
 	// backend is TerraformCloud. Defaults to a value of false.
 	IsBackendTerraformCloud bool
+	// ExecPath is a string indicating how terraform command is executed.
+	// Default to `terraform`.
+	ExecPath string
+	// FromTfExecPath is a string indicating how terraform command is executed for the source directory.
+	// Overrides ExecPath for the source directory when specified.
+	FromTfExecPath string
+	// ToTfExecPath is a string indicating how terraform command is executed for the destination directory.
+	// Overrides ExecPath for the destination directory when specified.
+	ToTfExecPath string
 	// History is a config for migration history management.
 	History *history.Config
 }
@@ -89,6 +107,15 @@ func ParseConfigurationFile(filename string, source []byte) (*TfmigrateConfig, e
 	if f.Tfmigrate.IsBackendTerraformCloud {
 		config.IsBackendTerraformCloud = f.Tfmigrate.IsBackendTerraformCloud
 	}
+	if len(f.Tfmigrate.ExecPath) > 0 {
+		config.ExecPath = f.Tfmigrate.ExecPath
+	}
+	if len(f.Tfmigrate.FromTfExecPath) > 0 {
+		config.FromTfExecPath = f.Tfmigrate.FromTfExecPath
+	}
+	if len(f.Tfmigrate.ToTfExecPath) > 0 {
+		config.ToTfExecPath = f.Tfmigrate.ToTfExecPath
+	}
 
 	if f.Tfmigrate.History != nil {
 		history, err := parseHistoryBlock(*f.Tfmigrate.History, ctx)
@@ -103,8 +130,17 @@ func ParseConfigurationFile(filename string, source []byte) (*TfmigrateConfig, e
 
 // NewDefaultConfig returns a new instance of TfmigrateConfig.
 func NewDefaultConfig() *TfmigrateConfig {
+	// Get default exec path from environment variable
+	execPath := os.Getenv("TFMIGRATE_EXEC_PATH")
+	if len(execPath) == 0 {
+		execPath = "terraform"
+	}
+
 	return &TfmigrateConfig{
 		MigrationDir:            ".",
 		IsBackendTerraformCloud: false,
+		ExecPath:                execPath,
+		FromTfExecPath:          "",
+		ToTfExecPath:            "",
 	}
 }

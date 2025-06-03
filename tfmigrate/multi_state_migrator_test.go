@@ -143,6 +143,61 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 			o:  nil,
 			ok: true,
 		},
+		{
+			desc: "different source and destination exec paths from config",
+			config: &MultiStateMigratorConfig{
+				FromDir:       "dir1",
+				ToDir:         "dir2",
+				FromWorkspace: "work1",
+				ToWorkspace:   "work2",
+				Actions: []string{
+					"mv null_resource.foo null_resource.foo2",
+					"mv null_resource.bar null_resource.bar2",
+				},
+				Force: true,
+			},
+			o:  nil, // No MigratorOption provided, should use paths from config
+			ok: true,
+		},
+		{
+			desc: "different source and destination exec paths from option",
+			config: &MultiStateMigratorConfig{
+				FromDir:       "dir1",
+				ToDir:         "dir2",
+				FromWorkspace: "work1",
+				ToWorkspace:   "work2",
+				Actions: []string{
+					"mv null_resource.foo null_resource.foo2",
+					"mv null_resource.bar null_resource.bar2",
+				},
+				Force: true,
+				// No exec paths in config
+			},
+			o: &MigratorOption{
+				ExecPath:            "direnv exec . terraform", // Common exec path still provided
+				SourceExecPath:      "direnv exec . terraform",
+				DestinationExecPath: "direnv exec . tofu",
+			},
+			ok: true,
+		},
+		{
+			desc: "config exec paths override option exec path",
+			config: &MultiStateMigratorConfig{
+				FromDir:       "dir1",
+				ToDir:         "dir2",
+				FromWorkspace: "work1",
+				ToWorkspace:   "work2",
+				Actions: []string{
+					"mv null_resource.foo null_resource.foo2",
+					"mv null_resource.bar null_resource.bar2",
+				},
+				Force: true,
+			},
+			o: &MigratorOption{
+				ExecPath: "should be overridden", // This should be overridden by the config exec paths
+			},
+			ok: true,
+		},
 	}
 
 	for _, tc := range cases {

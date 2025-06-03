@@ -36,7 +36,7 @@ func (c *PlanCommand) Run(args []string) int {
 	}
 	log.Printf("[DEBUG] [command] config: %#v\n", c.config)
 
-	c.Option = newOption()
+	c.Option = newOption(c.config)
 	c.Option.PlanOut = c.out
 	c.Option.BackendConfig = c.backendConfig
 	// The option may contains sensitive values such as environment variables.
