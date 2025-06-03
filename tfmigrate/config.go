@@ -26,7 +26,7 @@ type MigratorOption struct {
 	// To use OpenTofu, set this to `tofu`.
 	ExecPath string
 
-	// if this is set the migrator will have dedidated exec path for source and destination
+	// if this is set the migrator will have dedicated exec path for source and destination
 	SourceExecPath string
 
 	DestinationExecPath string
