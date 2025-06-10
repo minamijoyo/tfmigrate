@@ -181,19 +181,10 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (fromCurrentState *tfexec
 	} else {
 		// check if a plan in fromDir has no changes.
 		log.Printf("[INFO] [migrator@%s] check diffs\n", m.fromTf.Dir())
-		_, err = m.fromTf.Plan(ctx, fromCurrentState, planOpts...)
-		if err != nil {
-			if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
-				if !m.force {
-					log.Printf("[ERROR] [migrator@%s] unexpected diffs\n", m.fromTf.Dir())
-					return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs in %s from_dir: %s", m.fromTf.Dir(), err)
-				}
-				log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true: %s", m.fromTf.Dir(), err)
-				// reset err to nil to intentionally ignore unexpected diffs.
-				err = nil
-			} else {
-				return nil, nil, err
-			}
+		plan, err := m.fromTf.Plan(ctx, fromCurrentState, planOpts...)
+		clean, _ := checkPlan(plan, m.fromTf, err)
+		if !clean {
+			return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs in %s from_dir: %s", m.fromTf.Dir(), err)
 		}
 	}
 
@@ -202,23 +193,45 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (fromCurrentState *tfexec
 	} else {
 		// check if a plan in toDir has no changes.
 		log.Printf("[INFO] [migrator@%s] check diffs\n", m.toTf.Dir())
-		_, err = m.toTf.Plan(ctx, toCurrentState, planOpts...)
-		if err != nil {
-			if exitErr, ok := err.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
-				if !m.force {
-					log.Printf("[ERROR] [migrator@%s] unexpected diffs\n", m.toTf.Dir())
-					return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs in %s to_dir: %s", m.toTf.Dir(), err)
-				}
-				log.Printf("[INFO] [migrator@%s] unexpected diffs, ignoring as force option is true: %s", m.toTf.Dir(), err)
-				// reset err to nil to intentionally ignore unexpected diffs.
-				err = nil
+		plan, err := m.toTf.Plan(ctx, toCurrentState, planOpts...)
+
+		clean, _ := checkPlan(plan, m.toTf, err)
+		if !clean {
+			if m.force {
+				log.Printf("[INFO] [migrator@%s] plan has unexpected diffs, but force option is true, ignoring: %s", m.toTf.Dir(), err)
 			} else {
-				return nil, nil, err
+				return nil, nil, fmt.Errorf("terraform plan command returns unexpected diffs in %s to_dir: %s", m.toTf.Dir(), err)
 			}
 		}
 	}
 
 	return fromCurrentState, toCurrentState, err
+}
+
+func checkPlan(plan *tfexec.Plan, tf tfexec.TerraformCLI, er error) (bool, error) {
+	if er != nil {
+
+		if exitErr, ok := er.(tfexec.ExitError); ok && exitErr.ExitCode() == 2 {
+			planJSON, jsonerr := tf.ConvertPlanToJson(plan)
+			if jsonerr != nil {
+				log.Printf("[ERROR] [migrator] failed to parse plan JSON: %s\n", jsonerr)
+				return false, jsonerr
+			}
+
+			if !planJSON.HasChanges() {
+				log.Printf("[INFO] [migrator] plan has only output changes")
+				planJSON.LogOutputChanges()
+				return true, nil
+			}
+
+			log.Printf("[ERROR] [migrator] unexpected diffs\n")
+			planJSON.LogResourceChanges()
+			return false, nil
+		}
+		log.Printf("[ERROR] [migrator] unexpected error: %s\n", er)
+		return false, er
+	}
+	return true, nil
 }
 
 // Plan computes new states by applying multi state migration operations to temporary states.

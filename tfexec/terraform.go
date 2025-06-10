@@ -149,6 +149,8 @@ type TerraformCLI interface {
 	// SupportsStateReplaceProvider is a helper method used to determine whether or
 	// not the terraform version supports `state replace-provider`.
 	SupportsStateReplaceProvider(ctx context.Context) (bool, version.Constraints, error)
+
+	ConvertPlanToJson(plan *Plan) (*TerraformPlanJSON, error)
 }
 
 // terraformCLI implements the TerraformCLI interface.

@@ -2,6 +2,7 @@ package tfexec
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 )
@@ -51,4 +52,34 @@ func (c *terraformCLI) Plan(ctx context.Context, state *State, opts ...string) (
 	// original error of terraform plan command.
 	plan, _ := os.ReadFile(planOut)
 	return NewPlan(plan), err
+}
+
+func (c *terraformCLI) ConvertPlanToJson(plan *Plan) (*TerraformPlanJSON, error) {
+	if plan == nil {
+		return nil, fmt.Errorf("plan is nil")
+	}
+
+	if len(plan.Bytes()) == 0 {
+		return nil, fmt.Errorf("plan is empty")
+	}
+	tmpPlan, _ := os.CreateTemp("", "tfplan")
+	defer os.Remove(tmpPlan.Name())
+
+	err := os.WriteFile(tmpPlan.Name(), plan.Bytes(), 0644)
+	if err != nil {
+		return nil, fmt.Errorf("failed to write plan to temporary file: %w", err)
+	}
+	args := []string{"show", "-json", tmpPlan.Name()}
+
+	output, _, err := c.Run(context.Background(), args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to run terraform show -json: %w", err)
+	}
+	var planJSON TerraformPlanJSON
+
+	if err := json.Unmarshal([]byte(output), &planJSON); err != nil {
+		return nil, fmt.Errorf("failed to parse plan JSON: %w", err)
+	}
+	return &planJSON, nil
+
 }
