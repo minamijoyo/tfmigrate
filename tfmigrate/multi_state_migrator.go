@@ -34,6 +34,8 @@ type MultiStateMigratorConfig struct {
 	// Force option controls behaviour in case of unexpected diff in plan.
 	// When set forces applying even if plan shows diff.
 	Force bool `hcl:"force,optional"`
+	// FromTfTarget specifies the target parameter for the from_tf plan.
+	FromTfTarget string `hcl:"from_tf_target,optional"`
 }
 
 // MultiStateMigratorConfig implements a MigratorConfig.
@@ -63,12 +65,8 @@ func (c *MultiStateMigratorConfig) NewMigrator(o *MigratorOption) (Migrator, err
 		c.ToWorkspace = "default"
 	}
 
-	// If source and destination exec paths are configured, copy them to the migrator options
-	if o == nil {
-		o = &MigratorOption{}
-	}
-
-	return NewMultiStateMigrator(c.FromDir, c.ToDir, c.FromWorkspace, c.ToWorkspace, actions, o, c.Force, c.FromSkipPlan, c.ToSkipPlan), nil
+	// Pass the FromTfTarget to the migrator instance
+	return NewMultiStateMigrator(c.FromDir, c.ToDir, c.FromWorkspace, c.ToWorkspace, actions, o, c.Force, c.FromSkipPlan, c.ToSkipPlan, c.FromTfTarget), nil
 }
 
 // MultiStateMigrator implements the Migrator interface.
@@ -92,13 +90,15 @@ type MultiStateMigrator struct {
 	o *MigratorOption
 	// force operation in case of unexpected diff
 	force bool
+	// Add FromTfTarget to the MultiStateMigrator struct
+	fromTfTarget string
 }
 
 var _ Migrator = (*MultiStateMigrator)(nil)
 
 // NewMultiStateMigrator returns a new MultiStateMigrator instance.
 func NewMultiStateMigrator(fromDir string, toDir string, fromWorkspace string, toWorkspace string,
-	actions []MultiStateAction, o *MigratorOption, force bool, fromSkipPlan bool, toSkipPlan bool) *MultiStateMigrator {
+	actions []MultiStateAction, o *MigratorOption, force bool, fromSkipPlan bool, toSkipPlan bool, fromTfTarget string) *MultiStateMigrator {
 	fromTf := tfexec.NewTerraformCLI(tfexec.NewExecutor(fromDir, os.Environ()))
 	toTf := tfexec.NewTerraformCLI(tfexec.NewExecutor(toDir, os.Environ()))
 	if o != nil {
@@ -130,6 +130,7 @@ func NewMultiStateMigrator(fromDir string, toDir string, fromWorkspace string, t
 		actions:       actions,
 		o:             o,
 		force:         force,
+		fromTfTarget:  fromTfTarget,
 	}
 }
 
@@ -175,7 +176,9 @@ func (m *MultiStateMigrator) plan(ctx context.Context) (fromCurrentState *tfexec
 	if m.o.PlanOut != "" {
 		planOpts = append(planOpts, "-out="+m.o.PlanOut)
 	}
-
+	if m.fromTfTarget != "" {
+		planOpts = append(planOpts, "-target="+m.fromTfTarget)
+	}
 	if m.fromSkipPlan {
 		log.Printf("[INFO] [migrator@%s] skipping check diffs\n", m.fromTf.Dir())
 	} else {

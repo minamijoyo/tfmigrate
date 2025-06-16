@@ -73,7 +73,7 @@ func TestMultiStateMigratorExecPathConfig(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create a migrator with the given options
 			actions := []MultiStateAction{}
-			m := NewMultiStateMigrator(fromDir, toDir, "", "", actions, tc.option, false, false, false)
+			m := NewMultiStateMigrator(fromDir, toDir, "", "", actions, tc.option, false, false, false, "")
 
 			// Check the fromTf path
 			fromPath := m.fromTf.ExecPath()

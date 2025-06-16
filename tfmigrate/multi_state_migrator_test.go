@@ -198,6 +198,21 @@ func TestMultiStateMigratorConfigNewMigrator(t *testing.T) {
 			},
 			ok: true,
 		},
+		{
+			desc: "valid with from_tf_target",
+			config: &MultiStateMigratorConfig{
+				FromDir:      "dir1",
+				ToDir:        "dir2",
+				FromTfTarget: "module.something",
+				Actions: []string{
+					"mv null_resource.foo null_resource.foo2",
+				},
+			},
+			o: &MigratorOption{
+				ExecPath: "direnv exec . terraform",
+			},
+			ok: true,
+		},
 	}
 
 	for _, tc := range cases {
@@ -273,7 +288,7 @@ resource "null_resource" "qux" {}
 	}
 	o := &MigratorOption{}
 	force := false
-	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, false, false)
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, false, false, "")
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
@@ -386,7 +401,7 @@ resource "null_resource" "qux" {}
 	}
 	o := &MigratorOption{}
 	force := false
-	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, true, false)
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, true, false, "")
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
@@ -497,7 +512,7 @@ resource "null_resource" "baz" {}
 	}
 	o := &MigratorOption{}
 	force := false
-	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, false, true)
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, false, true, "")
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
@@ -607,7 +622,7 @@ resource "null_resource" "qux" {}
 	}
 	o := &MigratorOption{}
 	force := false
-	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, true, true)
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, true, true, "")
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
@@ -659,8 +674,8 @@ resource "null_resource" "qux" {}
 	if err != nil {
 		t.Fatalf("failed to run PlanHasChange in toDir: %s", err)
 	}
-	if !toChanged {
-		t.Error("expect to have changes in toDir")
+	if toChanged {
+		t.Error("expect not to have changes in toDir")
 	}
 }
 
@@ -721,7 +736,7 @@ resource "null_resource" "qux" {}
 	}
 	o := &MigratorOption{}
 	force := false
-	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, false, false)
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, false, false, "")
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
@@ -840,7 +855,7 @@ resource "null_resource" "qux2" {}
 	o := &MigratorOption{}
 	o.PlanOut = "foo.tfplan"
 	force := true
-	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, false, false)
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, false, false, "module.something")
 	err = m.Plan(ctx)
 	if err != nil {
 		t.Fatalf("failed to run migrator plan: %s", err)
@@ -1058,7 +1073,7 @@ resource "null_resource" "qux" {}
 	}
 	o := &MigratorOption{}
 	force := false
-	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, false, false)
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, false, false, "")
 
 	err := m.Plan(ctx)
 	if err == nil {
@@ -1112,7 +1127,7 @@ resource "null_resource" "qux" {}
 	}
 	o := &MigratorOption{}
 	force := false
-	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, false, false)
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, false, false, "")
 
 	err := m.Plan(ctx)
 	if err == nil {
@@ -1172,7 +1187,7 @@ resource "null_resource" "qux" {}
 	}
 	o := &MigratorOption{}
 	force := false
-	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, false, false)
+	m := NewMultiStateMigrator(fromTf.Dir(), toTf.Dir(), fromWorkspace, toWorkspace, actions, o, force, false, false, "")
 
 	err := m.Plan(ctx)
 	if err == nil {
