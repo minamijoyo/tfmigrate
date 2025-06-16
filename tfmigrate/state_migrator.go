@@ -101,10 +101,16 @@ func NewStateMigrator(dir string, workspace string, actions []StateAction,
 	o *MigratorOption, force bool, skipPlan bool) *StateMigrator {
 	e := tfexec.NewExecutor(dir, os.Environ())
 	tf := tfexec.NewTerraformCLI(e)
-	if o != nil && len(o.ExecPath) > 0 {
-		// While NewTerraformCLI reads the environment variable TFMIGRATE_EXEC_PATH
-		// at initialization, the MigratorOption takes precedence over it.
-		tf.SetExecPath(o.ExecPath)
+	if o != nil {
+		// For single state migrations, we use SourceExecPath if set,
+		// otherwise fall back to ExecPath
+		if len(o.SourceExecPath) > 0 {
+			tf.SetExecPath(o.SourceExecPath)
+		} else if len(o.ExecPath) > 0 {
+			// While NewTerraformCLI reads the environment variable TFMIGRATE_EXEC_PATH
+			// at initialization, the MigratorOption takes precedence over it.
+			tf.SetExecPath(o.ExecPath)
+		}
 	}
 
 	return &StateMigrator{

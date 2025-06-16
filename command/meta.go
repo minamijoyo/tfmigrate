@@ -52,8 +52,31 @@ func newConfig(filename string) (*config.TfmigrateConfig, error) {
 	return config.LoadConfigurationFile(pathToLoad)
 }
 
-func newOption() *tfmigrate.MigratorOption {
-	return &tfmigrate.MigratorOption{
-		ExecPath: os.Getenv("TFMIGRATE_EXEC_PATH"),
+func newOption(cfg *config.TfmigrateConfig) *tfmigrate.MigratorOption {
+	// By default, use the environment variable
+	execPath := os.Getenv("TFMIGRATE_EXEC_PATH")
+
+	// If config has a value for ExecPath, use it instead of env var
+	if cfg != nil && cfg.ExecPath != "" {
+		execPath = cfg.ExecPath
 	}
+
+	// Create option with the base exec path
+	option := &tfmigrate.MigratorOption{
+		ExecPath: execPath,
+	}
+
+	// If config has values for the source/destination paths, use them
+	if cfg != nil {
+		if cfg.FromTfExecPath != "" {
+			option.SourceExecPath = cfg.FromTfExecPath
+		}
+		if cfg.ToTfExecPath != "" {
+			option.DestinationExecPath = cfg.ToTfExecPath
+		}
+		// Set IsBackendTerraformCloud from config
+		option.IsBackendTerraformCloud = cfg.IsBackendTerraformCloud
+	}
+
+	return option
 }

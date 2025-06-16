@@ -26,6 +26,11 @@ type MigratorOption struct {
 	// To use OpenTofu, set this to `tofu`.
 	ExecPath string
 
+	// if this is set the migrator will have dedicated exec path for source and destination
+	SourceExecPath string
+
+	DestinationExecPath string
+
 	// PlanOut is a path to plan file to be saved.
 	PlanOut string
 

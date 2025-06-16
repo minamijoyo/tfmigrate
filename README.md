@@ -415,6 +415,44 @@ Some history storage implementations may read additional cloud provider-specific
 You can customize the behavior by setting a configuration file.
 The path of configuration file defaults to `.tfmigrate.hcl`. You can change it with command line flag `--config` or `TFMIGRATE_CONFIG` environment variable.
 
+Here's an example configuration file with all available options:
+
+```hcl
+tfmigrate {
+  # Directory containing migration files
+  migration_dir = "."
+  
+  # Set to true if using Terraform Cloud as backend
+  is_backend_terraform_cloud = false
+  
+  # Set a custom terraform executable path for all operations
+  # Overrides the TFMIGRATE_EXEC_PATH environment variable if specified
+  exec_path = "terraform"
+  
+  # Optionally override the exec_path for source and destination directories
+  # Useful for multi-state migrations with different Terraform or OpenTofu versions
+  from_tf_exec_path = "terraform"
+  to_tf_exec_path = "tofu"
+  
+  history {
+    # History storage configuration
+  }
+}
+```
+
+#### Example: Using Different Tools for Source and Destination
+
+If you need to use different Terraform/OpenTofu versions for multi-state migrations (for example, using Terraform for the source state and OpenTofu for the destination state), you can configure this in your `.tfmigrate.hcl` file:
+
+```hcl
+tfmigrate {
+  migration_dir = "migrations"
+  
+  # Different executables for source and destination states
+  from_tf_exec_path = "terraform"
+  to_tf_exec_path = "tofu"
+}
+
 The syntax of configuration file is as follows:
 
 - A configuration file must be written in the HCL2.

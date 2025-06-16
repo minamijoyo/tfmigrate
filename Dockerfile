@@ -1,5 +1,6 @@
 ARG TERRAFORM_VERSION=latest
 FROM hashicorp/terraform:$TERRAFORM_VERSION AS terraform
+FROM alpine/terragrunt:latest AS terragrunt
 
 FROM alpine:3.21 AS opentofu
 ARG OPENTOFU_VERSION=latest
@@ -12,6 +13,7 @@ FROM golang:1.24-alpine3.21
 RUN apk --no-cache add make git bash
 COPY --from=terraform /bin/terraform /usr/local/bin/
 COPY --from=opentofu /usr/local/bin/tofu /usr/local/bin/
+COPY --from=terragrunt /usr/local/bin/terragrunt /usr/local/bin/
 WORKDIR /work
 
 COPY go.mod go.sum ./
