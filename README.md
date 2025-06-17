@@ -452,6 +452,7 @@ tfmigrate {
   from_tf_exec_path = "terraform"
   to_tf_exec_path = "tofu"
 }
+```
 
 The syntax of configuration file is as follows:
 
@@ -822,6 +823,29 @@ migration "multi_state" "merge_dir1_to_dir2" {
 }
 ```
 
+### Example: Multi-State Migrator Configuration
+
+Below is an example of how a `MultiStateMigrator` configuration can look:
+
+```hcl
+migrator "multi_state" {
+  from_dir      = "./source"
+  to_dir        = "./destination"
+  from_workspace = "default"
+  to_workspace   = "default"
+  actions = [
+    "mv module.old_resource module.new_resource",
+    "mv resource1 resource2"
+  ]
+  force = true
+  from_skip_plan = false
+  to_skip_plan = false
+  from_tf_target = "module.old_resource"
+}
+```
+
+This configuration demonstrates the use of multiple state actions, workspaces, and the `from_tf_target` parameter for targeted migrations.
+
 ## Integrations
 
 You can integrate tfmigrate with your favorite CI/CD services. Examples are as follows:
@@ -832,3 +856,31 @@ You can integrate tfmigrate with your favorite CI/CD services. Examples are as f
 ## License
 
 MIT
+
+## Recent Updates
+
+### Multi-State Migrator Configuration
+The `MultiStateMigrator` now supports the following configurations:
+- **FromDir**: Specifies the working directory for the source state.
+- **ToDir**: Specifies the working directory for the destination state.
+- **Actions**: A list of state operations (e.g., `mv <source> <destination>`).
+- **Force**: Forces applying changes even if the plan shows differences.
+- **FromTfTarget**: Specifies the target parameter for the `from_tf` plan.
+- **ToWorkspace**: Specifies the workspace within the destination directory.
+
+### Migrator Options
+The `MigratorOption` has been enhanced to support dedicated execution paths for source and destination:
+- **SourceExecPath**: Path to the executable for the source.
+- **DestinationExecPath**: Path to the executable for the destination.
+
+### Terraform Plan Handling
+- Temporary plan files are now handled more robustly, ensuring proper cleanup.
+- Added support for specifying the `-out` option for plan files.
+
+### Terraform Plan JSON
+- Introduced structures to represent Terraform plans in JSON format, including:
+  - `TerraformPlanJSON`
+  - `ResourceChange`
+  - `OutputChange`
+
+These updates improve flexibility and robustness when working with multiple Terraform executables and managing state migrations.
