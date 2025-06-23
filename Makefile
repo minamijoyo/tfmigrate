@@ -47,3 +47,9 @@ legacy-tfstate:
 			-c \
 				"terraform init && \
 				terraform apply -auto-approve"
+
+# Update the install-binary target to use a symlink in ~/.local/bin
+.PHONY: install-binary
+install-binary: build
+	mkdir -p $(HOME)/.local/bin
+	ln -sf $(PWD)/bin/$(NAME) $(HOME)/.local/bin/$(NAME)
