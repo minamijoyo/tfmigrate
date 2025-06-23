@@ -8,45 +8,100 @@ import (
 	gcStorage "cloud.google.com/go/storage"
 )
 
-// A minimal interface to mock behavior of GCS client.
+// Client is an interface for GCS storage client.
 type Client interface {
-	// Read an object from a GCS bucket.
+	Write(ctx context.Context, b []byte) error
 	Read(ctx context.Context) ([]byte, error)
-
-	// Write an object onto a GCS bucket.
-	Write(ctx context.Context, p []byte) error
+	WriteLock(ctx context.Context) error
+	Unlock(ctx context.Context) error
 }
 
-// An implementation of Client that delegates actual operation to gcsStorage.Client.
+// Adapter implements the Client interface with *storage.Client.
 type Adapter struct {
-	// A config to specify which bucket and object we handle.
 	config Config
-	// A GCS client which is delegated actual operation.
 	client *gcStorage.Client
 }
 
+var _ Client = (*Adapter)(nil)
+
+// Write writes a blob to GCS.
+func (a Adapter) Write(ctx context.Context, b []byte) error {
+	bkt := a.client.Bucket(a.config.Bucket)
+	obj := bkt.Object(a.config.Name)
+	w := obj.NewWriter(ctx)
+	if _, err := w.Write(b); err != nil {
+		return err
+	}
+	if err := w.Close(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Read reads a blob from GCS.
 func (a Adapter) Read(ctx context.Context) ([]byte, error) {
-	r, err := a.client.Bucket(a.config.Bucket).Object(a.config.Name).NewReader(ctx)
+	bkt := a.client.Bucket(a.config.Bucket)
+	obj := bkt.Object(a.config.Name)
+
+	r, err := obj.NewReader(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer r.Close()
 
-	body, err := io.ReadAll(r)
+	b, err := io.ReadAll(r)
 	if err != nil {
-		return nil, fmt.Errorf("failed reading from gcs://%s/%s: %w", a.config.Bucket, a.config.Name, err)
+		return nil, err
 	}
-	return body, nil
+
+	return b, nil
 }
 
-func (a Adapter) Write(ctx context.Context, p []byte) error {
-	w := a.client.Bucket(a.config.Bucket).Object(a.config.Name).NewWriter(ctx)
-	_, err := w.Write(p)
+// WriteLock creates a lock file in the GCS bucket.
+func (a Adapter) WriteLock(ctx context.Context) error {
+	bkt := a.client.Bucket(a.config.Bucket)
+	lockObjName := a.config.Name + ".lock"
+	obj := bkt.Object(lockObjName)
 
-	if err != nil {
-		return fmt.Errorf("failed writing to gcs://%s/%s: %w", a.config.Bucket, a.config.Name, err)
+	// Check if lock file already exists
+	_, err := obj.Attrs(ctx)
+	if err == nil {
+		// Lock file exists
+		return fmt.Errorf("lock file already exists, another process may be running")
 	}
-	return w.Close()
+
+	if err != gcStorage.ErrObjectNotExist {
+		// Some other error occurred
+		return fmt.Errorf("failed to check lock file: %w", err)
+	}
+
+	// Create lock file
+	w := obj.NewWriter(ctx)
+	if _, err := w.Write([]byte("locked")); err != nil {
+		return fmt.Errorf("failed to write lock file: %w", err)
+	}
+
+	if err := w.Close(); err != nil {
+		return fmt.Errorf("failed to close lock file writer: %w", err)
+	}
+
+	return nil
+}
+
+// Unlock removes the lock file from the GCS bucket.
+func (a Adapter) Unlock(ctx context.Context) error {
+	bkt := a.client.Bucket(a.config.Bucket)
+	lockObjName := a.config.Name + ".lock"
+	obj := bkt.Object(lockObjName)
+
+	// Delete the lock file
+	err := obj.Delete(ctx)
+	if err != nil && err != gcStorage.ErrObjectNotExist {
+		// Error if delete fails, but ignore if the file doesn't exist
+		return fmt.Errorf("failed to delete lock file: %w", err)
+	}
+
+	return nil
 }
 
 // NewClient returns a new Client with given Context and Config.

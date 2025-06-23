@@ -222,8 +222,8 @@ func checkPlan(plan *tfexec.Plan, tf tfexec.TerraformCLI, er error) (bool, error
 			}
 
 			if !planJSON.HasChanges() {
-				log.Printf("[INFO] [migrator] plan has only output changes")
-				planJSON.LogOutputChanges()
+				log.Printf("[INFO] [migrator] plan has only output changes and irrelvant output changes")
+				planJSON.LogResourceChanges()
 				return true, nil
 			}
 

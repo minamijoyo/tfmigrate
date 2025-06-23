@@ -43,8 +43,41 @@ func (p *TerraformPlanJSON) HasChanges() bool {
 	for _, rc := range p.ResourceChanges {
 		// "no-op" means no changes - all other actions indicate changes
 		if len(rc.Change.Actions) != 1 || rc.Change.Actions[0] != "no-op" {
-			log.Printf("Change detected in resource: %s, actions: %v", rc.Address, rc.Change.Actions)
-			hasChanges = true
+			// Check if changes are only to tags
+			onlyTagChanges := false
+			if len(rc.Change.Actions) == 1 && rc.Change.Actions[0] == "update" {
+				before, beforeOk := rc.Change.Before.(map[string]interface{})
+				after, afterOk := rc.Change.After.(map[string]interface{})
+
+				if beforeOk && afterOk {
+					// Assume changes are only to tags unless we find otherwise
+					onlyTagChanges = true
+
+					// Compare all keys except "tags"
+					for k, v := range before {
+						if k != "tags" {
+							if afterVal, exists := after[k]; !exists || afterVal != v {
+								onlyTagChanges = false
+								break
+							}
+						}
+					}
+
+					for k := range after {
+						if k != "tags" && before[k] == nil {
+							onlyTagChanges = false
+							break
+						}
+					}
+				}
+			}
+
+			if !onlyTagChanges {
+				log.Printf("Change detected in resource: %s, actions: %v", rc.Address, rc.Change.Actions)
+				hasChanges = true
+			} else {
+				log.Printf("Ignoring tag-only changes in resource: %s", rc.Address)
+			}
 		}
 	}
 	return hasChanges
@@ -79,18 +112,6 @@ func (p *TerraformPlanJSON) LogResourceChanges() {
 		}
 		if rc.Change.After != nil {
 			log.Printf("  After: %v", rc.Change.After)
-		}
-	}
-}
-
-func (p *TerraformPlanJSON) LogOutputChanges() {
-	for name, oc := range p.OutputChanges {
-		log.Printf("Output Change: Name=%s, Actions=%v", name, oc.Change.Actions)
-		if oc.Change.Before != nil {
-			log.Printf("  Before: %v", oc.Change.Before)
-		}
-		if oc.Change.After != nil {
-			log.Printf("  After: %v", oc.Change.After)
 		}
 	}
 }

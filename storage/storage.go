@@ -14,4 +14,8 @@ type Storage interface {
 	// If the key does not exist, it is assumed to be uninitialized and returns
 	// an empty array instead of an error.
 	Read(ctx context.Context) ([]byte, error)
+
+	WriteLock(ctx context.Context) error
+
+	Unlock(ctx context.Context) error
 }

@@ -39,29 +39,23 @@ func (c *ApplyCommand) Run(args []string) int {
 	// So logging the option set log level to DEBUG instead of INFO.
 	log.Printf("[DEBUG] [command] option: %#v\n", c.Option)
 
-	if c.config.History == nil {
-		// non-history mode
-		if len(cmdFlags.Args()) != 1 {
-			c.UI.Error(fmt.Sprintf("The command expects 1 argument, but got %d", len(cmdFlags.Args())))
-			c.UI.Error(c.Help())
-			return 1
-		}
+	if len(cmdFlags.Args()) != 1 {
+		c.UI.Error(fmt.Sprintf("The command expects 1 argument, but got %d", len(cmdFlags.Args())))
+		c.UI.Error(c.Help())
+		return 1
+	}
 
+	// non-history mode
+	if c.config.History == nil {
 		migrationFile := cmdFlags.Arg(0)
 		if err = c.applyWithoutHistory(migrationFile); err != nil {
 			c.UI.Error(err.Error())
 			return 1
 		}
-
 		return 0
 	}
 
 	// history mode
-	if len(cmdFlags.Args()) > 1 {
-		c.UI.Error(fmt.Sprintf("The command expects 0 or 1 argument, but got %d", len(cmdFlags.Args())))
-		c.UI.Error(c.Help())
-		return 1
-	}
 
 	migrationFile := ""
 	if len(cmdFlags.Args()) == 1 {
@@ -91,6 +85,7 @@ func (c *ApplyCommand) applyWithoutHistory(filename string) error {
 // applyWithHistory is a helper function which applies all unapplied pending migrations and saves them to history.
 func (c *ApplyCommand) applyWithHistory(filename string) error {
 	ctx := context.Background()
+
 	hr, err := NewHistoryRunner(ctx, filename, c.config, c.Option)
 	if err != nil {
 		return err

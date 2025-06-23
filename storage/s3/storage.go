@@ -20,6 +20,12 @@ type Storage struct {
 	client Client
 }
 
+// WriteLock implements storage.Storage.
+// It creates a lock file in S3 if one doesn't already exist.
+
+// Unlock implements storage.Storage.
+// It deletes the lock file from S3.
+
 var _ storage.Storage = (*Storage)(nil)
 
 // NewStorage returns a new instance of Storage.
@@ -61,6 +67,7 @@ func (s *Storage) Write(ctx context.Context, b []byte) error {
 // If the key does not exist, it is assumed to be uninitialized and returns
 // an empty array instead of an error.
 func (s *Storage) Read(ctx context.Context) ([]byte, error) {
+
 	input := &s3.GetObjectInput{
 		Bucket: aws.String(s.config.Bucket),
 		Key:    aws.String(s.config.Key),
@@ -86,4 +93,44 @@ func (s *Storage) Read(ctx context.Context) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
+}
+
+// WriteLock implements storage.Storage.
+func (s *Storage) WriteLock(ctx context.Context) error {
+	lock_key := s.config.Key + ".lock"
+	input := &s3.PutObjectInput{
+		Bucket:      aws.String(s.config.Bucket),
+		Key:         aws.String(lock_key),
+		Body:        bytes.NewReader([]byte{}),
+		IfNoneMatch: aws.String("*"), // This ensures that the lock file is only created if it does not already exist.
+	}
+
+	if s.config.KmsKeyID != "" {
+		input.SSEKMSKeyId = &s.config.KmsKeyID
+		input.ServerSideEncryption = types.ServerSideEncryptionAwsKms
+	}
+
+	_, err := s.client.PutObject(ctx, input)
+
+	return err
+}
+
+func (s *Storage) Unlock(ctx context.Context) error {
+	lock_key := s.config.Key + ".lock"
+	input := &s3.DeleteObjectInput{
+		Bucket: aws.String(s.config.Bucket),
+		Key:    aws.String(lock_key),
+	}
+
+	_, err := s.client.DeleteObject(ctx, input)
+	if err != nil {
+		var nsk *types.NoSuchKey
+		if errors.As(err, &nsk) {
+			// If the key does not exist, it is not an error.
+			return nil
+		}
+		return err
+	}
+
+	return nil
 }

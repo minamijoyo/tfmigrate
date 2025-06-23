@@ -41,6 +41,33 @@ func (s *Storage) Write(_ context.Context, b []byte) error {
 	return nil
 }
 
+// WriteLock writes a lock file to storage.
+func (s *Storage) WriteLock(_ context.Context) error {
+	if s.config.WriteError {
+		return fmt.Errorf("failed to write lock in mock storage: writeError = %t", s.config.WriteError)
+	}
+
+	// Check if lock exists in config
+	if s.config.LockExists {
+		return fmt.Errorf("lock file already exists in mock storage")
+	}
+
+	// Set lock exists
+	s.config.LockExists = true
+	return nil
+}
+
+// Unlock removes a lock file from storage.
+func (s *Storage) Unlock(_ context.Context) error {
+	if s.config.WriteError {
+		return fmt.Errorf("failed to remove lock from mock storage: writeError = %t", s.config.WriteError)
+	}
+
+	// Reset lock status
+	s.config.LockExists = false
+	return nil
+}
+
 // Read reads migration history data from storage.
 func (s *Storage) Read(_ context.Context) ([]byte, error) {
 	if s.config.ReadError {

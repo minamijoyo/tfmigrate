@@ -10,6 +10,8 @@ type Config struct {
 	WriteError bool `hcl:"write_error"`
 	// ReadError is a flag to return an error on Read().
 	ReadError bool `hcl:"read_error"`
+	// LockExists is a flag to track if a lock file exists.
+	LockExists bool `hcl:"lock_exists"`
 
 	// A reference to an instance of mock storage for testing.
 	s *Storage

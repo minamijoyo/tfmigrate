@@ -174,3 +174,23 @@ func (c *Controller) AddRecord(filename string, migrationType string, name strin
 
 	c.history.Add(filename, r)
 }
+
+func (c *Controller) LockState() error {
+	s, err := c.config.Storage.NewStorage()
+	if err != nil {
+		return err
+	}
+
+	log.Printf("[DEBUG] [history] check lock state: %#v\n", s)
+	return s.WriteLock(context.Background())
+}
+
+func (c *Controller) UnlockState() error {
+	s, err := c.config.Storage.NewStorage()
+	if err != nil {
+		return err
+	}
+
+	log.Printf("[DEBUG] [history] unlock state: %#v\n", s)
+	return s.Unlock(context.Background())
+}

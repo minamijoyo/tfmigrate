@@ -2,6 +2,7 @@ package local
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/minamijoyo/tfmigrate/storage"
@@ -33,6 +34,40 @@ func (s *Storage) Write(_ context.Context, b []byte) error {
 	// We ignore it because a history file doesn't contains sensitive data.
 	// Note that changing a permission to 0600 is breaking change.
 	return os.WriteFile(s.config.Path, b, 0644)
+}
+
+// WriteLock writes a lock file to local storage.
+func (s *Storage) WriteLock(_ context.Context) error {
+	lockPath := s.config.Path + ".lock"
+	// Check if lock file already exists
+	if _, err := os.Stat(lockPath); err == nil {
+		// Lock file already exists
+		return fmt.Errorf("lock file already exists at %s", lockPath)
+	} else if !os.IsNotExist(err) {
+		// An unexpected error occurred
+		return fmt.Errorf("failed to check lock file at %s: %w", lockPath, err)
+	}
+
+	// Create lock file
+	f, err := os.Create(lockPath)
+	if err != nil {
+		return fmt.Errorf("failed to create lock file at %s: %w", lockPath, err)
+	}
+	return f.Close()
+}
+
+// Unlock removes a lock file from local storage.
+func (s *Storage) Unlock(_ context.Context) error {
+	lockPath := s.config.Path + ".lock"
+	// If lock file doesn't exist, it's not an error
+	if _, err := os.Stat(lockPath); os.IsNotExist(err) {
+		return nil
+	}
+	err := os.Remove(lockPath)
+	if err != nil {
+		return fmt.Errorf("failed to remove lock file at %s: %w", lockPath, err)
+	}
+	return nil
 }
 
 // Read reads migration history data from storage.

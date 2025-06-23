@@ -17,6 +17,28 @@ type Storage struct {
 	client Client
 }
 
+// WriteLock implements storage.Storage.
+// It creates a lock file in the GCS bucket to prevent concurrent modifications.
+func (s *Storage) WriteLock(ctx context.Context) error {
+	err := s.init(ctx)
+	if err != nil {
+		return err
+	}
+
+	return s.client.WriteLock(ctx)
+}
+
+// Unlock implements storage.Storage.
+// It removes the lock file from the GCS bucket.
+func (s *Storage) Unlock(ctx context.Context) error {
+	err := s.init(ctx)
+	if err != nil {
+		return err
+	}
+
+	return s.client.Unlock(ctx)
+}
+
 var _ storage.Storage = (*Storage)(nil)
 
 // NewStorage returns a new instance of Storage.

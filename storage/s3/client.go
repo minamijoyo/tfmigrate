@@ -17,6 +17,9 @@ type Client interface {
 	PutObject(ctx context.Context, params *s3.PutObjectInput, optFns ...func(*s3.Options)) (*s3.PutObjectOutput, error)
 	// GetObject gets a file from S3.
 	GetObject(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error)
+
+	// Note: Additional methods can be added as needed.
+	DeleteObject(ctx context.Context, params *s3.DeleteObjectInput, optFns ...func(*s3.Options)) (*s3.DeleteObjectOutput, error)
 }
 
 // client is a real implementation of the Client.
@@ -76,4 +79,8 @@ func (c *client) PutObject(ctx context.Context, params *s3.PutObjectInput, optFn
 // GetObject gets a file from S3.
 func (c *client) GetObject(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error) {
 	return c.s3Client.GetObject(ctx, params, optFns...)
+}
+
+func (c *client) DeleteObject(ctx context.Context, params *s3.DeleteObjectInput, optFns ...func(*s3.Options)) (*s3.DeleteObjectOutput, error) {
+	return c.s3Client.DeleteObject(ctx, params, optFns...)
 }

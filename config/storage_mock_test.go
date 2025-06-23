@@ -16,23 +16,24 @@ func TestParseMockStorageBlock(t *testing.T) {
 		ok     bool
 	}{
 		{
-			desc: "valid",
-			source: `
+			desc: "valid",    source: `
 tfmigrate {
   history {
     storage "mock" {
        data        = "foo"
        write_error = true
        read_error  = false
+       lock_exists = false
     }
   }
 }
 `,
-			want: &mock.Config{
-				Data:       "foo",
-				WriteError: true,
-				ReadError:  false,
-			},
+            want: &mock.Config{
+                Data:       "foo",
+                WriteError: true,
+                ReadError:  false,
+                LockExists: false,
+            },
 			ok: true,
 		},
 	}
