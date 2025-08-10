@@ -4,6 +4,8 @@ ENHANCEMENTS:
 
 * Add support for Terraform v1.12 ([#212](https://github.com/minamijoyo/tfmigrate/pull/212))
 * Use the OpenTofu installer instead of Docker image on test setup ([#213](https://github.com/minamijoyo/tfmigrate/pull/213))
+* chore: Update golang.org/x/crypto to v0.35.0 ([#215](https://github.com/minamijoyo/tfmigrate/pull/215))
+* Add support for OpenTofu v1.10 ([#219](https://github.com/minamijoyo/tfmigrate/pull/219))
 
 ## 0.4.2 (2025/04/28)
 
