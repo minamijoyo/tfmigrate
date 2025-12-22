@@ -1,5 +1,10 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Add support for Terraform v1.14 ([#223](https://github.com/minamijoyo/tfmigrate/pull/223))
+* Add support for OpenTofu v1.11 ([#224](https://github.com/minamijoyo/tfmigrate/pull/224))
+
 ## 0.4.3 (2025/08/10)
 
 ENHANCEMENTS:
