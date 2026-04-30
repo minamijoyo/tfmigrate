@@ -19,8 +19,8 @@ pushd "$WORK_DIR"
 cat << EOF > main.tf
 terraform {
   required_providers {
-    null = "3.2.1"
-    time = "0.9.1"
+    null = ">= 3.2.4"
+    time = ">= 0.13.1"
   }
 }
 EOF
