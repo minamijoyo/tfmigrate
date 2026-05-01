@@ -194,7 +194,7 @@ func (c *terraformCLI) Run(ctx context.Context, args ...string) (string, string,
 		}
 	}
 
-	cmd, err := c.Executor.NewCommandContext(ctx, name, args...)
+	cmd, err := c.NewCommandContext(ctx, name, args...)
 	if err != nil {
 		return "", "", err
 	}
