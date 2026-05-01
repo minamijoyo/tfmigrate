@@ -65,7 +65,7 @@ func loadMigrationFileNames(dir string) ([]string, error) {
 	for _, f := range files {
 		// skip a file without .hcl or .json extension.
 		ext := filepath.Ext(f.Name())
-		if !(ext == ".hcl" || ext == ".json") {
+		if ext != ".hcl" && ext != ".json" {
 			continue
 		}
 		// skip a hidden file such as .tfmigrate.hcl or .terraform.lock.hcl.
