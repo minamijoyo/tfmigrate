@@ -17,6 +17,8 @@ var version = "0.4.4"
 
 func main() {
 	log.SetOutput(logOutput())
+
+	// #nosec G706: Log injection via taint analysis
 	log.Printf("[DEBUG] [main] start: %s", strings.Join(os.Args, " "))
 	log.Printf("[DEBUG] [main] tfmigrate version: %s", version)
 

@@ -213,6 +213,8 @@ func setupTestWorkDir(source string) (string, error) {
 		return "", fmt.Errorf("failed to create work dir: %s", err)
 	}
 
+	// #nosec G703: Path traversal via taint analysis
+	// Test data is not user input.
 	if err := os.WriteFile(filepath.Join(workDir, testAccSourceFileName), []byte(source), 0600); err != nil {
 		os.RemoveAll(workDir)
 		return "", fmt.Errorf("failed to create main.tf: %s", err)
@@ -231,6 +233,7 @@ func setupTestPluginCacheDir(e Executor) error {
 
 	// Terraform v0.13+ doesn't create dir if not exist.
 	// So we create it if not exist.
+	// #nosec G703: Path traversal via taint analysis
 	err := os.MkdirAll(dir, 0700)
 	if err != nil {
 		return fmt.Errorf("failed to create plugin cache dir: %s", err)
@@ -382,6 +385,9 @@ func SetupTestAccWithApply(t *testing.T, workspace string, source string, opts .
 // UpdateTestAccSource updates a terraform configuration file with a given contents.
 func UpdateTestAccSource(t *testing.T, tf TerraformCLI, source string) {
 	t.Helper()
+
+	// #nosec G703: Path traversal via taint analysis
+	// Test data is not user input.
 	if err := os.WriteFile(filepath.Join(tf.Dir(), testAccSourceFileName), []byte(source), 0600); err != nil {
 		t.Fatalf("failed to update source: %s", err)
 	}
