@@ -1,5 +1,13 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Add support for Terraform v1.15 ([#225](https://github.com/minamijoyo/tfmigrate/pull/225))
+* Update Go to v1.26 ([#226](https://github.com/minamijoyo/tfmigrate/pull/226))
+* Update actions/checkout to v6 ([#227](https://github.com/minamijoyo/tfmigrate/pull/227))
+* Update setup-go to v6 ([#228](https://github.com/minamijoyo/tfmigrate/pull/228))
+* Update create-github-app-token to v3 ([#229](https://github.com/minamijoyo/tfmigrate/pull/229))* Update goreleaser-action to v7 ([#230](https://github.com/minamijoyo/tfmigrate/pull/230))
+
 ## 0.4.4 (2025/12/22)
 
 ENHANCEMENTS:
