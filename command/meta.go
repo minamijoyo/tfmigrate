@@ -48,6 +48,7 @@ func newConfig(filename string) (*config.TfmigrateConfig, error) {
 		}
 	}
 
+	// #nosec G706: Log injection via taint analysis
 	log.Printf("[DEBUG] [command] load configuration file: %s\n", pathToLoad)
 	return config.LoadConfigurationFile(pathToLoad)
 }

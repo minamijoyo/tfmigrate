@@ -1,13 +1,24 @@
-# https://golangci-lint.run/usage/configuration/
+# https://golangci-lint.run/docs/configuration/file/
+version: "2"
 linters:
-  disable-all: true
+  default: none
   enable:
     - errcheck
-    - goimports
     - gosec
-    - gosimple
     - govet
     - ineffassign
+    - misspell
     - revive
     - staticcheck
-    - misspell
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+formatters:
+  enable:
+    - goimports
+  exclusions:
+    generated: lax

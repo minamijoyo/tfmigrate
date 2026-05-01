@@ -275,6 +275,7 @@ resource "null_resource" "bar" {}
 	}
 
 	filename := "_tfexec_override.tf"
+	// #nosec G703: Path traversal via taint analysis
 	if _, err := os.Stat(filepath.Join(terraformCLI.Dir(), filename)); err == nil {
 		t.Fatalf("an override file already exists: %s", err)
 	}
@@ -289,6 +290,7 @@ resource "null_resource" "bar" {}
 		t.Fatalf("failed to run OverrideBackendToLocal: %s", err)
 	}
 
+	// #nosec G703: Path traversal via taint analysis
 	if _, err := os.Stat(filepath.Join(terraformCLI.Dir(), filename)); os.IsNotExist(err) {
 		t.Fatalf("the override file does not exist: %s", err)
 	}
@@ -311,6 +313,7 @@ resource "null_resource" "bar" {}
 		t.Fatalf("unexpected err switching back to remote backend: %s", err)
 	}
 
+	// #nosec G703: Path traversal via taint analysis
 	if _, err := os.Stat(filepath.Join(terraformCLI.Dir(), filename)); err == nil {
 		t.Fatalf("the override file wasn't removed: %s", err)
 	}

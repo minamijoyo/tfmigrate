@@ -51,6 +51,8 @@ func NewExecutor(dir string, env []string) Executor {
 
 // NewCommandContext builds and returns an instance of Command.
 func (e *executor) NewCommandContext(ctx context.Context, name string, args ...string) (Command, error) {
+	// #nosec G702: Command injection via taint analysis
+	// By design, you can replace commands in TFMIGRATE_EXEC_PATH.
 	osExecCmd := exec.CommandContext(ctx, name, args...)
 	stdout := &bytes.Buffer{}
 	stderr := &bytes.Buffer{}
@@ -68,10 +70,14 @@ func (e *executor) NewCommandContext(ctx context.Context, name string, args ...s
 
 // Run executes a command.
 func (e *executor) Run(cmd Command) error {
+	// #nosec G706: Log injection via taint analysis
+	// Including user input in the debug log is acceptable.
 	log.Printf("[DEBUG] [executor@%s]$ %s", e.dir, strings.Join(cmd.Args(), " "))
 	err := cmd.Run()
+	// #nosec G706: Log injection via taint analysis
 	log.Printf("[TRACE] [executor@%s] cmd=%s ", e.dir, spew.Sdump(cmd))
 	if err != nil {
+		// #nosec G706: Log injection via taint analysis
 		log.Printf("[DEBUG] [executor@%s] failed to run command: %s", e.dir, spew.Sdump(err))
 		if osExecErr, ok := err.(*exec.ExitError); ok {
 			return &exitError{
