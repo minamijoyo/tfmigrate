@@ -1,3 +1,4 @@
+# https://golangci-lint.run/docs/configuration/file/
 version: "2"
 linters:
   default: none
