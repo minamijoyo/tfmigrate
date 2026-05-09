@@ -333,6 +333,25 @@ $ make install
 $ tfmigrate --version
 ```
 
+### GitHub Actions
+
+If you want to use tfmigrate in GitHub Actions, you can use the following action:
+
+```yaml
+steps:
+  - uses: ponkio-o/setup-tfmigrate@v0.1.0
+    with:
+    version: <version> # optional, defaults to latest
+```
+
+### aqua
+
+A declarative CLI Version Manager [aqua](https://aquaproj.github.io/) can install tfmigrate.
+
+```shell
+$ aqua g -i minamijoyo/tfmigrate
+```
+
 ## Usage
 
 ```
