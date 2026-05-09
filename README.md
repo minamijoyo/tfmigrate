@@ -3,6 +3,8 @@
 [![GitHub release](https://img.shields.io/github/release/minamijoyo/tfmigrate.svg)](https://github.com/minamijoyo/tfmigrate/releases/latest)
 [![GoDoc](https://godoc.org/github.com/minamijoyo/tfmigrate/tfmigrate?status.svg)](https://godoc.org/github.com/minamijoyo/tfmigrate)
 
+<img width="250" height="250" alt="tfmigrate_logo" src="https://github.com/user-attachments/assets/64e877fc-2784-42f8-8b66-8d5ac50e19c6" />
+
 A Terraform / OpenTofu state migration tool for GitOps.
 
 ## Table of content
