@@ -95,6 +95,20 @@ func TestXmvExpanderExpand(t *testing.T) {
 			outputMvActions: []*StateMvAction{},
 		},
 		{
+			desc:      "module-scoped resource with same type and name is not matched by a root pattern (issue #174)",
+			stateList: []string{"module.example.azurerm_network_security_group.example[\"bar\"]", "azurerm_network_security_group.example[\"bar\"]"},
+			inputXMvAction: &StateXmvAction{
+				source:      "azurerm_network_security_group.example[\"*\"]",
+				destination: "azurerm_network_security_group.example[\"$1\"]",
+			},
+			outputMvActions: []*StateMvAction{
+				{
+					source:      "azurerm_network_security_group.example[\"bar\"]",
+					destination: "azurerm_network_security_group.example[\"bar\"]",
+				},
+			},
+		},
+		{
 			desc:      "documented feature; positional matching for example to allow switching matches from place",
 			stateList: []string{"module[\"bar\"].null_resource.foo"},
 			inputXMvAction: &StateXmvAction{

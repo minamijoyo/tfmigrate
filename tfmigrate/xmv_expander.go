@@ -32,9 +32,12 @@ func makeSourceMatchPattern(s string) string {
 }
 
 // makeSrcRegex returns a regex that will do matching based on the wildcard
-// source that was given.
+// source that was given. The pattern is anchored to the start and end of the
+// resource address so a root-pattern like `azurerm_network_security_group.example["*"]`
+// does not match a module-scoped resource such as
+// `module.example.azurerm_network_security_group.example["bar"]` (see #174).
 func makeSrcRegex(source string) (*regexp.Regexp, error) {
-	regPattern := makeSourceMatchPattern(source)
+	regPattern := "^" + makeSourceMatchPattern(source) + "$"
 	regExpression, err := regexp.Compile(regPattern)
 	if err != nil {
 		return nil, fmt.Errorf("could not make pattern out of %s (%s) due to %s", source, regPattern, err)
