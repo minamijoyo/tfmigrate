@@ -39,8 +39,8 @@ jobs:
       fail-fast: false
       matrix:
         terraform:
-        - 1.15.0
-        - 1.14.9
+        - 1.16.4
+        - 1.15.9
         - 0.12.31
     env:
       TERRAFORM_VERSION: ${{ matrix.terraform }}
