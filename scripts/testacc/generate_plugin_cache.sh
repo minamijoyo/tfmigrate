@@ -31,7 +31,7 @@ EOF
 # available in Terraform v0.13+, but it is hard to compare versions in bash,
 # so we use the mirror unless v0.x.
 # https://developer.hashicorp.com/terraform/cli/config/config-file#implied-local-mirror-directories
-if "$TFMIGRATE_EXEC_PATH" -v | grep 'Terraform v0\.'; then
+if "$TFMIGRATE_EXEC_PATH" version | grep 'Terraform v0\.'; then
   echo "skip creating an implied local mirror"
 else
   FS_MIRROR="/tmp/plugin-mirror"
