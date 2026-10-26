@@ -64,8 +64,8 @@ jobs:
       fail-fast: false
       matrix:
         opentofu:
-        - 1.12.6
-        - 1.11.14
+        - 1.13.2
+        - 1.12.9
         - 1.6.3
     env:
       OPENTOFU_VERSION: ${{ matrix.opentofu }}
